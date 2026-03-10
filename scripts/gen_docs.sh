@@ -25,6 +25,7 @@ EXAMPLES=(
     phylo
     pie
     sankey
+    scale
     scatter
     series
     stacked_area
