@@ -176,6 +176,15 @@ pub struct Layout {
     pub minor_ticks: Option<u32>,
     /// Draw faint gridlines at minor tick positions (requires `minor_ticks`).
     pub show_minor_grid: bool,
+    /// Pixel offset applied to the x-axis label after auto-positioning: `(dx, dy)`.
+    /// Positive dx shifts right; positive dy shifts down.
+    pub x_label_offset: (f64, f64),
+    /// Pixel offset applied to the y-axis label after auto-positioning: `(dx, dy)`.
+    /// Positive dx shifts right (away from the left edge); positive dy shifts down.
+    pub y_label_offset: (f64, f64),
+    /// Pixel offset applied to the y2-axis label after auto-positioning: `(dx, dy)`.
+    /// Positive dx shifts right (further from the right axis); positive dy shifts down.
+    pub y2_label_offset: (f64, f64),
 }
 
 impl Layout {
@@ -237,6 +246,9 @@ impl Layout {
             y_tick_step: None,
             minor_ticks: None,
             show_minor_grid: false,
+            x_label_offset: (0.0, 0.0),
+            y_label_offset: (0.0, 0.0),
+            y2_label_offset: (0.0, 0.0),
         }
     }
 
@@ -617,6 +629,20 @@ impl Layout {
         self
     }
 
+    /// Shift the x-axis label by `(dx, dy)` pixels from its auto-computed position.
+    /// Positive `dx` moves right; positive `dy` moves down.
+    pub fn with_x_label_offset(mut self, dx: f64, dy: f64) -> Self {
+        self.x_label_offset = (dx, dy);
+        self
+    }
+
+    /// Shift the y-axis label by `(dx, dy)` pixels from its auto-computed position.
+    /// Positive `dx` moves right (away from the left edge); positive `dy` moves down.
+    pub fn with_y_label_offset(mut self, dx: f64, dy: f64) -> Self {
+        self.y_label_offset = (dx, dy);
+        self
+    }
+
     pub fn with_ticks(mut self, ticks: usize) -> Self {
         self.ticks = ticks;
         self
@@ -750,6 +776,13 @@ impl Layout {
 
     pub fn with_y2_label<S: Into<String>>(mut self, label: S) -> Self {
         self.y2_label = Some(label.into());
+        self
+    }
+
+    /// Shift the y2-axis label by `(dx, dy)` pixels from its auto-computed position.
+    /// Positive `dx` moves right (further from the right axis); positive `dy` moves down.
+    pub fn with_y2_label_offset(mut self, dx: f64, dy: f64) -> Self {
+        self.y2_label_offset = (dx, dy);
         self
     }
 

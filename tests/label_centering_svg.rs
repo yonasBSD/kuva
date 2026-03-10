@@ -6,16 +6,26 @@ use kuva::render::plots::Plot;
 use kuva::render::render::{render_multiple, render_twin_y};
 use kuva::backend::svg::SvgBackend;
 
-/// Extract the `x` attribute value from the first SVG `<text>` element whose
-/// content matches `text`. Searches for `>text<` in the SVG string, walks
-/// backward to the nearest `x="..."` attribute, and parses it as f64.
+/// Extract the `x` attribute value from the SVG `<text>` element whose content
+/// matches `text`. Finds `>text<`, walks back to the nearest `x="..."`.
 fn extract_text_x(svg: &str, text: &str) -> Option<f64> {
     let needle = format!(">{}<", text);
     let pos = svg.find(&needle)?;
-    // Walk backwards from pos to find x="..."
     let before = &svg[..pos];
     let x_attr = before.rfind("x=\"")?;
     let after_quote = &before[x_attr + 3..];
+    let end = after_quote.find('"')?;
+    after_quote[..end].parse::<f64>().ok()
+}
+
+/// Extract the `y` attribute value from the SVG `<text>` element whose content
+/// matches `text`. Finds `>text<`, walks back to the nearest `y="..."`.
+fn extract_text_y(svg: &str, text: &str) -> Option<f64> {
+    let needle = format!(">{}<", text);
+    let pos = svg.find(&needle)?;
+    let before = &svg[..pos];
+    let y_attr = before.rfind("y=\"")?;
+    let after_quote = &before[y_attr + 3..];
     let end = after_quote.find('"')?;
     after_quote[..end].parse::<f64>().ok()
 }
@@ -137,5 +147,122 @@ fn test_title_centred_pie_outside_labels() {
         (title_x - expected_x).abs() < 1.0,
         "pie title x={title_x:.1} should equal margin_left+plot_width/2={expected_x:.1} \
          (canvas={canvas_width:.1}, ml={margin_left:.1}, mr={margin_right:.1})"
+    );
+}
+
+// ── Label offset API tests ────────────────────────────────────────────────────
+
+fn make_scatter_plots() -> Vec<Plot> {
+    let data = vec![(1.0f64, 2.0f64), (3.0, 4.0), (5.0, 6.0)];
+    vec![Plot::Scatter(ScatterPlot::new().with_data(data))]
+}
+
+fn make_twin_y_plots() -> (Vec<Plot>, Vec<Plot>) {
+    let primary = vec![Plot::Line(
+        LinePlot::new().with_data(vec![(1.0f64, 5.0f64), (2.0, 8.0), (3.0, 14.0)]),
+    )];
+    let secondary = vec![Plot::Line(
+        LinePlot::new().with_data(vec![(1.0f64, 80.0f64), (2.0, 60.0), (3.0, 45.0)]),
+    )];
+    (primary, secondary)
+}
+
+#[test]
+fn test_x_label_offset() {
+    let (dx, dy) = (20.0_f64, -5.0_f64);
+
+    // Baseline — no offset
+    let plots = make_scatter_plots();
+    let layout = Layout::auto_from_plots(&plots).with_x_label("XLbl");
+    let svg_base = SvgBackend.render_scene(&render_multiple(plots, layout));
+
+    // With offset
+    let plots = make_scatter_plots();
+    let layout = Layout::auto_from_plots(&plots)
+        .with_x_label("XLbl")
+        .with_x_label_offset(dx, dy);
+    let svg_off = SvgBackend.render_scene(&render_multiple(plots, layout));
+
+    std::fs::write("test_outputs/x_label_offset.svg", &svg_off).unwrap();
+
+    let base_x = extract_text_x(&svg_base, "XLbl").expect("base x-label not found");
+    let base_y = extract_text_y(&svg_base, "XLbl").expect("base y not found");
+    let off_x  = extract_text_x(&svg_off,  "XLbl").expect("offset x-label not found");
+    let off_y  = extract_text_y(&svg_off,  "XLbl").expect("offset y not found");
+
+    assert!(
+        (off_x - base_x - dx).abs() < 0.5,
+        "x-label x: expected shift {dx}, got {:.1} → {:.1}", base_x, off_x
+    );
+    assert!(
+        (off_y - base_y - dy).abs() < 0.5,
+        "x-label y: expected shift {dy}, got {:.1} → {:.1}", base_y, off_y
+    );
+}
+
+#[test]
+fn test_y_label_offset() {
+    let (dx, dy) = (8.0_f64, 15.0_f64);
+
+    // Baseline
+    let plots = make_scatter_plots();
+    let layout = Layout::auto_from_plots(&plots).with_y_label("YLbl");
+    let svg_base = SvgBackend.render_scene(&render_multiple(plots, layout));
+
+    // With offset
+    let plots = make_scatter_plots();
+    let layout = Layout::auto_from_plots(&plots)
+        .with_y_label("YLbl")
+        .with_y_label_offset(dx, dy);
+    let svg_off = SvgBackend.render_scene(&render_multiple(plots, layout));
+
+    std::fs::write("test_outputs/y_label_offset.svg", &svg_off).unwrap();
+
+    let base_x = extract_text_x(&svg_base, "YLbl").expect("base y-label x not found");
+    let base_y = extract_text_y(&svg_base, "YLbl").expect("base y-label y not found");
+    let off_x  = extract_text_x(&svg_off,  "YLbl").expect("offset y-label x not found");
+    let off_y  = extract_text_y(&svg_off,  "YLbl").expect("offset y-label y not found");
+
+    assert!(
+        (off_x - base_x - dx).abs() < 0.5,
+        "y-label x: expected shift {dx}, got {:.1} → {:.1}", base_x, off_x
+    );
+    assert!(
+        (off_y - base_y - dy).abs() < 0.5,
+        "y-label y: expected shift {dy}, got {:.1} → {:.1}", base_y, off_y
+    );
+}
+
+#[test]
+fn test_y2_label_offset() {
+    let (dx, dy) = (-10.0_f64, 20.0_f64);
+
+    // Baseline
+    let (primary, secondary) = make_twin_y_plots();
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
+        .with_y2_label("Y2Lbl");
+    let svg_base = SvgBackend.render_scene(&render_twin_y(primary, secondary, layout));
+
+    // With offset
+    let (primary, secondary) = make_twin_y_plots();
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
+        .with_y2_label("Y2Lbl")
+        .with_y2_label_offset(dx, dy);
+    let svg_off = SvgBackend.render_scene(&render_twin_y(primary, secondary, layout));
+
+    std::fs::write("test_outputs/y2_label_offset.svg", &svg_off).unwrap();
+
+    let base_x = extract_text_x(&svg_base, "Y2Lbl").expect("base y2-label x not found");
+    let base_y = extract_text_y(&svg_base, "Y2Lbl").expect("base y2-label y not found");
+    let off_x  = extract_text_x(&svg_off,  "Y2Lbl").expect("offset y2-label x not found");
+    let off_y  = extract_text_y(&svg_off,  "Y2Lbl").expect("offset y2-label y not found");
+
+    assert!(
+        (off_x - base_x - dx).abs() < 0.5,
+        "y2-label x: expected shift {dx}, got {:.1} → {:.1}", base_x, off_x
+    );
+    assert!(
+        (off_y - base_y - dy).abs() < 0.5,
+        "y2-label y: expected shift {dy}, got {:.1} → {:.1}", base_y, off_y
     );
 }

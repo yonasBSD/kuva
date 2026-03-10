@@ -437,9 +437,10 @@ pub fn add_y2_axis(scene: &mut Scene, computed: &ComputedLayout, layout: &Layout
     }
 
     if let Some(ref label) = layout.y2_label {
+        let (dx, dy) = layout.y2_label_offset;
         scene.add(Primitive::Text {
-            x: axis_x + computed.y2_axis_width - computed.label_size as f64 * 0.5,
-            y: computed.height / 2.0,
+            x: axis_x + computed.y2_axis_width - computed.label_size as f64 * 0.5 + dx,
+            y: computed.height / 2.0 + dy,
             content: label.clone(),
             size: computed.label_size,
             anchor: TextAnchor::Middle,
@@ -453,9 +454,10 @@ pub fn add_labels_and_title(scene: &mut Scene, computed: &ComputedLayout, layout
     // X Axis Label
     if !layout.suppress_x_ticks {
         if let Some(label) = &layout.x_label {
+            let (dx, dy) = layout.x_label_offset;
             scene.add(Primitive::Text {
-                x: computed.margin_left + computed.plot_width() / 2.0,
-                y: computed.height - computed.label_size as f64 * 0.5,
+                x: computed.margin_left + computed.plot_width() / 2.0 + dx,
+                y: computed.height - computed.label_size as f64 * 0.5 + dy,
                 content: label.clone(),
                 size: computed.label_size,
                 anchor: TextAnchor::Middle,
@@ -468,9 +470,10 @@ pub fn add_labels_and_title(scene: &mut Scene, computed: &ComputedLayout, layout
     // Y Axis Label
     if !layout.suppress_y_ticks {
         if let Some(label) = &layout.y_label {
+            let (dx, dy) = layout.y_label_offset;
             scene.add(Primitive::Text {
-                x: computed.label_size as f64,
-                y: computed.height / 2.0,
+                x: computed.label_size as f64 + dx,
+                y: computed.height / 2.0 + dy,
                 content: label.clone(),
                 size: computed.label_size,
                 anchor: TextAnchor::Middle,

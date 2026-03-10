@@ -521,6 +521,9 @@ fn clone_layout(l: &Layout) -> Layout {
     new.x_datetime = l.x_datetime.clone();
     new.y_datetime = l.y_datetime.clone();
     new.x_tick_rotate = l.x_tick_rotate;
+    new.x_label_offset = l.x_label_offset;
+    new.y_label_offset = l.y_label_offset;
+    new.y2_label_offset = l.y2_label_offset;
     new
 }
 
