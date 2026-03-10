@@ -833,12 +833,36 @@ impl Layout {
         let mut x_max = self.x_range.1;
         let mut y2_min = f64::INFINITY;
         let mut y2_max = f64::NEG_INFINITY;
+        let mut max_secondary_label: usize = 0;
         for plot in secondary {
             if let Some(((xlo, xhi), (ylo, yhi))) = plot.bounds() {
                 x_min = x_min.min(xlo);
                 x_max = x_max.max(xhi);
                 y2_min = y2_min.min(ylo);
                 y2_max = y2_max.max(yhi);
+            }
+            // Collect legend label lengths so legend_width covers secondary labels too.
+            match plot {
+                Plot::Scatter(p)     => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Line(p)        => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Series(p)      => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Band(p)        => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Histogram(p)   => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Box(p)         => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Violin(p)      => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Strip(p)       => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Waterfall(p)   => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Candlestick(p) => if let Some(l) = &p.legend_label { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::StackedArea(p) => for l in p.labels.iter().flatten() { max_secondary_label = max_secondary_label.max(l.len()); }
+                Plot::Bar(p)         => if let Some(ll) = &p.legend_label { for l in ll { max_secondary_label = max_secondary_label.max(l.len()); } }
+                _ => {}
+            }
+        }
+        if max_secondary_label > 0 {
+            let needed = max_secondary_label as f64 * 7.0 + 35.0;
+            if needed > self.legend_width {
+                self.legend_width = needed;
+                self.show_legend = true;
             }
         }
         self.x_range = (x_min, x_max);

@@ -1,9 +1,21 @@
 use kuva::plot::line::LinePlot;
-use kuva::render::layout::Layout;
+use kuva::plot::bar::BarPlot;
+use kuva::plot::histogram::Histogram;
+use kuva::render::layout::{Layout, ComputedLayout};
 use kuva::render::plots::Plot;
 use kuva::render::render::render_twin_y;
 use kuva::backend::svg::SvgBackend;
 use kuva::Palette;
+
+fn extract_text_x(svg: &str, text: &str) -> Option<f64> {
+    let needle = format!(">{}<", text);
+    let pos = svg.find(&needle)?;
+    let before = &svg[..pos];
+    let x_attr = before.rfind("x=\"")?;
+    let after_quote = &before[x_attr + 3..];
+    let end = after_quote.find('"')?;
+    after_quote[..end].parse::<f64>().ok()
+}
 
 fn make_temperature_line() -> Plot {
     let points: Vec<(f64, f64)> = vec![
@@ -126,4 +138,81 @@ fn test_twin_y_multiplot() {
     assert!(svg.contains("Rainfall"), "SVG should contain the secondary series legend label");
     // RightTop legend is placed in the right margin — it should appear after the plot area elements
     assert!(svg.contains("x1="), "SVG should contain axis line elements");
+}
+
+#[test]
+fn test_twin_y_y_label_position() {
+    let primary = vec![make_temperature_line()];
+    let secondary = vec![make_rainfall_line()];
+
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
+        .with_y_label("Temp");
+    let computed = ComputedLayout::from_layout(&layout);
+    let scene = render_twin_y(primary, secondary, layout);
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/twin_y_y_label_pos.svg", svg.clone()).unwrap();
+
+    let label_x = extract_text_x(&svg, "Temp").expect("y-label 'Temp' not found in SVG");
+    let expected_x = computed.label_size as f64 * 0.5;
+    assert!(
+        (label_x - expected_x).abs() < 0.5,
+        "y-label x ({label_x}) should be ~{expected_x} (label_size * 0.5)"
+    );
+}
+
+#[test]
+fn test_twin_y_bar_primary() {
+    let bar = Plot::Bar(
+        BarPlot::new()
+            .with_bar("A", 10.0)
+            .with_bar("B", 20.0)
+            .with_legend(vec!["Counts"]),
+    );
+    let secondary = vec![make_rainfall_line()];
+    let primary = vec![bar];
+
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary);
+    let scene = render_twin_y(primary, secondary, layout);
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/twin_y_bar_primary.svg", svg.clone()).unwrap();
+
+    assert!(svg.contains("<rect"), "SVG should contain <rect elements (bars rendered)");
+}
+
+#[test]
+fn test_twin_y_bar_secondary() {
+    let bar = Plot::Bar(
+        BarPlot::new()
+            .with_bar("A", 100.0)
+            .with_bar("B", 200.0)
+            .with_legend(vec!["Secondary"]),
+    );
+    let primary = vec![make_temperature_line()];
+    let secondary = vec![bar];
+
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary);
+    let scene = render_twin_y(primary, secondary, layout);
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/twin_y_bar_secondary.svg", svg.clone()).unwrap();
+
+    assert!(svg.contains("<rect"), "SVG should contain <rect elements (bars rendered)");
+}
+
+#[test]
+fn test_twin_y_histogram_primary() {
+    let data: Vec<f64> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+    let hist = Plot::Histogram(
+        Histogram::new()
+            .with_data(data)
+            .with_range((0.0, 10.0)),
+    );
+    let primary = vec![hist];
+    let secondary = vec![make_rainfall_line()];
+
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary);
+    let scene = render_twin_y(primary, secondary, layout);
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/twin_y_histogram_primary.svg", svg.clone()).unwrap();
+
+    assert!(svg.contains("<rect"), "SVG should contain <rect elements (histogram bars rendered)");
 }

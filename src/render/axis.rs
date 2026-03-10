@@ -472,7 +472,7 @@ pub fn add_labels_and_title(scene: &mut Scene, computed: &ComputedLayout, layout
         if let Some(label) = &layout.y_label {
             let (dx, dy) = layout.y_label_offset;
             scene.add(Primitive::Text {
-                x: computed.label_size as f64 + dx,
+                x: computed.label_size as f64 * 0.5 + dx,
                 y: computed.height / 2.0 + dy,
                 content: label.clone(),
                 size: computed.label_size,

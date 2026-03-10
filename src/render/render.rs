@@ -4350,7 +4350,7 @@ pub fn render_twin_y(primary: Vec<Plot>, secondary: Vec<Plot>, layout: Layout) -
         for plot in primary.iter_mut().chain(secondary.iter_mut()) {
             match plot {
                 Plot::Scatter(_) | Plot::Line(_) | Plot::Series(_) |
-                Plot::Histogram(_) | Plot::Box(_) | Plot::Violin(_) | Plot::Band(_) => {
+                Plot::Histogram(_) | Plot::Box(_) | Plot::Violin(_) | Plot::Band(_) | Plot::Strip(_) => {
                     plot.set_color(&palette[color_idx]);
                     color_idx += 1;
                 }
@@ -4372,19 +4372,35 @@ pub fn render_twin_y(primary: Vec<Plot>, secondary: Vec<Plot>, layout: Layout) -
 
     for plot in primary.iter() {
         match plot {
-            Plot::Scatter(s) => add_scatter(s, &mut scene, &computed),
-            Plot::Line(l)    => add_line(l, &mut scene, &computed),
-            Plot::Series(s)  => add_series(s, &mut scene, &computed),
-            Plot::Band(b)    => add_band(b, &mut scene, &computed),
+            Plot::Scatter(s)     => add_scatter(s, &mut scene, &computed),
+            Plot::Line(l)        => add_line(l, &mut scene, &computed),
+            Plot::Series(s)      => add_series(s, &mut scene, &computed),
+            Plot::Band(b)        => add_band(b, &mut scene, &computed),
+            Plot::Bar(b)         => add_bar(b, &mut scene, &computed),
+            Plot::Histogram(h)   => add_histogram(h, &mut scene, &computed),
+            Plot::Box(b)         => add_boxplot(b, &mut scene, &computed),
+            Plot::Violin(v)      => add_violin(v, &mut scene, &computed),
+            Plot::Strip(s)       => add_strip(s, &mut scene, &computed),
+            Plot::StackedArea(s) => add_stacked_area(s, &mut scene, &computed),
+            Plot::Waterfall(w)   => add_waterfall(w, &mut scene, &computed),
+            Plot::Candlestick(c) => add_candlestick(c, &mut scene, &computed),
             _ => {}
         }
     }
     for plot in secondary.iter() {
         match plot {
-            Plot::Scatter(s) => add_scatter(s, &mut scene, &computed_y2),
-            Plot::Line(l)    => add_line(l, &mut scene, &computed_y2),
-            Plot::Series(s)  => add_series(s, &mut scene, &computed_y2),
-            Plot::Band(b)    => add_band(b, &mut scene, &computed_y2),
+            Plot::Scatter(s)     => add_scatter(s, &mut scene, &computed_y2),
+            Plot::Line(l)        => add_line(l, &mut scene, &computed_y2),
+            Plot::Series(s)      => add_series(s, &mut scene, &computed_y2),
+            Plot::Band(b)        => add_band(b, &mut scene, &computed_y2),
+            Plot::Bar(b)         => add_bar(b, &mut scene, &computed_y2),
+            Plot::Histogram(h)   => add_histogram(h, &mut scene, &computed_y2),
+            Plot::Box(b)         => add_boxplot(b, &mut scene, &computed_y2),
+            Plot::Violin(v)      => add_violin(v, &mut scene, &computed_y2),
+            Plot::Strip(s)       => add_strip(s, &mut scene, &computed_y2),
+            Plot::StackedArea(s) => add_stacked_area(s, &mut scene, &computed_y2),
+            Plot::Waterfall(w)   => add_waterfall(w, &mut scene, &computed_y2),
+            Plot::Candlestick(c) => add_candlestick(c, &mut scene, &computed_y2),
             _ => {}
         }
     }
