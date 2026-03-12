@@ -90,6 +90,7 @@ Click any image to go to the full documentation page.
 </a></div>
 
 <div class="gallery-card"><a href="./plots/ridgeline.html">
+<img src="./assets/ridgeline/temperature.svg" alt="Ridgeline Plot">
 <div class="gallery-caption">Ridgeline Plot</div>
 <div class="gallery-desc">Stacked KDE density curves per group — the classic joyplot for comparing distributions.</div>
 </a></div>
