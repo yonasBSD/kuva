@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed an issue where manually set x- and y-axis minimum/maximum values were dropped in multi-panel figures.
 
+- **Terminal y-axis label** — `--y-label` text is now rendered vertically (one character per row) in `--terminal` mode instead of horizontally, preventing overlap with the plot area.
+- **Terminal legend swatches** — circle-based legend swatches (scatter, density, volcano, manhattan, etc.) now show their actual series color instead of being masked by the legend background in `--terminal` mode.
+
 ---
 
 ## [0.1.4] — 2026-03-12

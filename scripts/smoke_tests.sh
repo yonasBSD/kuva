@@ -245,6 +245,15 @@ check "hist2d fine bins" \
     "$BIN" hist2d "$DATA/hist2d.tsv" --x x --y y --bins-x 30 --bins-y 30 --correlation \
         --title "2D Density" --x-label "X" --y-label "Y"
 
+check "hist2d explicit range clips outliers" \
+    "$BIN" hist2d "$DATA/hist2d.tsv" --x x --y y --bins-x 20 --bins-y 20 \
+        --x-min 20 --x-max 50 --y-min 20 --y-max 50 \
+        --title "hist2d clipped range" --x-label "X" --y-label "Y"
+
+check "hist2d turbo colormap" \
+    "$BIN" hist2d "$DATA/hist2d.tsv" --x x --y y --bins-x 20 --bins-y 20 \
+        --colormap turbo --title "hist2d turbo" --x-label "X" --y-label "Y"
+
 # ── contour ───────────────────────────────────────────────────────────────────
 check "contour basic" \
     "$BIN" contour "$DATA/contour.tsv" --x x --y y --z density \
@@ -316,6 +325,12 @@ check "density filled color-by" \
     "$BIN" density "$DATA/samples.tsv" \
         --value expression --color-by group --filled \
         --title "Density by group"
+
+check "density x-range bounded" \
+    "$BIN" density "$DATA/samples.tsv" \
+        --value expression --x-min 0 --x-max 10 \
+        --x-label "Expression" --y-label "Density" \
+        --title "Density bounded range"
 
 # ── ridgeline ─────────────────────────────────────────────────────────────────
 check "ridgeline basic" \

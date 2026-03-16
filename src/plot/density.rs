@@ -41,6 +41,11 @@ pub struct DensityPlot {
     pub line_dash: Option<String>,
     /// Pre-smoothed (x, y) curve; bypasses KDE when set.
     pub precomputed: Option<(Vec<f64>, Vec<f64>)>,
+    /// Clamp KDE evaluation to this x range. Useful for bounded data (e.g.
+    /// methylation β-values or frequencies in [0, 1]) where the default
+    /// behaviour of extending 3×bandwidth beyond the data extremes produces a
+    /// curve that bleeds into physically impossible negative values.
+    pub x_range: Option<(f64, f64)>,
 }
 
 impl Default for DensityPlot {
@@ -64,6 +69,7 @@ impl DensityPlot {
             legend_label: None,
             line_dash: None,
             precomputed: None,
+            x_range: None,
         }
     }
 
@@ -151,6 +157,19 @@ impl DensityPlot {
     /// Pass `None` (the default) for a solid line.
     pub fn with_line_dash<S: Into<String>>(mut self, dash: S) -> Self {
         self.line_dash = Some(dash.into());
+        self
+    }
+
+    /// Clamp the KDE evaluation range to `[lo, hi]`.
+    ///
+    /// By default the KDE is evaluated from `data_min - 3×bandwidth` to
+    /// `data_max + 3×bandwidth` so the Gaussian tails taper smoothly. For
+    /// data that is physically bounded (e.g. methylation β-values or
+    /// frequencies in `[0, 1]`) this produces a curve that extends into
+    /// impossible negative values. Setting `with_x_range(0.0, 1.0)` prevents
+    /// that and gives a cleaner result.
+    pub fn with_x_range(mut self, lo: f64, hi: f64) -> Self {
+        self.x_range = Some((lo, hi));
         self
     }
 }

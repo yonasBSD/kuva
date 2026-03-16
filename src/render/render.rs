@@ -2515,7 +2515,14 @@ fn add_density(dp: &DensityPlot, computed: &ComputedLayout, scene: &mut Scene) {
         // Normalise raw KDE sums to probability density
         let n = dp.data.len() as f64;
         let norm = 1.0 / (n * bw * (2.0 * std::f64::consts::PI).sqrt());
-        raw.into_iter().map(|(x, y)| (x, y * norm)).collect()
+        let iter = raw.into_iter().map(|(x, y)| (x, y * norm));
+        // Clamp to x_range if set (prevents curve from bleeding outside bounded
+        // domains such as [0, 1] for methylation / frequency data).
+        if let Some((lo, hi)) = dp.x_range {
+            iter.filter(|(x, _)| *x >= lo && *x <= hi).collect()
+        } else {
+            iter.collect()
+        }
     };
 
     if curve.is_empty() { return; }

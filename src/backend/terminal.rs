@@ -487,6 +487,21 @@ impl Canvas {
                         }
                     }
                 }
+                // If the circle's center cell already contains a '█' block
+                // (e.g. from a legend background rect), overwrite it with the
+                // circle's fill color so the swatch is visible. Without this,
+                // the background rect's char_grid entry masks the braille dots.
+                let center_col = self.to_cx(cx_s);
+                let center_row = self.to_cy(cy_s);
+                if center_col >= 0
+                    && (center_col as usize) < self.cols
+                    && center_row >= 0
+                    && (center_row as usize) < self.rows
+                {
+                    if let Some(('█', _)) = self.char_grid[center_row as usize][center_col as usize] {
+                        self.set_char(center_col, center_row, '█', rgb);
+                    }
+                }
             }
 
             Primitive::Line { x1, y1, x2, y2, stroke, .. } => {
@@ -719,9 +734,15 @@ impl Canvas {
 
                 if abs_angle > 45.0 && abs_angle < 135.0 {
                     // ~90°: sideways (y-axis label). Cannot rotate in terminal —
-                    // pin to the left edge so the full string is visible.
+                    // render vertically (one character per row, stacked) at column 0,
+                    // centered on the original row position.
+                    let half = len / 2;
+                    let start_row = row - half;
                     for (i, ch) in chars.iter().enumerate() {
-                        self.set_char(i as isize, row, *ch, rgb);
+                        let r = start_row + i as isize;
+                        if r >= 0 && (r as usize) < self.rows {
+                            self.set_char(0, r, *ch, rgb);
+                        }
                     }
                 } else {
                     let col = self.to_cx(x_s);

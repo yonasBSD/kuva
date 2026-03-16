@@ -67,6 +67,9 @@ pub fn run(args: DensityArgs) -> Result<(), String> {
                 if let Some(bw) = args.bandwidth {
                     dp = dp.with_bandwidth(bw);
                 }
+                if let (Some(lo), Some(hi)) = (args.axis.x_min, args.axis.x_max) {
+                    dp = dp.with_x_range(lo, hi);
+                }
                 Ok(Plot::Density(dp))
             })
             .collect::<Result<Vec<_>, String>>()?
@@ -78,6 +81,9 @@ pub fn run(args: DensityArgs) -> Result<(), String> {
         }
         if let Some(bw) = args.bandwidth {
             dp = dp.with_bandwidth(bw);
+        }
+        if let (Some(lo), Some(hi)) = (args.axis.x_min, args.axis.x_max) {
+            dp = dp.with_x_range(lo, hi);
         }
         vec![Plot::Density(dp)]
     };
