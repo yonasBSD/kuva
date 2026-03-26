@@ -18,16 +18,28 @@ A scientific plotting library in Rust. 30 plot types, SVG output, optional PNG/P
 
 ### Install the CLI
 
+**Step 1 — install Rust** (skip if you already have `cargo`):
+
 ```bash
-# From crates.io
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# then restart your shell, or run:
+source ~/.cargo/env
+```
+
+**Step 2 — install kuva:**
+
+```bash
+# From crates.io — installs to ~/.cargo/bin/ (on your $PATH after rustup setup)
 cargo install kuva --features cli
 
-# From source (SVG only)
-cargo build --release --bin kuva --features cli
+# From a local clone — SVG output only
+cargo install --path . --features cli
 
-# From source (all backends)
-cargo build --release --bin kuva --features cli,full
+# From a local clone — with PNG and PDF output
+cargo install --path . --features cli,full
 ```
+
+After installation, `kuva` is available anywhere in your shell — no need to reference `./target/release/kuva` or set any paths manually.
 
 ### Use as a library
 

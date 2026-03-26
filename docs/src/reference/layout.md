@@ -214,6 +214,17 @@ Each control is fully independent — setting `with_grid_line_width` does not af
 
 `with_tick_length` also affects margins: the left and bottom margins grow automatically to keep tick labels outside the tick marks at any tick length.
 
+<table>
+<tr>
+<td><img src="../assets/layout/tick_controls_default.svg" alt="Default axis chrome" width="280"></td>
+<td><img src="../assets/layout/tick_controls_heavy.svg" alt="Heavy axis chrome" width="280"></td>
+</tr>
+<tr>
+<td align="center">Defaults — axis 1 px, ticks 1 px / 5 px, grid 1 px</td>
+<td align="center"><code>axis_line_width=2, tick_width=1.5, tick_length=10, grid_line_width=0.5</code></td>
+</tr>
+</table>
+
 ---
 
 ## SVG tooltips
