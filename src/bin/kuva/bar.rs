@@ -87,7 +87,7 @@ pub fn run(args: BarArgs) -> Result<(), String> {
                     let mut s = vals.clone();
                     s.sort_by(|a, b| a.partial_cmp(b).unwrap());
                     let n = s.len();
-                    if n % 2 == 0 { (s[n/2 - 1] + s[n/2]) / 2.0 } else { s[n/2] }
+                    if n.is_multiple_of(2) { (s[n/2 - 1] + s[n/2]) / 2.0 } else { s[n/2] }
                 }
                 _ => vals.iter().sum::<f64>() / vals.len() as f64, // "mean" + fallback
             };
