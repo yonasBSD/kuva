@@ -7,6 +7,17 @@ fn main() {
         return;
     }
 
+    // docs.rs: source is read-only and network is disabled -- write empty
+    // placeholder files to OUT_DIR so include_bytes! compiles, then bail.
+    if std::env::var("DOCS_RS").is_ok() {
+        let out = std::env::var("OUT_DIR").unwrap();
+        let out = Path::new(&out);
+        std::fs::write(out.join("doom.wasm"), b"").unwrap();
+        std::fs::write(out.join("doom.js"),   "").unwrap();
+        std::fs::write(out.join("doom1.wad"), b"").unwrap();
+        return;
+    }
+
     // Asset cache lives next to Cargo.toml so it survives `cargo clean`.
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let cache = PathBuf::from(&manifest_dir).join("doom-assets");
