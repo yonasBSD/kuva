@@ -46,10 +46,12 @@ jobs:
 
       - name: Download DOOM1.WAD shareware
         run: |
-          # doom1.wad is stored in doom-crt via Git LFS.
-          # Plain shallow clone — git-lfs smudge runs automatically on ubuntu-latest.
-          git clone --depth 1 https://github.com/mattiasgustavsson/doom-crt.git doom-crt-src
-          cp doom-crt-src/doom1.wad doom1.wad
+          # doom-wad-shareware is in Ubuntu multiverse — installs doom1.wad directly.
+          # © id Software / ZeniMax Media. Free redistribution permitted (shareware).
+          sudo add-apt-repository multiverse -y
+          sudo apt-get update -q
+          sudo apt-get install -y doom-wad-shareware
+          cp /usr/share/games/doom/doom1.wad doom1.wad
           ls -lh doom1.wad
 
       - name: Create or update doom-assets-v1 release
