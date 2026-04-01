@@ -8,7 +8,7 @@
 
 A scientific plotting library in Rust. 30 plot types, SVG output, optional PNG/PDF backends, and a CLI binary that renders plots directly from the shell — including in the terminal itself.
 
-![All 27 plot types](docs/src/assets/overview/all_plots_complex.svg)
+![All 30 plot types](docs/src/assets/overview/all_plots_complex.svg)
 
 ![kuva terminal — Sankey diagram](docs/src/assets/terminal/sankey.gif)
 
