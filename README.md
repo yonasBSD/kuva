@@ -5,6 +5,7 @@
 [![crates.io](https://img.shields.io/crates/v/kuva.svg)](https://crates.io/crates/kuva)
 [![docs.rs](https://docs.rs/kuva/badge.svg)](https://docs.rs/kuva)
 [![Downloads](https://img.shields.io/crates/d/kuva.svg)](https://crates.io/crates/kuva)
+![kuva](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/warp9seq/git-count/refs/heads/main/kuva.json)
 
 A scientific plotting library in Rust. 30 plot types, SVG output, optional PNG/PDF backends, and a CLI binary that renders plots directly from the shell — including in the terminal itself.
 
