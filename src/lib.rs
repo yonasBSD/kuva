@@ -33,6 +33,18 @@
 //! | `pdf`   | Enables [`PdfBackend`] for vector PDF output via `svg2pdf`. |
 //! | `cli`   | Enables the `kuva` CLI binary (pulls in `clap`). |
 //! | `full`  | Enables `png` + `pdf`. |
+//!
+//! # Fonts
+//!
+//! DejaVu Sans is bundled inside the crate. The PNG and PDF backends always load
+//! it before scanning system fonts, so text renders correctly even in minimal
+//! environments (containers, CI pipelines) with no installed fonts.
+//!
+//! SVG output references fonts by name and relies on the viewer to resolve them.
+//! For self-contained SVGs that work anywhere, use
+//! [`backend::svg::SvgBackend::with_embedded_font`] or the `--embed-font` CLI flag.
+//! This bakes DejaVu Sans as a base64 `@font-face` block into the SVG at the cost
+//! of roughly 1 MB of added file size.
 
 pub mod plot;
 pub mod backend;
@@ -80,7 +92,7 @@ pub use render::datetime::{DateTimeAxis, DateUnit, ymd, ymd_hms};
 /// assert!(svg.contains("<svg"));
 /// ```
 ///
-/// For fine-grained control (custom layout, twin axes, special-case plot types)
+/// For fine-grained control — custom layout, twin axes, or embedded-font SVG —
 /// use [`render::render::render_multiple`] and [`struct@backend::svg::SvgBackend`] directly.
 pub fn render_to_svg(plots: Vec<render::plots::Plot>, layout: render::layout::Layout) -> String {
     let scene = render::render::render_multiple(plots, layout);

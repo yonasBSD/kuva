@@ -129,6 +129,26 @@ These flags are available on every subcommand.
 | `--cvd-palette <NAME>` | — | Colour-vision-deficiency palette: `deuteranopia`, `protanopia`, `tritanopia`. Overrides `--palette`. |
 | `--background <COLOR>` | *(theme default)* | SVG background color (any CSS color string) |
 
+### Fonts
+
+| Flag | Default | Description |
+|---|---|---|
+| `--embed-font` | off | Embed DejaVu Sans directly in SVG output (mutually exclusive with `--terminal`) |
+
+By default, SVG output references fonts by name and relies on the viewer to resolve them. This works fine in browsers and on any system where DejaVu Sans, Liberation Sans, or Arial is installed. In environments with no system fonts — headless servers, containers, CI pipelines — text may be missing or fall back to an unexpected face.
+
+`--embed-font` bakes DejaVu Sans as a base64 `@font-face` block into the SVG `<style>` element, making the file fully self-contained at the cost of roughly 1 MB of extra size. PNG and PDF output is unaffected: those backends always have the font available regardless of this flag.
+
+```bash
+# Self-contained SVG for use with rsvg-convert or similar tools in containers
+kuva scatter data.tsv --x x --y y --embed-font -o plot.svg
+
+# Pipe into rsvg-convert in a minimal container
+kuva scatter data.tsv --x x --y y --embed-font | rsvg-convert -o plot.png
+```
+
+---
+
 ### SVG interactivity
 
 | Flag | Default | Description |
