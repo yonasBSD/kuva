@@ -145,6 +145,8 @@ pub use crate::plot::{
     PopulationPyramid,
     PyramidSeries,
     PyramidMode,
+    GanttPlot,
+    GanttTask,
     // Style / config types used when building plots
     MarkerShape,
     LineStyle,
@@ -185,6 +187,7 @@ pub use crate::render::render::{
     render_funnel,
     render_rose,
     render_pyramid,
+    render_gantt,
 };
 
 // ── Figure (multi-plot grid) ─────────────────────────────────────────────────

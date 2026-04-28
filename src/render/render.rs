@@ -90,6 +90,7 @@ use crate::plot::calendar::{
 use crate::plot::pyramid::{PopulationPyramid, PyramidMode};
 use crate::plot::waffle::{WafflePlot, WaffleCategory, FillOrder, CellShape};
 use crate::plot::horizon::HorizonPlot;
+use crate::plot::gantt::{GanttPlot, GanttDisplayRow};
 
 use crate::plot::Legend;
 use crate::plot::legend::{ColorBarInfo, LegendEntry, LegendGroup, LegendPosition, LegendShape};
@@ -11076,6 +11077,9 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
             Plot::Horizon(hp) => {
                 add_horizon(hp, &mut scene, &computed);
             }
+            Plot::Gantt(gp) => {
+                add_gantt(gp, &mut scene, &computed);
+            }
         }
     }
 
@@ -11104,6 +11108,13 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
     for plot in plots.iter() {
         if let Plot::Horizon(hp) = plot {
             add_horizon_annots(hp, &mut scene, &computed);
+        }
+    }
+
+    // GanttPlot milestone labels and outside-bar task labels — emit after ClipEnd.
+    for plot in plots.iter() {
+        if let Plot::Gantt(gp) = plot {
+            add_gantt_labels(gp, &mut scene, &computed);
         }
     }
 
@@ -17223,6 +17234,278 @@ fn add_horizon_annots(hp: &HorizonPlot, scene: &mut Scene, computed: &ComputedLa
 /// Render a single [`HorizonPlot`] to a [`Scene`].
 pub fn render_horizon(hp: HorizonPlot, layout: Layout) -> Scene {
     let plots = vec![Plot::Horizon(hp)];
+    render_multiple(plots, layout)
+}
+
+// ── GanttPlot ─────────────────────────────────────────────────────────────────
+
+fn add_gantt(gp: &GanttPlot, scene: &mut Scene, computed: &ComputedLayout) {
+    let display_rows = gp.ordered_display_rows();
+    let n = display_rows.len();
+    if n == 0 { return; }
+
+    let cat10 = Palette::category10();
+
+    // Build group → color-index map (named groups only)
+    let groups = gp.effective_group_order();
+    let mut group_color_idx: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut ci = 0usize;
+    for g in &groups {
+        if let Some(ref name) = g {
+            group_color_idx.insert(name.clone(), ci);
+            ci += 1;
+        }
+    }
+
+    // pixel height of one y-axis unit (one category slot)
+    let cell_h_px = (computed.map_y(0.0) - computed.map_y(1.0)).abs();
+    let bar_h = cell_h_px * gp.bar_height_frac;
+    let has_groups = groups.iter().any(|g| g.is_some());
+
+    // Plot area x bounds (for group header bands)
+    let plot_left = computed.map_x(computed.x_range.0);
+    let plot_right = computed.map_x(computed.x_range.1);
+
+    for (row_i, row) in display_rows.iter().enumerate() {
+        // row_i=0 is top → y_data = n, row_i=n-1 is bottom → y_data = 1
+        let y_data = (n - row_i) as f64;
+        let y_center = computed.map_y(y_data);
+
+        match row {
+            GanttDisplayRow::GroupHeader(group_name) => {
+                // Background band spanning full plot width
+                let band_y = y_center - cell_h_px * 0.5;
+                scene.add(Primitive::Rect {
+                    x: plot_left,
+                    y: band_y,
+                    width: (plot_right - plot_left).max(0.0),
+                    height: cell_h_px,
+                    fill: Color::from(&gp.group_bg),
+                    stroke: None,
+                    stroke_width: None,
+                    opacity: None,
+                });
+                // Group label (drawn by the y-axis tick label; nothing extra needed here)
+                let _ = group_name;
+            }
+            GanttDisplayRow::Task(task_idx) => {
+                let task = &gp.tasks[*task_idx];
+
+                // Resolve color
+                let color_str = if let Some(ref c) = task.color {
+                    c.as_str().to_string()
+                } else if has_groups {
+                    if let Some(ref g) = task.group {
+                        let idx = group_color_idx.get(g).copied().unwrap_or(0);
+                        cat10[idx % cat10.len()].to_string()
+                    } else {
+                        gp.color.clone()
+                    }
+                } else {
+                    gp.color.clone()
+                };
+                let bar_color = Color::from(color_str.as_str());
+
+                if task.is_milestone {
+                    // Diamond marker (rotated square) at task.start
+                    let cx = computed.map_x(task.start);
+                    let s = gp.milestone_size;
+                    // Path: M cx,cy-s  L cx+s,cy  L cx,cy+s  L cx-s,cy  Z
+                    let d = format!(
+                        "M {},{} L {},{} L {},{} L {},{} Z",
+                        round2(cx), round2(y_center - s),
+                        round2(cx + s), round2(y_center),
+                        round2(cx), round2(y_center + s),
+                        round2(cx - s), round2(y_center),
+                    );
+                    scene.add(Primitive::Path(Box::new(PathData {
+                        d,
+                        fill: Some(bar_color.clone()),
+                        stroke: bar_color.clone(),
+                        stroke_width: 1.0,
+                        opacity: None,
+                        stroke_dasharray: None,
+                    })));
+                    // Milestone label drawn post-clip via add_gantt_labels
+                } else {
+                    // Horizontal task bar
+                    let x_start = computed.map_x(task.start);
+                    let x_end = computed.map_x(task.end);
+                    let bar_width = (x_end - x_start).max(2.0);
+                    let bar_y = y_center - bar_h * 0.5;
+
+                    scene.add(Primitive::Rect {
+                        x: x_start,
+                        y: bar_y,
+                        width: bar_width,
+                        height: bar_h,
+                        fill: bar_color.clone(),
+                        stroke: None,
+                        stroke_width: None,
+                        opacity: Some(0.85),
+                    });
+
+                    // Progress fill (darker inner rect)
+                    if let Some(frac) = task.progress {
+                        let prog_w = bar_width * frac;
+                        if prog_w > 0.0 {
+                            scene.add(Primitive::Rect {
+                                x: x_start,
+                                y: bar_y,
+                                width: prog_w,
+                                height: bar_h,
+                                fill: bar_color.clone(),
+                                stroke: None,
+                                stroke_width: None,
+                                opacity: Some(1.0),
+                            });
+                            // Progress stripe boundary
+                            scene.add(Primitive::Line {
+                                x1: x_start + prog_w,
+                                y1: bar_y,
+                                x2: x_start + prog_w,
+                                y2: bar_y + bar_h,
+                                stroke: Color::from("rgba(0,0,0,0.25)"),
+                                stroke_width: 1.0,
+                                stroke_dasharray: None,
+                            });
+                        }
+                    }
+
+                    // Bar border
+                    scene.add(Primitive::Rect {
+                        x: x_start,
+                        y: bar_y,
+                        width: bar_width,
+                        height: bar_h,
+                        fill: Color::from("none"),
+                        stroke: Some(Color::from("rgba(0,0,0,0.18)")),
+                        stroke_width: Some(0.8),
+                        opacity: None,
+                    });
+
+                    // Inside label (white, clipped to plot area — fine because it's inside the bar)
+                    if gp.show_labels {
+                        let label_size = 11u32;
+                        let est_text_w = task.label.len() as f64 * label_size as f64 * 0.55;
+                        if bar_width >= gp.label_min_width && bar_width > est_text_w + 6.0 {
+                            scene.add(Primitive::Text {
+                                x: x_start + bar_width * 0.5,
+                                y: y_center + label_size as f64 * 0.35,
+                                content: task.label.clone(),
+                                size: label_size,
+                                anchor: TextAnchor::Middle,
+                                rotate: None,
+                                bold: false,
+                                color: Some(Color::from("white")),
+                            });
+                        }
+                        // Outside labels drawn post-clip via add_gantt_labels
+                    }
+                }
+            }
+        }
+    }
+
+    // Now line (vertical dashed)
+    if let Some(now) = gp.now_line {
+        let nx = computed.map_x(now);
+        scene.add(Primitive::Line {
+            x1: nx,
+            y1: computed.map_y(n as f64 + 0.5),
+            x2: nx,
+            y2: computed.map_y(0.5),
+            stroke: Color::from("#cc3333"),
+            stroke_width: 1.5,
+            stroke_dasharray: Some("5,3".into()),
+        });
+    }
+}
+
+/// Draws milestone labels and outside-bar task labels post-clip so they are
+/// never truncated by the plot-area clip rect.
+fn add_gantt_labels(gp: &GanttPlot, scene: &mut Scene, computed: &ComputedLayout) {
+    if !gp.show_labels { return; }
+    let display_rows = gp.ordered_display_rows();
+    let n = display_rows.len();
+    if n == 0 { return; }
+
+    let cat10 = Palette::category10();
+    let groups = gp.effective_group_order();
+    let mut group_color_idx: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut ci = 0usize;
+    for g in &groups {
+        if let Some(ref name) = g {
+            group_color_idx.insert(name.clone(), ci);
+            ci += 1;
+        }
+    }
+    let has_groups = groups.iter().any(|g| g.is_some());
+
+    let label_size = 11u32;
+    let cell_h_px = (computed.map_y(0.0) - computed.map_y(1.0)).abs();
+    let _ = cell_h_px; // used indirectly via bar_h check below
+
+    for (row_i, row) in display_rows.iter().enumerate() {
+        let y_data = (n - row_i) as f64;
+        let y_center = computed.map_y(y_data);
+
+        if let GanttDisplayRow::Task(task_idx) = row {
+            let task = &gp.tasks[*task_idx];
+
+            let color_str = if let Some(ref c) = task.color {
+                c.as_str().to_string()
+            } else if has_groups {
+                if let Some(ref g) = task.group {
+                    let idx = group_color_idx.get(g).copied().unwrap_or(0);
+                    cat10[idx % cat10.len()].to_string()
+                } else {
+                    gp.color.clone()
+                }
+            } else {
+                gp.color.clone()
+            };
+
+            if task.is_milestone {
+                let cx = computed.map_x(task.start);
+                let s = gp.milestone_size;
+                let text_color = Color::from(color_str.as_str());
+                scene.add(Primitive::Text {
+                    x: cx + s + 5.0,
+                    y: y_center + label_size as f64 * 0.35,
+                    content: task.label.clone(),
+                    size: label_size,
+                    anchor: TextAnchor::Start,
+                    rotate: None,
+                    bold: true,
+                    color: Some(text_color),
+                });
+            } else {
+                let x_start = computed.map_x(task.start);
+                let x_end = computed.map_x(task.end);
+                let bar_width = (x_end - x_start).max(2.0);
+                let est_text_w = task.label.len() as f64 * label_size as f64 * 0.55;
+                // Only draw outside label when bar is too short for inside label
+                if !(bar_width >= gp.label_min_width && bar_width > est_text_w + 6.0) {
+                    scene.add(Primitive::Text {
+                        x: x_end + 5.0,
+                        y: y_center + label_size as f64 * 0.35,
+                        content: task.label.clone(),
+                        size: label_size,
+                        anchor: TextAnchor::Start,
+                        rotate: None,
+                        bold: false,
+                        color: None,
+                    });
+                }
+            }
+        }
+    }
+}
+
+/// Render a single [`GanttPlot`] to a [`Scene`].
+pub fn render_gantt(gp: GanttPlot, layout: Layout) -> Scene {
+    let plots = vec![Plot::Gantt(gp)];
     render_multiple(plots, layout)
 }
 

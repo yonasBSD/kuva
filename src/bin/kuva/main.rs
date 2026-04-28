@@ -54,6 +54,7 @@ mod horizon;
 mod parallel;
 mod venn;
 mod calendar;
+mod gantt;
 #[cfg(feature = "doom")]
 mod doom;
 
@@ -151,6 +152,8 @@ enum Commands {
     Venn(venn::VennArgs),
     /// Calendar heatmap — GitHub-style contribution grid.
     Calendar(calendar::CalendarArgs),
+    /// Gantt chart — horizontal task bars with groups, progress, and milestones.
+    Gantt(gantt::GanttArgs),
     #[cfg(feature = "doom")]
     /// Generate a self-contained DOOM SVG playable in any browser.
     Doom(doom::DoomArgs),
@@ -221,6 +224,7 @@ fn main() {
         Commands::Parallel(args) => parallel::run(args),
         Commands::Venn(args) => venn::run(args),
         Commands::Calendar(args) => calendar::run(args),
+        Commands::Gantt(args) => gantt::run(args),
         #[cfg(feature = "doom")]
         Commands::Doom(args) => doom::run(args),
         Commands::Man => unreachable!(),

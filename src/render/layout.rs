@@ -275,6 +275,9 @@ pub struct Layout {
     /// (value labels and sign-color indicators).  Set automatically by
     /// `auto_from_plots`; zero when no annotations are requested.
     pub horizon_right_annot_px: f64,
+    /// Extra right-margin pixels reserved for GanttPlot milestone/outside-bar
+    /// labels drawn post-clip.  Set automatically by `auto_from_plots`.
+    pub gantt_right_annot_px: f64,
 }
 
 impl Layout {
@@ -362,6 +365,7 @@ impl Layout {
             y2_label_wrap: None,
             legend_wrap: None,
             horizon_right_annot_px: 0.0,
+            gantt_right_annot_px: 0.0,
         }
     }
 
@@ -389,6 +393,7 @@ impl Layout {
         let mut brick_has_notations: bool = false;
         let mut pyramid_normalize: Option<bool> = None;
         let mut horizon_right_annot_px: f64 = 0.0;
+        let mut gantt_right_annot_px: f64 = 0.0;
 
         for plot in plots {
             if let Some(((xmin, xmax), (ymin, ymax))) = plot.bounds() {
@@ -935,6 +940,32 @@ impl Layout {
                 }
             }
 
+            if let Plot::Gantt(gp) = plot {
+                if !gp.tasks.is_empty() {
+                    // y_categories: row[0] at top → reversed list (bottom-to-top)
+                    let labels_top_to_bottom = gp.row_labels();
+                    y_labels = Some(labels_top_to_bottom.into_iter().rev().collect());
+                    for label in gp.row_labels() {
+                        max_label_len = max_label_len.max(label.len());
+                    }
+                    if let Some(ref lbl) = gp.legend_label {
+                        has_legend = true;
+                        max_label_len = max_label_len.max(lbl.len());
+                    }
+                    // Reserve right margin for milestone labels and outside-bar labels
+                    // drawn post-clip.  Estimate: font_size=11, char_w≈6.6px, gap+diamond.
+                    if gp.show_labels {
+                        let max_right_label_chars = gp.tasks.iter()
+                            .map(|t| t.label.len())
+                            .max()
+                            .unwrap_or(0);
+                        let needed = max_right_label_chars as f64 * 6.6
+                            + gp.milestone_size + 14.0;
+                        gantt_right_annot_px = gantt_right_annot_px.max(needed);
+                    }
+                }
+            }
+
             if let Plot::Waffle(wp) = plot {
                 if wp.legend_label.is_some() {
                     has_legend = true;
@@ -1000,6 +1031,7 @@ impl Layout {
         layout.data_x_range = Some(raw_x);
         layout.data_y_range = Some(raw_y);
         layout.horizon_right_annot_px = horizon_right_annot_px;
+        layout.gantt_right_annot_px = gantt_right_annot_px;
         if brick_has_notations {
             layout.brick_notation_tiers = 4; // matches N_TIERS in add_brickplot
         }
@@ -1972,7 +2004,9 @@ impl ComputedLayout {
             let label = layout.x_tick_format.format(val);
             label.len() as f64 * tick_size * 0.6 * 0.5
         };
-        let mut margin_right = label_size.max(x_last_tick_half_w) + layout.horizon_right_annot_px;
+        let mut margin_right = label_size.max(x_last_tick_half_w)
+            + layout.horizon_right_annot_px
+            + layout.gantt_right_annot_px;
 
         // For rotated x-axis category labels the text extends horizontally from its anchor.
         // Negative angle → TextAnchor::End → extends left  → first label can clip left edge.
