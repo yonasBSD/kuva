@@ -135,6 +135,7 @@
 - [Themes](./reference/themes.md)
 - [Color Palettes](./reference/palettes.md)
 - [SVG Interactivity](./reference/interactive.md)
+- [Date & Time Axes](./reference/datetime.md)
 - [Stats Box](./reference/stats_box.md)
 
 # Performance
