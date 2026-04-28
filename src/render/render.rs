@@ -17248,14 +17248,12 @@ fn add_gantt(gp: &GanttPlot, scene: &mut Scene, computed: &ComputedLayout) {
 
     // Build group → color-index map (named groups only)
     let groups = gp.effective_group_order();
-    let mut group_color_idx: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
-    let mut ci = 0usize;
-    for g in &groups {
-        if let Some(ref name) = g {
-            group_color_idx.insert(name.clone(), ci);
-            ci += 1;
-        }
-    }
+    let group_color_idx: std::collections::HashMap<String, usize> = groups
+        .iter()
+        .flatten()
+        .enumerate()
+        .map(|(ci, name)| (name.clone(), ci))
+        .collect();
 
     // pixel height of one y-axis unit (one category slot)
     let cell_h_px = (computed.map_y(0.0) - computed.map_y(1.0)).abs();
@@ -17432,14 +17430,12 @@ fn add_gantt_labels(gp: &GanttPlot, scene: &mut Scene, computed: &ComputedLayout
 
     let cat10 = Palette::category10();
     let groups = gp.effective_group_order();
-    let mut group_color_idx: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
-    let mut ci = 0usize;
-    for g in &groups {
-        if let Some(ref name) = g {
-            group_color_idx.insert(name.clone(), ci);
-            ci += 1;
-        }
-    }
+    let group_color_idx: std::collections::HashMap<String, usize> = groups
+        .iter()
+        .flatten()
+        .enumerate()
+        .map(|(ci, name)| (name.clone(), ci))
+        .collect();
     let has_groups = groups.iter().any(|g| g.is_some());
 
     let label_size = 11u32;

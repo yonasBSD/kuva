@@ -66,6 +66,7 @@
 - [Funnel Chart](./plots/funnel.md)
 - [Nightingale Rose](./plots/rose.md)
 - [Calendar Heatmap](./plots/calendar.md)
+- [Gantt Chart](./plots/gantt.md)
 
 # CLI
 
@@ -123,6 +124,7 @@
   - [parallel](./cli/parallel.md)
   - [venn](./cli/venn.md)
   - [calendar](./cli/calendar.md)
+  - [gantt](./cli/gantt.md)
 - [Terminal Output](./cli/terminal.md)
 
 # Reference

@@ -21,7 +21,7 @@ use kuva::plot::{
     EcdfPlot, PrPlot, PrGroup, WafflePlot, HorizonPlot, PopulationPyramid,
     MosaicPlot, SlopePlot, VennPlot, ParallelPlot, RadarPlot, RosePlot,
     SunburstPlot, BumpPlot, QQPlot, Scatter3DPlot, Surface3DPlot,
-    CalendarPlot, FunnelPlot,
+    CalendarPlot, FunnelPlot, GanttPlot,
 };
 use kuva::plot::brick::BrickTemplate;
 use kuva::render::plots::Plot;
@@ -877,7 +877,18 @@ fn main() {
         .with_stage("Trials",           380.0)
         .with_stage("Paid customers",   105.0);
 
-    // ── Assemble 10×6 Figure (row-major, 59 plots + 1 spare) ─────────────────
+    // ── Row 9: Gantt ───────────────────────────────────────────────────────
+    let gantt = GanttPlot::new()
+        .with_task_group("Discovery", "Research",   0.0,  3.0)
+        .with_task_group("Discovery", "Prototyping",2.0,  5.0)
+        .with_task_group("Build",     "Backend",    4.0,  9.0)
+        .with_task_group_progress("Build", "Frontend", 5.0, 10.0, 0.5)
+        .with_milestone_group("Build", "Code freeze", 10.0)
+        .with_task_group("Ship",      "QA",         9.0, 11.0)
+        .with_milestone("Launch",    12.0)
+        .with_now_line(7.0);
+
+    // ── Assemble 10×6 Figure (row-major, 60 plots) ───────────────────────────
 
     let hmap_row_labels: Vec<String> = genes.iter().map(|s| s.to_string()).collect();
     let hmap_col_labels: Vec<String> = genes.iter().map(|s| s.to_string()).collect();
@@ -946,12 +957,13 @@ fn main() {
         vec![Plot::Rose(rose)],
         vec![Plot::Sunburst(sunburst)],
         vec![Plot::Bump(bump)],
-        // Row 9: QQ, Scatter3D, Surface3D, Calendar, Funnel
+        // Row 9: QQ, Scatter3D, Surface3D, Calendar, Funnel, Gantt
         vec![Plot::QQ(qq)],
         vec![Plot::Scatter3D(scatter3d.0), Plot::Scatter3D(scatter3d.1)],
         vec![Plot::Surface3D(surface3d)],
         vec![Plot::Calendar(calendar)],
         vec![Plot::Funnel(funnel)],
+        vec![Plot::Gantt(gantt)],
     ];
 
     let layouts: Vec<Layout> = all_plots.iter().enumerate()

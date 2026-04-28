@@ -21,7 +21,7 @@ use kuva::plot::{
     EcdfPlot, PrPlot, PrGroup, WafflePlot, HorizonPlot, PopulationPyramid,
     MosaicPlot, SlopePlot, VennPlot, ParallelPlot, RadarPlot, RosePlot,
     SunburstPlot, BumpPlot, QQPlot, Scatter3DPlot, Surface3DPlot,
-    CalendarPlot, FunnelPlot,
+    CalendarPlot, FunnelPlot, GanttPlot,
 };
 use kuva::plot::brick::BrickTemplate;
 use kuva::render::plots::Plot;
@@ -542,7 +542,15 @@ fn main() {
         .with_stage("Trials",     150.0)
         .with_stage("Customers",   60.0);
 
-    // ── Assemble 10×6 Figure (row-major, 59 plots + 1 spare) ─────────────────
+    // 59: Gantt (3 groups)
+    let gantt = GanttPlot::new()
+        .with_task_group("Plan",  "Scope",   0.0, 2.0)
+        .with_task_group("Build", "Dev",     2.0, 6.0)
+        .with_task_group("Build", "Test",    5.0, 7.0)
+        .with_milestone("Launch", 7.0)
+        .with_now_line(4.0);
+
+    // ── Assemble 10×6 Figure (row-major, 60 plots) ───────────────────────────
 
     let all_plots: Vec<Vec<Plot>> = vec![
         // Row 0: Scatter, Line, Bar, Histogram, Histogram2D, Hexbin
@@ -608,12 +616,13 @@ fn main() {
         vec![Plot::Rose(rose)],
         vec![Plot::Sunburst(sunburst)],
         vec![Plot::Bump(bump)],
-        // Row 9: QQ, Scatter3D, Surface3D, Calendar, Funnel
+        // Row 9: QQ, Scatter3D, Surface3D, Calendar, Funnel, Gantt
         vec![Plot::QQ(qq)],
         vec![Plot::Scatter3D(scatter3d)],
         vec![Plot::Surface3D(surface3d)],
         vec![Plot::Calendar(calendar)],
         vec![Plot::Funnel(funnel)],
+        vec![Plot::Gantt(gantt)],
     ];
 
     let layouts: Vec<Layout> = all_plots.iter()
