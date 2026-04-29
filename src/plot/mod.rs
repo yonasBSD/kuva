@@ -60,6 +60,7 @@ pub mod pyramid;
 pub mod waffle;
 pub mod horizon;
 pub mod gantt;
+pub mod text;
 
 pub mod legend;
 
@@ -130,5 +131,6 @@ pub use pyramid::{PopulationPyramid, PyramidSeries, PyramidMode};
 pub use waffle::{WafflePlot, WaffleCategory, FillOrder, CellShape};
 pub use horizon::{HorizonPlot, HorizonSeries};
 pub use gantt::{GanttPlot, GanttTask, GanttDisplayRow};
+pub use text::{TextPlot, TextAlign};
 
 pub use legend::{Legend, LegendEntry, LegendShape, LegendPosition, LegendGroup};

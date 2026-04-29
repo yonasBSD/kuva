@@ -15,7 +15,7 @@ use resvg::tiny_skia::{
     self, Color, FillRule, Paint, PathBuilder, Pixmap, Rect, Stroke, Transform,
 };
 
-use crate::render::render::{Primitive, Scene, TextAnchor};
+use crate::render::render::{Primitive, Scene, TextAnchor, TextSpan};
 
 fn shared_fontdb() -> Arc<resvg::usvg::fontdb::Database> {
     static FONTDB: OnceLock<Arc<resvg::usvg::fontdb::Database>> = OnceLock::new();
@@ -204,7 +204,7 @@ impl RasterBackend {
                         }
                     }
                 }
-                Primitive::Text { .. } => {
+                Primitive::Text { .. } | Primitive::RichText { .. } => {
                     text_primitives.push(elem);
                 }
                 Primitive::CircleBatch { cx, cy, r, fill, fill_opacity, stroke, stroke_width } => {
@@ -290,35 +290,47 @@ fn build_text_svg(scene: &Scene, texts: &[&Primitive]) -> String {
     svg.push('>');
 
     for elem in texts {
-        if let Primitive::Text {
-            x,
-            y,
-            content,
-            size,
-            anchor,
-            rotate,
-            bold,
-            ..
-        } = elem
-        {
-            let anchor_str = match anchor {
-                TextAnchor::Start => "start",
-                TextAnchor::Middle => "middle",
-                TextAnchor::End => "end",
-            };
-            let _ = write!(
-                svg,
-                r#"<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor_str}""#
-            );
-            if *bold {
-                svg.push_str(r#" font-weight="bold""#);
+        match elem {
+            Primitive::Text { x, y, content, size, anchor, rotate, bold, .. } => {
+                let anchor_str = match anchor {
+                    TextAnchor::Start => "start",
+                    TextAnchor::Middle => "middle",
+                    TextAnchor::End => "end",
+                };
+                let _ = write!(
+                    svg,
+                    r#"<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor_str}""#
+                );
+                if *bold { svg.push_str(r#" font-weight="bold""#); }
+                if let Some(angle) = rotate {
+                    let _ = write!(svg, r#" transform="rotate({angle},{x},{y})""#);
+                }
+                svg.push('>');
+                write_escaped(&mut svg, content);
+                svg.push_str("</text>");
             }
-            if let Some(angle) = rotate {
-                let _ = write!(svg, r#" transform="rotate({angle},{x},{y})""#);
+            Primitive::RichText { x, y, spans, size, anchor, .. } => {
+                let anchor_str = match anchor {
+                    TextAnchor::Start => "start",
+                    TextAnchor::Middle => "middle",
+                    TextAnchor::End => "end",
+                };
+                let _ = write!(svg, r#"<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor_str}">"#);
+                for span in spans {
+                    let styled = span.bold || span.italic || span.underline;
+                    if styled {
+                        svg.push_str("<tspan");
+                        if span.bold      { svg.push_str(r#" font-weight="bold""#); }
+                        if span.italic    { svg.push_str(r#" font-style="italic""#); }
+                        if span.underline { svg.push_str(r#" text-decoration="underline""#); }
+                        svg.push('>');
+                    }
+                    write_escaped(&mut svg, &span.text);
+                    if styled { svg.push_str("</tspan>"); }
+                }
+                svg.push_str("</text>");
             }
-            svg.push('>');
-            write_escaped(&mut svg, content);
-            svg.push_str("</text>");
+            _ => {}
         }
     }
 

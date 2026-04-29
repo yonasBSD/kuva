@@ -787,6 +787,27 @@ impl Canvas {
                 }
             }
 
+            Primitive::RichText { x, y, spans, size, anchor, .. } => {
+                // Flatten spans to plain text; terminal doesn't support inline styling.
+                let content: String = spans.iter().map(|s| s.text.as_str()).collect();
+                let rgb = self.text_color;
+                let x_s = x + tx;
+                let y_s = y + ty;
+                let baseline = *size as f64 * 0.35;
+                let row = self.to_cy(y_s - baseline);
+                let chars: Vec<char> = content.chars().collect();
+                let len = chars.len() as isize;
+                let col = self.to_cx(x_s);
+                let start_col = match anchor {
+                    TextAnchor::Start  => col,
+                    TextAnchor::Middle => col - len / 2,
+                    TextAnchor::End    => col - len,
+                };
+                for (i, ch) in chars.iter().enumerate() {
+                    self.set_char(start_col + i as isize, row, *ch, rgb);
+                }
+            }
+
             Primitive::ClipStart { .. } | Primitive::ClipEnd => {}
 
             Primitive::GroupStart { transform, .. } => {

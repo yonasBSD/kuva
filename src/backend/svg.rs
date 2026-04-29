@@ -242,6 +242,43 @@ impl SvgBackend {
                     svg.push_str("</text>");
                     write_newline(&mut svg, p);
                 }
+                Primitive::RichText { x, y, spans, size, anchor, color } => {
+                    let anchor_str = match anchor {
+                        TextAnchor::Start => "start",
+                        TextAnchor::Middle => "middle",
+                        TextAnchor::End => "end",
+                    };
+                    write_indent(&mut svg, depth, p);
+                    svg.push_str(r#"<text x=""#);
+                    write_float(&mut svg, *x);
+                    svg.push_str(r#"" y=""#);
+                    write_float(&mut svg, *y);
+                    svg.push_str(r#"" font-size=""#);
+                    let _ = write!(svg, "{size}");
+                    svg.push_str(r#"" text-anchor=""#);
+                    svg.push_str(anchor_str);
+                    svg.push('"');
+                    if let Some(c) = color {
+                        svg.push_str(r#" fill=""#);
+                        c.write_svg(&mut svg);
+                        svg.push('"');
+                    }
+                    svg.push('>');
+                    for span in spans {
+                        let styled = span.bold || span.italic || span.underline;
+                        if styled {
+                            svg.push_str("<tspan");
+                            if span.bold      { svg.push_str(r#" font-weight="bold""#); }
+                            if span.italic    { svg.push_str(r#" font-style="italic""#); }
+                            if span.underline { svg.push_str(r#" text-decoration="underline""#); }
+                            svg.push('>');
+                        }
+                        write_escaped(&mut svg, &span.text);
+                        if styled { svg.push_str("</tspan>"); }
+                    }
+                    svg.push_str("</text>");
+                    write_newline(&mut svg, p);
+                }
                 Primitive::Line { x1, y1, x2, y2, stroke, stroke_width, stroke_dasharray } => {
                     write_indent(&mut svg, depth, p);
                     svg.push_str(r#"<line x1=""#);

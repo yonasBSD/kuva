@@ -91,11 +91,27 @@ use crate::plot::pyramid::{PopulationPyramid, PyramidMode};
 use crate::plot::waffle::{WafflePlot, WaffleCategory, FillOrder, CellShape};
 use crate::plot::horizon::HorizonPlot;
 use crate::plot::gantt::{GanttPlot, GanttDisplayRow};
+use crate::plot::text::{TextPlot, TextAlign};
 
 use crate::plot::Legend;
 use crate::plot::legend::{ColorBarInfo, LegendEntry, LegendGroup, LegendPosition, LegendShape};
 
 use crate::render::color::Color;
+
+/// One styled run of text within a [`Primitive::RichText`] element.
+#[derive(Debug, Clone)]
+pub struct TextSpan {
+    pub text: String,
+    pub bold: bool,
+    pub italic: bool,
+    pub underline: bool,
+}
+
+impl TextSpan {
+    pub fn plain(text: impl Into<String>) -> Self {
+        Self { text: text.into(), bold: false, italic: false, underline: false }
+    }
+}
 
 /// Data for a `<path>` SVG element.
 ///
@@ -129,6 +145,16 @@ pub enum Primitive {
         anchor: TextAnchor,
         rotate: Option<f64>,
         bold: bool,
+        color: Option<Color>,
+    },
+    /// Multi-span text with per-span bold/italic/underline styling.
+    /// Rendered as `<text>` + `<tspan>` in SVG; flattened for other backends.
+    RichText {
+        x: f64,
+        y: f64,
+        spans: Vec<TextSpan>,
+        size: u32,
+        anchor: TextAnchor,
         color: Option<Color>,
     },
     Line {
@@ -8756,6 +8782,7 @@ pub fn collect_legend_entries(plots: &[Plot]) -> Vec<LegendEntry> {
                     }
                 }
             }
+            Plot::Text(_) => {}
             _ => {}
         }
     }
@@ -10673,6 +10700,260 @@ pub fn render_sankey(sankey: &SankeyPlot, layout: &Layout) -> Scene {
     scene
 }
 
+/// Parse inline markdown markup into a list of styled spans.
+///
+/// Supported markers (non-nesting):
+/// - `**bold**`
+/// - `*italic*`
+/// - `__underline__`
+///
+/// Unmatched or empty markers are emitted as plain text.
+fn parse_inline_markup(text: &str) -> Vec<TextSpan> {
+    let chars: Vec<char> = text.chars().collect();
+    let n = chars.len();
+    let mut spans: Vec<TextSpan> = Vec::new();
+    let mut i = 0;
+    let mut plain = String::new();
+
+    let flush = |plain: &mut String, spans: &mut Vec<TextSpan>| {
+        if !plain.is_empty() {
+            spans.push(TextSpan::plain(std::mem::take(plain)));
+        }
+    };
+
+    while i < n {
+        if chars[i] == '*' && i + 1 < n && chars[i + 1] == '*' {
+            // Bold: **...**
+            flush(&mut plain, &mut spans);
+            i += 2;
+            let start = i;
+            while i < n {
+                if chars[i] == '*' && i + 1 < n && chars[i + 1] == '*' {
+                    let inner: String = chars[start..i].iter().collect();
+                    if !inner.is_empty() {
+                        spans.push(TextSpan { text: inner, bold: true, italic: false, underline: false });
+                    }
+                    i += 2;
+                    break;
+                }
+                i += 1;
+            }
+        } else if chars[i] == '*' {
+            // Italic: *...*
+            flush(&mut plain, &mut spans);
+            i += 1;
+            let start = i;
+            while i < n {
+                if chars[i] == '*' && (i + 1 >= n || chars[i + 1] != '*') {
+                    let inner: String = chars[start..i].iter().collect();
+                    if !inner.is_empty() {
+                        spans.push(TextSpan { text: inner, bold: false, italic: true, underline: false });
+                    }
+                    i += 1;
+                    break;
+                }
+                i += 1;
+            }
+        } else if chars[i] == '_' && i + 1 < n && chars[i + 1] == '_' {
+            // Underline: __...__
+            flush(&mut plain, &mut spans);
+            i += 2;
+            let start = i;
+            while i < n {
+                if chars[i] == '_' && i + 1 < n && chars[i + 1] == '_' {
+                    let inner: String = chars[start..i].iter().collect();
+                    if !inner.is_empty() {
+                        spans.push(TextSpan { text: inner, bold: false, italic: false, underline: true });
+                    }
+                    i += 2;
+                    break;
+                }
+                i += 1;
+            }
+        } else {
+            plain.push(chars[i]);
+            i += 1;
+        }
+    }
+    flush(&mut plain, &mut spans);
+    spans
+}
+
+/// Explode spans into tagged words, then wrap into lines of at most `max_chars`.
+/// Words are never split mid-word; a word that would overflow is moved to the next line.
+fn wrap_rich_spans(spans: &[TextSpan], max_chars: usize) -> Vec<Vec<TextSpan>> {
+    // Explode into (bold, italic, underline, word) tuples
+    let mut words: Vec<(bool, bool, bool, String)> = Vec::new();
+    for span in spans {
+        for word in span.text.split_whitespace() {
+            words.push((span.bold, span.italic, span.underline, word.to_string()));
+        }
+    }
+
+    // Pack words onto lines
+    let mut lines: Vec<Vec<(bool, bool, bool, String)>> = Vec::new();
+    let mut cur: Vec<(bool, bool, bool, String)> = Vec::new();
+    let mut cur_len = 0usize;
+
+    for (bold, italic, underline, word) in words {
+        let wlen = word.chars().count();
+        let sep = if cur.is_empty() { 0 } else { 1 };
+        if cur_len + sep + wlen > max_chars && !cur.is_empty() {
+            lines.push(std::mem::take(&mut cur));
+            cur_len = 0;
+        }
+        cur_len += if cur.is_empty() { wlen } else { wlen + 1 };
+        cur.push((bold, italic, underline, word));
+    }
+    if !cur.is_empty() {
+        lines.push(cur);
+    }
+
+    // Re-assemble each line of tagged words into spans
+    lines.into_iter().map(|line_words| {
+        let mut line_spans: Vec<TextSpan> = Vec::new();
+        for (i, (bold, italic, underline, word)) in line_words.into_iter().enumerate() {
+            // Try to merge with the last span if styles match
+            if let Some(last) = line_spans.last_mut() {
+                if last.bold == bold && last.italic == italic && last.underline == underline {
+                    last.text.push(' ');
+                    last.text.push_str(&word);
+                    continue;
+                }
+            }
+            // New span: prefix with a space for every word after the first
+            let text = if i == 0 { word } else { format!(" {}", word) };
+            line_spans.push(TextSpan { text, bold, italic, underline });
+        }
+        line_spans
+    }).collect()
+}
+
+/// Render a [`TextPlot`] — word-wrapped rich text with optional title, background, and border.
+fn add_text_plot(tp: &TextPlot, scene: &mut Scene, computed: &ComputedLayout) {
+    let px = computed.margin_left;
+    let py = computed.margin_top;
+    let pw = computed.plot_width();
+    // Extend to full cell bottom so the box always contains all text.
+    let full_h = computed.height - py;
+    let padding = tp.padding;
+
+    if let Some(ref bg) = tp.background {
+        scene.add(Primitive::Rect {
+            x: px, y: py, width: pw, height: full_h,
+            fill: Color::from(bg.as_str()),
+            stroke: None, stroke_width: None, opacity: None,
+        });
+    }
+
+    if tp.border_width > 0.0 {
+        scene.add(Primitive::Rect {
+            x: px, y: py, width: pw, height: full_h,
+            fill: Color::None,
+            stroke: Some(Color::from(tp.border_color.as_deref().unwrap_or("#cccccc"))),
+            stroke_width: Some(tp.border_width),
+            opacity: None,
+        });
+    }
+
+    let font_size = tp.font_size.unwrap_or(computed.body_size);
+    let line_height = font_size as f64 * 1.55;
+    let avail_w = (pw - 2.0 * padding).max(20.0);
+    let char_w = font_size as f64 * 0.55;
+    let max_chars = ((avail_w / char_w) as usize).max(1);
+
+    let (anchor, text_x) = match tp.text_align {
+        TextAlign::Left   => (TextAnchor::Start,  px + padding),
+        TextAlign::Center => (TextAnchor::Middle, px + pw / 2.0),
+        TextAlign::Right  => (TextAnchor::End,    px + pw - padding),
+    };
+
+    let text_color = tp.text_color.as_deref().map(Color::from);
+    let mut cy = py + padding + font_size as f64;
+
+    // Optional TextPlot title (always bold, slightly larger)
+    if let Some(ref t) = tp.title {
+        scene.add(Primitive::Text {
+            x: text_x, y: cy,
+            content: t.clone(),
+            size: font_size + 2,
+            anchor, rotate: None, bold: true,
+            color: text_color.clone(),
+        });
+        cy += line_height * 1.5;
+    }
+
+    for raw in tp.body.lines() {
+        // Horizontal rule
+        if raw.trim() == "---" {
+            let rule_y = cy - font_size as f64 * 0.4;
+            scene.add(Primitive::Line {
+                x1: px + padding, y1: rule_y,
+                x2: px + pw - padding, y2: rule_y,
+                stroke: Color::from("#cccccc"),
+                stroke_width: 1.0,
+                stroke_dasharray: None,
+            });
+            cy += line_height * 0.5;
+            continue;
+        }
+
+        // Headings — bold Text at a larger size (no inline markup)
+        let (heading_text, size_bump) = if raw.starts_with("## ") {
+            (Some(&raw[3..]), 2u32)
+        } else if raw.starts_with("# ") {
+            (Some(&raw[2..]), 4u32)
+        } else {
+            (None, 0u32)
+        };
+
+        if let Some(text) = heading_text {
+            if text.trim().is_empty() { cy += line_height * 0.5; continue; }
+            let fs = font_size + size_bump;
+            let lh = fs as f64 * 1.55;
+            let mc = ((avail_w / (fs as f64 * 0.55)) as usize).max(1);
+            // Wrap heading words (plain Text, always bold)
+            let words: Vec<&str> = text.split_whitespace().collect();
+            let mut cur = String::new();
+            for word in words {
+                let sep = if cur.is_empty() { 0 } else { 1 };
+                if cur.len() + sep + word.len() > mc && !cur.is_empty() {
+                    scene.add(Primitive::Text { x: text_x, y: cy, content: std::mem::take(&mut cur), size: fs, anchor, rotate: None, bold: true, color: text_color.clone() });
+                    cy += lh;
+                }
+                if !cur.is_empty() { cur.push(' '); }
+                cur.push_str(word);
+            }
+            if !cur.is_empty() {
+                scene.add(Primitive::Text { x: text_x, y: cy, content: cur, size: fs, anchor, rotate: None, bold: true, color: text_color.clone() });
+                cy += lh;
+            }
+            cy += lh * 0.2;
+            continue;
+        }
+
+        // Blank line — paragraph gap
+        if raw.trim().is_empty() {
+            cy += line_height * 0.5;
+            continue;
+        }
+
+        // Body line — parse inline markup, word-wrap, emit RichText
+        let spans = parse_inline_markup(raw);
+        let wrapped_lines = wrap_rich_spans(&spans, max_chars);
+        for line_spans in wrapped_lines {
+            scene.add(Primitive::RichText {
+                x: text_x, y: cy,
+                spans: line_spans,
+                size: font_size,
+                anchor,
+                color: text_color.clone(),
+            });
+            cy += line_height;
+        }
+    }
+}
+
 /// this should be the default renderer.
 /// TODO: make an alias of this for single plots, that vectorises
 pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
@@ -10779,7 +11060,7 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
             Plot::Pie(_) | Plot::UpSet(_) | Plot::Chord(_) | Plot::Sankey(_)
             | Plot::PhyloTree(_) | Plot::Synteny(_) | Plot::Polar(_) | Plot::Ternary(_)
             | Plot::Scatter3D(_) | Plot::Surface3D(_) | Plot::Clustermap(_) | Plot::Joint(_) | Plot::Venn(_) | Plot::Parallel(_)
-            | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_)));
+            | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_) | Plot::Text(_)));
         if !skip_axes_for_meta {
             scene.axis_meta = Some(AxisMeta {
                 x_min: computed.x_range.0,
@@ -10796,7 +11077,7 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
         }
     }
 
-    let skip_axes = plots.iter().all(|p| matches!(p, Plot::Pie(_) | Plot::UpSet(_) | Plot::Chord(_) | Plot::Sankey(_) | Plot::PhyloTree(_) | Plot::Synteny(_) | Plot::Polar(_) | Plot::Ternary(_) | Plot::DicePlot(_) | Plot::Scatter3D(_) | Plot::Surface3D(_) | Plot::Clustermap(_) | Plot::Joint(_) | Plot::Venn(_) | Plot::Parallel(_) | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_)));
+    let skip_axes = plots.iter().all(|p| matches!(p, Plot::Pie(_) | Plot::UpSet(_) | Plot::Chord(_) | Plot::Sankey(_) | Plot::PhyloTree(_) | Plot::Synteny(_) | Plot::Polar(_) | Plot::Ternary(_) | Plot::DicePlot(_) | Plot::Scatter3D(_) | Plot::Surface3D(_) | Plot::Clustermap(_) | Plot::Joint(_) | Plot::Venn(_) | Plot::Parallel(_) | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_) | Plot::Text(_)));
     if !skip_axes {
         add_axes_and_grid(&mut scene, &computed, &layout);
     }
@@ -11079,6 +11360,9 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
             }
             Plot::Gantt(gp) => {
                 add_gantt(gp, &mut scene, &computed);
+            }
+            Plot::Text(tp) => {
+                add_text_plot(tp, &mut scene, &computed);
             }
         }
     }

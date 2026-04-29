@@ -58,6 +58,7 @@ use crate::plot::pyramid::PopulationPyramid;
 use crate::plot::waffle::WafflePlot;
 use crate::plot::horizon::HorizonPlot;
 use crate::plot::gantt::GanttPlot;
+use crate::plot::text::TextPlot;
 use crate::plot::legend::ColorBarInfo;
 use crate::render::render_utils;
 
@@ -123,6 +124,7 @@ pub enum Plot {
     Waffle(WafflePlot),
     Horizon(HorizonPlot),
     Gantt(GanttPlot),
+    Text(TextPlot),
 }
 
 impl From<ScatterPlot>    for Plot { fn from(p: ScatterPlot)    -> Self { Plot::Scatter(p) } }
@@ -185,6 +187,7 @@ impl From<PopulationPyramid>  for Plot { fn from(p: PopulationPyramid)  -> Self 
 impl From<WafflePlot>         for Plot { fn from(p: WafflePlot)         -> Self { Plot::Waffle(p) } }
 impl From<HorizonPlot>        for Plot { fn from(p: HorizonPlot)        -> Self { Plot::Horizon(p) } }
 impl From<GanttPlot>          for Plot { fn from(p: GanttPlot)          -> Self { Plot::Gantt(p) } }
+impl From<TextPlot>           for Plot { fn from(p: TextPlot)           -> Self { Plot::Text(p) } }
 
 use crate::plot::plot3d::DataRanges3D;
 use crate::plot::colormap::ColorMap;
@@ -926,6 +929,7 @@ impl Plot {
                 Some(((x_min, x_max), (0.5, n as f64 + 0.5)))
             }
             // Rendered in pixel space; dummy bounds satisfy Layout::auto_from_plots.
+            Plot::Text(_) => Some(((0.0, 1.0), (0.0, 1.0))),
             Plot::Network(_) => Some(((0.0, 1.0), (0.0, 1.0))),
             Plot::Radar(_) => Some(((0.0, 1.0), (0.0, 1.0))),
             Plot::Streamgraph(sg) => {
@@ -1030,6 +1034,7 @@ impl Plot {
                 n * hp.n_bands * 2 * pts_per_series / 10 + 20
             }
             Plot::Gantt(gp) => gp.tasks.len() * 5 + 20,
+            Plot::Text(tp) => tp.body.lines().count() * 2 + 10,
             _ => 100,
         }
     }
