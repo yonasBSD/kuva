@@ -152,6 +152,46 @@ let heatmap = Heatmap::new()
 
 ---
 
+## Custom axis bounds — scalar fields
+
+By default the heatmap maps columns to `[0.5, cols + 0.5]` and rows to `[0.5, rows + 0.5]` so that integer tick values land on cell centres. Use `.with_x_range()` and `.with_y_range()` when the grid represents a physical domain and you want real-world coordinates on the axes.
+
+```rust,no_run
+use kuva::plot::{Heatmap, ColorMap};
+use kuva::render::layout::Layout;
+use kuva::render::plots::Plot;
+
+// 2D Gaussian temperature field over x ∈ [-10, 10], y ∈ [-4, 4]
+let data: Vec<Vec<f64>> = (0..16)
+    .map(|i| {
+        let y = 4.0 - (i as f64 + 0.5) * 8.0 / 16.0;
+        (0..40).map(|j| {
+            let x = -10.0 + (j as f64 + 0.5) * 20.0 / 40.0;
+            let r2 = x * x / 16.0 + y * y / 4.0;
+            (-r2 / 2.0).exp()
+        }).collect()
+    })
+    .collect();
+
+let hm = Heatmap::new()
+    .with_data(data)
+    .with_color_map(ColorMap::Inferno)
+    .with_x_range(-10.0, 10.0)
+    .with_y_range(-4.0, 4.0);
+
+let plots = vec![Plot::Heatmap(hm)];
+let layout = Layout::auto_from_plots(&plots)
+    .with_title("Temperature Field")
+    .with_x_label("x (m)")
+    .with_y_label("y (m)");
+```
+
+<img src="../assets/heatmap/scalar_field.svg" alt="Scalar field heatmap with custom axis bounds" width="560">
+
+Both methods accept any numeric type via `impl Into<f64>`. Either range can be set independently — you can fix only the x-axis and leave the y-axis on its default integer scale, or vice versa.
+
+---
+
 ## Row reordering — phylogenetic alignment
 
 When composing a heatmap alongside a `PhyloTree`, use `with_labels` + `with_y_categories` to reorder the heatmap rows so they match the tree's leaf order top-to-bottom.
@@ -226,6 +266,8 @@ Column reordering works the same way via `with_x_categories`. Unlike `with_y_cat
 | `.with_labels(rows, cols)` | Associate rows and columns with label strings; required before calling `with_y_categories` / `with_x_categories` |
 | `.with_y_categories(order)` | Reorder rows so `order[0]` is at the top; stores `row_labels` bottom-to-top for `Layout::with_y_categories` |
 | `.with_x_categories(order)` | Reorder columns to match `order` (left-to-right); stores `col_labels` in the same order |
+| `.with_x_range(lo, hi)` | Set custom x-axis extent (default `[0.5, cols + 0.5]`) |
+| `.with_y_range(lo, hi)` | Set custom y-axis extent (default `[0.5, rows + 0.5]`) |
 | `.with_legend(s)` | Attach a legend label |
 
 **Layout methods used with heatmaps:**

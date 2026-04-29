@@ -1530,6 +1530,11 @@ fn add_heatmap(heatmap: &Heatmap, scene: &mut Scene, computed: &ComputedLayout) 
     let cmap = heatmap.color_map.clone();
     let total = rows * cols;
 
+    let (x_lo, x_hi) = heatmap.x_range.unwrap_or((0.5, cols as f64 + 0.5));
+    let (y_lo, y_hi) = heatmap.y_range.unwrap_or((0.5, rows as f64 + 0.5));
+    let x_step = (x_hi - x_lo) / cols as f64;
+    let y_step = (y_hi - y_lo) / rows as f64;
+
     // Build rect data across rows.
     struct CellData { x: f64, y: f64, w: f64, h: f64, fill: Color }
     let cell_data: Vec<CellData> = heatmap.data
@@ -1538,10 +1543,10 @@ fn add_heatmap(heatmap: &Heatmap, scene: &mut Scene, computed: &ComputedLayout) 
         .flat_map(|(i, row)| {
             let cmap = cmap.clone();
             row.iter().enumerate().map(move |(j, &value)| {
-                let x0 = computed.map_x(j as f64 + 0.5);
-                let x1 = computed.map_x(j as f64 + 1.5);
-                let y0 = computed.map_y(i as f64 + 1.5);
-                let y1 = computed.map_y(i as f64 + 0.5);
+                let x0 = computed.map_x(x_lo + j as f64 * x_step);
+                let x1 = computed.map_x(x_lo + (j + 1) as f64 * x_step);
+                let y0 = computed.map_y(y_lo + (i + 1) as f64 * y_step);
+                let y1 = computed.map_y(y_lo + i as f64 * y_step);
                 CellData {
                     x: x0, y: y0,
                     w: (x1 - x0).abs() * 0.99,

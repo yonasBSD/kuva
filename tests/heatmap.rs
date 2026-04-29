@@ -197,3 +197,78 @@ fn test_phylo_heatmap_alignment() {
     std::fs::write("test_outputs/heatmap_phylo_alignment.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"));
 }
+
+#[test]
+fn test_heatmap_x_range() {
+    let data = vec![
+        vec![1.0, 2.0, 3.0],
+        vec![4.0, 5.0, 6.0],
+    ];
+    let hm = Heatmap::new().with_data(data).with_x_range(-10.0, 10.0);
+    let plots = vec![Plot::Heatmap(hm)];
+    let layout = Layout::auto_from_plots(&plots).with_x_label("X");
+    let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
+    assert!(svg.contains("<svg"));
+    // x-axis should reflect the custom range
+    assert!(svg.contains("-10") || svg.contains("10"));
+}
+
+#[test]
+fn test_heatmap_y_range() {
+    let data = vec![
+        vec![1.0, 2.0],
+        vec![3.0, 4.0],
+        vec![5.0, 6.0],
+    ];
+    let hm = Heatmap::new().with_data(data).with_y_range(-4.0, 4.0);
+    let plots = vec![Plot::Heatmap(hm)];
+    let layout = Layout::auto_from_plots(&plots).with_y_label("Y");
+    let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
+    assert!(svg.contains("<svg"));
+    assert!(svg.contains("-4") || svg.contains("4"));
+}
+
+#[test]
+fn test_heatmap_xy_range() {
+    let data = vec![
+        vec![10.0, 20.0, 30.0, 40.0],
+        vec![50.0, 60.0, 70.0, 80.0],
+        vec![90.0, 80.0, 70.0, 60.0],
+        vec![50.0, 40.0, 30.0, 20.0],
+    ];
+    let hm = Heatmap::new()
+        .with_data(data)
+        .with_x_range(-10.0, 10.0)
+        .with_y_range(-4.0, 4.0);
+    let plots = vec![Plot::Heatmap(hm)];
+    let layout = Layout::auto_from_plots(&plots)
+        .with_title("Scalar Field")
+        .with_x_label("X (m)")
+        .with_y_label("Y (m)");
+    let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
+    std::fs::create_dir_all("test_outputs").unwrap();
+    std::fs::write("test_outputs/heatmap_xy_range.svg", &svg).unwrap();
+    assert!(svg.contains("<svg"));
+}
+
+#[test]
+fn test_heatmap_default_range_unchanged() {
+    // Verify default behaviour is identical to before: bounds are 0.5..cols+0.5
+    let data = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
+    let hm = Heatmap::new().with_data(data);
+    let plots = vec![Plot::Heatmap(hm)];
+    let b = plots[0].bounds().unwrap();
+    assert_eq!(b, ((0.5, 2.5), (0.5, 2.5)));
+}
+
+#[test]
+fn test_heatmap_custom_range_bounds() {
+    let data = vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]];
+    let hm = Heatmap::new()
+        .with_data(data)
+        .with_x_range(-10.0, 10.0)
+        .with_y_range(-4.0, 4.0);
+    let plots = vec![Plot::Heatmap(hm)];
+    let b = plots[0].bounds().unwrap();
+    assert_eq!(b, ((-10.0, 10.0), (-4.0, 4.0)));
+}

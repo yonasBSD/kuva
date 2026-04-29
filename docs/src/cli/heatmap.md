@@ -46,6 +46,10 @@ kuva heatmap counts.tsv --long-format \
     --legend "TPM" --colormap inferno
 ```
 
+### Custom axis bounds
+
+`Heatmap::with_x_range(lo, hi)` and `with_y_range(lo, hi)` are available in the Rust API for representing scalar fields over a physical domain (e.g. temperature over a spatial grid with real-world coordinates). These are not yet exposed as CLI flags; use the library directly when you need them.
+
 ---
 
 *See also: [Shared flags](./index.md#shared-flags) — output, appearance, axes, log scale.*

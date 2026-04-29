@@ -98,6 +98,12 @@ pub struct Heatmap {
     pub legend_label: Option<String>,
     pub show_tooltips: bool,
     pub tooltip_labels: Option<Vec<String>>,
+    /// Custom x-axis range `(x_min, x_max)`. When set, cell columns are
+    /// mapped linearly across this range instead of the default `[0.5, cols+0.5]`.
+    pub x_range: Option<(f64, f64)>,
+    /// Custom y-axis range `(y_min, y_max)`. When set, cell rows are
+    /// mapped linearly across this range instead of the default `[0.5, rows+0.5]`.
+    pub y_range: Option<(f64, f64)>,
 }
 
 
@@ -119,6 +125,8 @@ impl Heatmap {
             legend_label: None,
             show_tooltips: false,
             tooltip_labels: None,
+            x_range: None,
+            y_range: None,
         }
     }
 
@@ -297,6 +305,25 @@ impl Heatmap {
 
     pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
+        self
+    }
+
+    /// Set the x-axis range `(x_min, x_max)` for the heatmap.
+    ///
+    /// By default columns are mapped to `[0.5, cols + 0.5]` so that integer
+    /// tick positions land on cell centres. Use this when the heatmap represents
+    /// a scalar field over a physical domain (e.g. `-10.0..10.0`).
+    pub fn with_x_range(mut self, x_min: impl Into<f64>, x_max: impl Into<f64>) -> Self {
+        self.x_range = Some((x_min.into(), x_max.into()));
+        self
+    }
+
+    /// Set the y-axis range `(y_min, y_max)` for the heatmap.
+    ///
+    /// By default rows are mapped to `[0.5, rows + 0.5]`. Use this when the
+    /// heatmap represents a scalar field over a physical domain.
+    pub fn with_y_range(mut self, y_min: impl Into<f64>, y_max: impl Into<f64>) -> Self {
+        self.y_range = Some((y_min.into(), y_max.into()));
         self
     }
 }

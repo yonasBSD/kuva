@@ -462,10 +462,9 @@ impl Plot {
             Plot::Heatmap(hm) => {
                 let rows = hm.data.len();
                 let cols = hm.data.first().map_or(0, |row| row.len());
-                // Use 0.5-based bounds so integer positions (1, 2, ...) land on
-                // cell centres, matching DotPlot convention and making the axis
-                // label code (y_val = i + 1.0) align with cell midpoints.
-                Some(((0.5, cols as f64 + 0.5), (0.5, rows as f64 + 0.5)))
+                let x = hm.x_range.unwrap_or((0.5, cols as f64 + 0.5));
+                let y = hm.y_range.unwrap_or((0.5, rows as f64 + 0.5));
+                Some((x, y))
             }
             Plot::Histogram2d(h2d) => {
                 // Return the physical axis range so the layout is calibrated in
