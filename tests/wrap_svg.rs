@@ -360,3 +360,53 @@ fn outside_bottom_legend_no_wrap_renders_entries() {
     assert!(height > 380.0,
         "canvas height ({height}) should exceed default 380px when OutsideBottom legend is present");
 }
+
+#[test]
+fn legend_height_cap_shows_overflow_line() {
+    // Build a legend with 80 short-label entries — far more than fit on a default canvas.
+    // The renderer should cap visible entries and append "… (+N more)".
+    let plots = scatter_plots();
+    let entries: Vec<LegendEntry> = (1..=80)
+        .map(|i| LegendEntry {
+            label: format!("Group {i}"),
+            color: "steelblue".into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        })
+        .collect();
+    let layout = Layout::auto_from_plots(&plots).with_legend_entries(entries);
+    let out = svg(plots, layout);
+    std::fs::write("test_outputs/legend_height_cap.svg", &out).unwrap();
+
+    // The overflow line must be present.
+    assert!(out.contains("more)"), "legend height cap: overflow line missing");
+
+    // The 80th entry must NOT be rendered (it was truncated).
+    assert!(!out.contains(">Group 80<"), "legend height cap: last entry should be truncated");
+
+    // The first entry must still appear.
+    assert!(out.contains(">Group 1<"), "legend height cap: first entry missing");
+
+    // The overflow text must not be clipped by the right canvas edge.
+    // Parse the canvas width from the SVG root element.
+    let canvas_width: f64 = {
+        let start = out.find("width=\"").unwrap() + 7;
+        let end = start + out[start..].find('"').unwrap();
+        out[start..end].parse().unwrap()
+    };
+    // Find the x position of the overflow text element.
+    let overflow_x: f64 = out
+        .split(">… (+")
+        .next()
+        .and_then(|before| before.rfind("x=\""))
+        .and_then(|pos| {
+            let after = &out[pos + 3..];
+            after.split('"').next()?.parse().ok()
+        })
+        .unwrap_or(0.0);
+    // "… (+NN more)" is ~13 chars × 7.5px ≈ 98px. Verify it fits in the canvas.
+    assert!(
+        overflow_x + 98.0 <= canvas_width,
+        "overflow text at x={overflow_x} would extend beyond canvas width {canvas_width}"
+    );
+}

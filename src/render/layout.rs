@@ -152,6 +152,9 @@ pub struct Layout {
     /// Override the computed legend height. When `None`, height is auto-computed from
     /// the number of entries/groups. Set explicitly via `with_legend_height(px)`.
     pub legend_height: Option<f64>,
+    /// Total number of flat legend entries expected (set by `auto_from_plots`).
+    /// Used by `from_layout` to reserve enough right-margin for the overflow line.
+    pub(crate) legend_entry_count: usize,
     // Stats box
     /// Pre-formatted text lines to display in a stats box (e.g. "R² = 0.847").
     pub stats_entries: Vec<String>,
@@ -305,6 +308,7 @@ impl Layout {
             legend_groups: None,
             legend_box: true,
             legend_height: None,
+            legend_entry_count: 0,
             stats_entries: Vec::new(),
             stats_title: None,
             stats_position: LegendPosition::InsideTopLeft,
@@ -390,6 +394,7 @@ impl Layout {
         let mut has_manhattan: bool = false;
         let mut has_polar: bool = false;
         let mut max_label_len: usize = 0;
+        let mut legend_entry_count: usize = 0;
         let mut brick_has_notations: bool = false;
         let mut pyramid_normalize: Option<bool> = None;
         let mut horizon_right_annot_px: f64 = 0.0;
@@ -485,6 +490,9 @@ impl Layout {
                 let labels: Vec<String> = bp.names.iter().rev().cloned().collect();
                 y_labels = Some(labels);
                 has_legend = true;
+                if let Some(ref template) = bp.template {
+                    legend_entry_count += template.len();
+                }
                 if let Some(ref motifs) = bp.motifs {
                     // +1 when mark_primary is set: the primary entry gets a trailing '*'
                     let mark_bonus = if bp.mark_primary { 1 } else { 0 };
@@ -1082,6 +1090,7 @@ impl Layout {
 
         if has_legend {
             layout = layout.with_show_legend();
+            layout.legend_entry_count = legend_entry_count;
             let dynamic_width = max_label_len as f64 * 8.0 + 40.0;
             layout.legend_width = dynamic_width.max(80.0);
 
@@ -2073,12 +2082,34 @@ impl ComputedLayout {
         margin_right += y2_axis_width;
 
         // Effective legend width: capped when legend_wrap is set.
-        let effective_legend_width = if let Some(max_chars) = layout.legend_wrap {
+        let mut effective_legend_width = if let Some(max_chars) = layout.legend_wrap {
             let cap = max_chars as f64 * 7.2 * s + 35.0 * s;
             (layout.legend_width * s).min(cap).max(80.0 * s)
         } else {
             layout.legend_width * s
         };
+
+        // When entries are numerous enough to trigger the height cap, the rendered legend shows
+        // a "… (+N more)" overflow line. Ensure the right margin reserves enough space for it.
+        {
+            let n_entries = if let Some(ref entries) = layout.legend_entries {
+                entries.len()
+            } else {
+                layout.legend_entry_count
+            };
+            if n_entries > 10 {
+                let canvas_h_est = layout.height.unwrap_or(400.0) * s;
+                let avail_h_est = (canvas_h_est - margin_top - 16.0 * s).max(18.0 * s);
+                let max_entries_est = ((avail_h_est / (18.0 * s)).floor() as usize).max(10);
+                if n_entries > max_entries_est {
+                    let overflow = n_entries - max_entries_est.saturating_sub(1);
+                    let overflow_text = format!("… (+{overflow} more)");
+                    // Text sits at legend_text_x (25px) from legend_x; box needs to contain it.
+                    let min_w = overflow_text.chars().count() as f64 * 7.5 * s + 25.0 * s + 8.0 * s;
+                    effective_legend_width = effective_legend_width.max(min_w);
+                }
+            }
+        }
 
         let mut legend_bottom_extra = 0.0_f64;
         if layout.show_legend {

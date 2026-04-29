@@ -5592,26 +5592,42 @@ fn add_legend_at(legend: &Legend, scene: &mut Scene, computed: &ComputedLayout, 
     let legend_width = computed.legend_width;
     let legend_padding = computed.legend_padding;
     let line_height = computed.legend_line_height;
-    let legend_height = legend.entries.len() as f64 * line_height + legend_padding * 2.0;
     let legend_x = computed.width - computed.margin_right + computed.y2_axis_width + 10.0;
     let legend_y = y_start;
+
+    // Cap entries to fit within the canvas height (minimum 10 shown before capping).
+    let avail_height = (computed.height - legend_y - legend_padding * 2.0).max(line_height);
+    let max_entries = ((avail_height / line_height).floor() as usize).max(10);
+    let n_total = legend.entries.len();
+    let overflow = if n_total > max_entries { n_total - max_entries.saturating_sub(1) } else { 0 };
+    let entries_to_show = if overflow > 0 { max_entries.saturating_sub(1) } else { n_total };
+
+    let legend_height = (entries_to_show + if overflow > 0 { 1 } else { 0 }) as f64 * line_height + legend_padding * 2.0;
+    // Widen box if the "+N more" text would overflow it (text starts 18px from legend_x).
+    let overflow_label = if overflow > 0 { format!("… (+{overflow} more)") } else { String::new() };
+    let box_width = if overflow > 0 {
+        let min_w = overflow_label.chars().count() as f64 * 7.5 + 18.0 + legend_padding;
+        legend_width.max(min_w)
+    } else {
+        legend_width
+    };
 
     if legend.show_box {
         scene.add(Primitive::Rect {
             x: legend_x - legend_padding + 5.0, y: legend_y - legend_padding,
-            width: legend_width, height: legend_height,
+            width: box_width, height: legend_height,
             fill: Color::from(&theme.legend_bg), stroke: None, stroke_width: None, opacity: None,
         });
         scene.add(Primitive::Rect {
             x: legend_x - legend_padding + 5.0, y: legend_y - legend_padding,
-            width: legend_width, height: legend_height,
+            width: box_width, height: legend_height,
             fill: "none".into(), stroke: Some(Color::from(&theme.legend_border)),
             stroke_width: Some(1.0), opacity: None,
         });
     }
 
     let mut cur_y = legend_y;
-    for entry in &legend.entries {
+    for entry in legend.entries.iter().take(entries_to_show) {
         let swatch_x = legend_x;
         let swatch_y = cur_y;
         match entry.shape {
@@ -5640,6 +5656,14 @@ fn add_legend_at(legend: &Legend, scene: &mut Scene, computed: &ComputedLayout, 
             color: None,
         });
         cur_y += line_height;
+    }
+    if overflow > 0 {
+        scene.add(Primitive::Text {
+            x: legend_x + 18.0, y: cur_y + computed.body_size as f64 * 0.8,
+            content: format!("… (+{overflow} more)"), size: computed.body_size,
+            anchor: TextAnchor::Start, rotate: None, bold: false,
+            color: None,
+        });
     }
 }
 
@@ -5730,11 +5754,30 @@ fn add_legend_with_offset(legend: &Legend, scene: &mut Scene, computed: &Compute
     };
     let legend_y = legend_y + y_offset;
 
+    // Cap entries to fit within the canvas height (minimum 10 shown before capping).
+    let avail_height_entries = (computed.height - legend_y - legend_padding * 2.0).max(line_height);
+    let max_entries_display = ((avail_height_entries / line_height).floor() as usize).max(10);
+
+    // Pre-compute overflow for flat entries so box width can be widened to fit "… (+N more)".
+    let flat_overflow = if legend.groups.is_none() {
+        let n = legend.entries.len();
+        if n > max_entries_display { n - max_entries_display.saturating_sub(1) } else { 0 }
+    } else {
+        0
+    };
+    let box_width = if flat_overflow > 0 {
+        let overflow_text = format!("… (+{flat_overflow} more)");
+        let min_w = overflow_text.chars().count() as f64 * 7.5 + computed.legend_text_x + legend_padding;
+        legend_width.max(min_w)
+    } else {
+        legend_width
+    };
+
     if legend.show_box {
         scene.add(Primitive::Rect {
             x: legend_x - legend_padding + 5.0,
             y: legend_y - legend_padding,
-            width: legend_width,
+            width: box_width,
             height: legend_height,
             fill: Color::from(&theme.legend_bg),
             stroke: None,
@@ -5744,7 +5787,7 @@ fn add_legend_with_offset(legend: &Legend, scene: &mut Scene, computed: &Compute
         scene.add(Primitive::Rect {
             x: legend_x - legend_padding + 5.0,
             y: legend_y - legend_padding,
-            width: legend_width,
+            width: box_width,
             height: legend_height,
             fill: "none".into(),
             stroke: Some(Color::from(&theme.legend_border)),
@@ -5802,6 +5845,8 @@ fn add_legend_with_offset(legend: &Legend, scene: &mut Scene, computed: &Compute
         if computed.interactive { scene.add(Primitive::GroupEnd); }
     };
 
+    // max_entries_display was already computed above after legend_y was resolved.
+
     if let Some(ref groups) = legend.groups {
         for (i, group) in groups.iter().enumerate() {
             if i > 0 {
@@ -5827,8 +5872,22 @@ fn add_legend_with_offset(legend: &Legend, scene: &mut Scene, computed: &Compute
             }
         }
     } else {
-        for entry in &legend.entries {
+        let overflow = flat_overflow;
+        let entries_to_show = if overflow > 0 { max_entries_display.saturating_sub(1) } else { legend.entries.len() };
+        for entry in legend.entries.iter().take(entries_to_show) {
             render_entry(entry, scene, &mut cur_y);
+        }
+        if overflow > 0 {
+            scene.add(Primitive::Text {
+                x: legend_x + computed.legend_text_x,
+                y: cur_y + text_baseline_offset,
+                content: format!("… (+{overflow} more)"),
+                anchor: TextAnchor::Start,
+                size: computed.body_size,
+                rotate: None,
+                bold: false,
+                color: None,
+            });
         }
     }
 }
