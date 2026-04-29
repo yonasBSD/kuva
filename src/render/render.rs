@@ -14410,7 +14410,7 @@ fn hexbin_bin_values(
 
     let total_pts = hb.x.len() as f64;
     let min_count = hb.min_count.max(1);
-    bins.iter()
+    let mut result: Vec<((i32, i32), f64)> = bins.iter()
         .filter(|(_, pts)| pts.len() >= min_count)
         .map(|(&key, pts)| {
             let val = match &hb.z_reduce {
@@ -14440,7 +14440,9 @@ fn hexbin_bin_values(
             };
             (key, val)
         })
-        .collect()
+        .collect();
+    result.sort_by_key(|&((q, r), _)| (q, r));
+    result
 }
 
 /// Draw the hexbin colorbar.  Must be called AFTER `ClipEnd`.
