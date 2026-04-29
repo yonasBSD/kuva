@@ -10899,10 +10899,10 @@ fn add_text_plot(tp: &TextPlot, scene: &mut Scene, computed: &ComputedLayout) {
         }
 
         // Headings — bold Text at a larger size (no inline markup)
-        let (heading_text, size_bump) = if raw.starts_with("## ") {
-            (Some(&raw[3..]), 2u32)
-        } else if raw.starts_with("# ") {
-            (Some(&raw[2..]), 4u32)
+        let (heading_text, size_bump) = if let Some(s) = raw.strip_prefix("## ") {
+            (Some(s), 2u32)
+        } else if let Some(s) = raw.strip_prefix("# ") {
+            (Some(s), 4u32)
         } else {
             (None, 0u32)
         };

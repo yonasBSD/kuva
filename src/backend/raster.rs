@@ -15,7 +15,7 @@ use resvg::tiny_skia::{
     self, Color, FillRule, Paint, PathBuilder, Pixmap, Rect, Stroke, Transform,
 };
 
-use crate::render::render::{Primitive, Scene, TextAnchor, TextSpan};
+use crate::render::render::{Primitive, Scene, TextAnchor};
 
 fn shared_fontdb() -> Arc<resvg::usvg::fontdb::Database> {
     static FONTDB: OnceLock<Arc<resvg::usvg::fontdb::Database>> = OnceLock::new();
