@@ -59,6 +59,7 @@ use crate::plot::waffle::WafflePlot;
 use crate::plot::horizon::HorizonPlot;
 use crate::plot::gantt::GanttPlot;
 use crate::plot::text::TextPlot;
+use crate::plot::legend_plot::LegendPlot;
 use crate::plot::legend::ColorBarInfo;
 use crate::render::render_utils;
 
@@ -125,6 +126,7 @@ pub enum Plot {
     Horizon(HorizonPlot),
     Gantt(GanttPlot),
     Text(TextPlot),
+    LegendPlot(LegendPlot),
 }
 
 impl From<ScatterPlot>    for Plot { fn from(p: ScatterPlot)    -> Self { Plot::Scatter(p) } }
@@ -188,6 +190,7 @@ impl From<WafflePlot>         for Plot { fn from(p: WafflePlot)         -> Self 
 impl From<HorizonPlot>        for Plot { fn from(p: HorizonPlot)        -> Self { Plot::Horizon(p) } }
 impl From<GanttPlot>          for Plot { fn from(p: GanttPlot)          -> Self { Plot::Gantt(p) } }
 impl From<TextPlot>           for Plot { fn from(p: TextPlot)           -> Self { Plot::Text(p) } }
+impl From<LegendPlot>         for Plot { fn from(p: LegendPlot)         -> Self { Plot::LegendPlot(p) } }
 
 use crate::plot::plot3d::DataRanges3D;
 use crate::plot::colormap::ColorMap;
@@ -927,6 +930,8 @@ impl Plot {
                 let (x_min, x_max) = gp.x_bounds()?;
                 Some(((x_min, x_max), (0.5, n as f64 + 0.5)))
             }
+            // LegendPlot renders in its own space — no data bounds.
+            Plot::LegendPlot(_) => None,
             // Rendered in pixel space; dummy bounds satisfy Layout::auto_from_plots.
             Plot::Text(_) => Some(((0.0, 1.0), (0.0, 1.0))),
             Plot::Network(_) => Some(((0.0, 1.0), (0.0, 1.0))),

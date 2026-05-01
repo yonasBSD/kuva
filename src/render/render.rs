@@ -92,6 +92,7 @@ use crate::plot::waffle::{WafflePlot, WaffleCategory, FillOrder, CellShape};
 use crate::plot::horizon::HorizonPlot;
 use crate::plot::gantt::{GanttPlot, GanttDisplayRow};
 use crate::plot::text::{TextPlot, TextAlign};
+use crate::plot::legend_plot::LegendPlot;
 
 use crate::plot::Legend;
 use crate::plot::legend::{ColorBarInfo, LegendEntry, LegendGroup, LegendPosition, LegendShape};
@@ -5533,6 +5534,7 @@ fn add_stats_box(layout: &Layout, scene: &mut Scene, computed: &ComputedLayout) 
         LegendPosition::OutsideBottomLeft   => (plot_left, computed.height - computed.margin_bottom + padding + 10.0),
         LegendPosition::OutsideBottomCenter => (plot_cx - box_width / 2.0, computed.height - computed.margin_bottom + padding + 10.0),
         LegendPosition::OutsideBottomRight  => (plot_right - box_width, computed.height - computed.margin_bottom + padding + 10.0),
+        LegendPosition::OutsideBottomColumns => (plot_left, computed.height - computed.margin_bottom + padding + 10.0),
         LegendPosition::Custom(x, y)        => (x, y),
         LegendPosition::DataCoords(x, y)    => (computed.map_x(x), computed.map_y(y)),
     };
@@ -5679,6 +5681,56 @@ fn add_legend_at(legend: &Legend, scene: &mut Scene, computed: &ComputedLayout, 
 }
 
 fn add_legend_with_offset(legend: &Legend, scene: &mut Scene, computed: &ComputedLayout, y_offset: f64) {
+    // Multi-column bottom layout: flow all entries into columns, no capping.
+    if matches!(computed.legend_position, LegendPosition::OutsideBottomColumns) {
+        let n_cols = computed.legend_col_count.max(1);
+        let line_height = computed.legend_line_height;
+        let legend_padding = computed.legend_padding;
+        let plot_left = computed.margin_left;
+        let plot_right = computed.width - computed.margin_right;
+        let plot_bottom = computed.height - computed.margin_bottom;
+        // Legend sits just below the x-axis area
+        let n_entries = legend.entries.len().max(1);
+        let n_rows = (n_entries + n_cols - 1) / n_cols;
+        let legend_y = plot_bottom + computed.legend_bottom_extra - (
+            n_rows as f64 * line_height + legend_padding * 2.0 + 5.0
+        );
+        let avail_w = plot_right - plot_left;
+        let col_w = avail_w / n_cols as f64;
+        let theme = &computed.theme;
+
+        if legend.show_box {
+            let box_h = n_rows as f64 * line_height + legend_padding * 2.0;
+            scene.add(Primitive::Rect {
+                x: plot_left - legend_padding + 5.0,
+                y: legend_y - legend_padding,
+                width: avail_w + legend_padding,
+                height: box_h,
+                fill: Color::from(&theme.legend_bg),
+                stroke: None, stroke_width: None, opacity: None,
+            });
+            scene.add(Primitive::Rect {
+                x: plot_left - legend_padding + 5.0,
+                y: legend_y - legend_padding,
+                width: avail_w + legend_padding,
+                height: box_h,
+                fill: "none".into(),
+                stroke: Some(Color::from(&theme.legend_border)),
+                stroke_width: Some(computed.axis_stroke_width),
+                opacity: None,
+            });
+        }
+
+        for (i, entry) in legend.entries.iter().enumerate() {
+            let col = i % n_cols;
+            let row = i / n_cols;
+            let ex = plot_left + col as f64 * col_w;
+            let ey = legend_y + row as f64 * line_height;
+            render_legend_entry(entry, scene, ex, ey, computed);
+        }
+        return;
+    }
+
     let theme = &computed.theme;
 
     let legend_width = computed.legend_width;
@@ -5758,6 +5810,8 @@ fn add_legend_with_offset(legend: &Legend, scene: &mut Scene, computed: &Compute
         LegendPosition::OutsideBottomLeft   => (plot_left, computed.height - legend_height + legend_padding),
         LegendPosition::OutsideBottomCenter => (plot_cx - legend_width / 2.0, computed.height - legend_height + legend_padding),
         LegendPosition::OutsideBottomRight  => (plot_right - legend_width, computed.height - legend_height + legend_padding),
+        // OutsideBottomColumns: handled by early return above; unreachable here.
+        LegendPosition::OutsideBottomColumns => (plot_left, computed.height - legend_height + legend_padding),
         // Custom — absolute canvas pixel coordinates
         LegendPosition::Custom(x, y)        => (x, y),
         // DataCoords — mapped through ComputedLayout
@@ -8865,6 +8919,7 @@ pub fn collect_legend_entries(plots: &[Plot]) -> Vec<LegendEntry> {
                 }
             }
             Plot::Text(_) => {}
+            Plot::LegendPlot(_) => {}
             _ => {}
         }
     }
@@ -10911,6 +10966,78 @@ fn wrap_rich_spans(spans: &[TextSpan], max_chars: usize) -> Vec<Vec<TextSpan>> {
     }).collect()
 }
 
+/// Render a [`LegendPlot`] — a standalone legend grid with no axes or data.
+fn add_legend_plot(lp: &LegendPlot, scene: &mut Scene, computed: &ComputedLayout) {
+    let line_height = computed.legend_line_height;
+    let legend_padding = computed.legend_padding;
+    let theme = &computed.theme;
+
+    let plot_left = computed.margin_left;
+    let plot_right = computed.width - computed.margin_right;
+    let plot_top = computed.margin_top;
+    let avail_w = plot_right - plot_left;
+
+    // Auto-compute columns if not set
+    let n_cols = lp.cols.unwrap_or_else(|| {
+        let max_chars = lp.entries.iter().map(|e| e.label.len()).max().unwrap_or(8) as f64;
+        let char_px = computed.body_size as f64 * 0.68;
+        let col_w = 18.0 + max_chars * char_px + 20.0;
+        ((avail_w / col_w).floor() as usize).max(1)
+    });
+
+    let n_entries = lp.entries.len();
+    let n_rows = if n_entries == 0 { 0 } else { (n_entries + n_cols - 1) / n_cols };
+
+    // Optional title
+    let mut cur_y = plot_top;
+    if let Some(ref title) = lp.title {
+        scene.add(Primitive::Text {
+            x: plot_left + avail_w / 2.0,
+            y: cur_y + 5.0,
+            content: title.clone(),
+            size: computed.body_size,
+            anchor: TextAnchor::Middle,
+            rotate: None,
+            bold: true,
+            color: None,
+        });
+        cur_y += line_height;
+    }
+
+    let legend_y = cur_y;
+    let col_w = avail_w / n_cols as f64;
+
+    if lp.show_box && n_entries > 0 {
+        let box_h = n_rows as f64 * line_height + legend_padding * 2.0;
+        scene.add(Primitive::Rect {
+            x: plot_left - legend_padding + 5.0,
+            y: legend_y - legend_padding,
+            width: avail_w + legend_padding,
+            height: box_h,
+            fill: Color::from(&theme.legend_bg),
+            stroke: None, stroke_width: None, opacity: None,
+        });
+        scene.add(Primitive::Rect {
+            x: plot_left - legend_padding + 5.0,
+            y: legend_y - legend_padding,
+            width: avail_w + legend_padding,
+            height: box_h,
+            fill: "none".into(),
+            stroke: Some(Color::from(&theme.legend_border)),
+            stroke_width: Some(computed.axis_stroke_width),
+            opacity: None,
+        });
+    }
+
+    for (i, entry) in lp.entries.iter().enumerate() {
+        let col = i % n_cols;
+        let row = i / n_cols;
+        let ex = plot_left + col as f64 * col_w;
+        let ey = legend_y + row as f64 * line_height;
+        render_legend_entry(entry, scene, ex, ey, computed);
+    }
+}
+
 /// Render a [`TextPlot`] — word-wrapped rich text with optional title, background, and border.
 fn add_text_plot(tp: &TextPlot, scene: &mut Scene, computed: &ComputedLayout) {
     let px = computed.margin_left;
@@ -11142,7 +11269,7 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
             Plot::Pie(_) | Plot::UpSet(_) | Plot::Chord(_) | Plot::Sankey(_)
             | Plot::PhyloTree(_) | Plot::Synteny(_) | Plot::Polar(_) | Plot::Ternary(_)
             | Plot::Scatter3D(_) | Plot::Surface3D(_) | Plot::Clustermap(_) | Plot::Joint(_) | Plot::Venn(_) | Plot::Parallel(_)
-            | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_) | Plot::Text(_)));
+            | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_) | Plot::Text(_) | Plot::LegendPlot(_)));
         if !skip_axes_for_meta {
             scene.axis_meta = Some(AxisMeta {
                 x_min: computed.x_range.0,
@@ -11159,7 +11286,7 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
         }
     }
 
-    let skip_axes = plots.iter().all(|p| matches!(p, Plot::Pie(_) | Plot::UpSet(_) | Plot::Chord(_) | Plot::Sankey(_) | Plot::PhyloTree(_) | Plot::Synteny(_) | Plot::Polar(_) | Plot::Ternary(_) | Plot::DicePlot(_) | Plot::Scatter3D(_) | Plot::Surface3D(_) | Plot::Clustermap(_) | Plot::Joint(_) | Plot::Venn(_) | Plot::Parallel(_) | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_) | Plot::Text(_)));
+    let skip_axes = plots.iter().all(|p| matches!(p, Plot::Pie(_) | Plot::UpSet(_) | Plot::Chord(_) | Plot::Sankey(_) | Plot::PhyloTree(_) | Plot::Synteny(_) | Plot::Polar(_) | Plot::Ternary(_) | Plot::DicePlot(_) | Plot::Scatter3D(_) | Plot::Surface3D(_) | Plot::Clustermap(_) | Plot::Joint(_) | Plot::Venn(_) | Plot::Parallel(_) | Plot::Mosaic(_) | Plot::Network(_) | Plot::Radar(_) | Plot::Treemap(_) | Plot::Sunburst(_) | Plot::Funnel(_) | Plot::Rose(_) | Plot::Calendar(_) | Plot::Waffle(_) | Plot::Text(_) | Plot::LegendPlot(_)));
     if !skip_axes {
         add_axes_and_grid(&mut scene, &computed, &layout);
     }
@@ -11445,6 +11572,9 @@ pub fn render_multiple(plots: Vec<Plot>, layout: Layout) -> Scene {
             }
             Plot::Text(tp) => {
                 add_text_plot(tp, &mut scene, &computed);
+            }
+            Plot::LegendPlot(lp) => {
+                add_legend_plot(lp, &mut scene, &computed);
             }
         }
     }

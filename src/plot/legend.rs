@@ -71,6 +71,8 @@ pub enum LegendPosition {
     OutsideBottomLeft,
     OutsideBottomCenter,
     OutsideBottomRight,
+    /// Below the plot in auto-computed columns. Canvas height is extended to fit all entries.
+    OutsideBottomColumns,
     // Absolute SVG canvas pixel coordinate
     Custom(f64, f64),
     // Data-space coordinate — mapped through map_x/map_y at render time

@@ -61,6 +61,7 @@ pub mod waffle;
 pub mod horizon;
 pub mod gantt;
 pub mod text;
+pub mod legend_plot;
 
 pub mod legend;
 
@@ -132,5 +133,6 @@ pub use waffle::{WafflePlot, WaffleCategory, FillOrder, CellShape};
 pub use horizon::{HorizonPlot, HorizonSeries};
 pub use gantt::{GanttPlot, GanttTask, GanttDisplayRow};
 pub use text::{TextPlot, TextAlign};
+pub use legend_plot::LegendPlot;
 
 pub use legend::{Legend, LegendEntry, LegendShape, LegendPosition, LegendGroup};

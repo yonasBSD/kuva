@@ -155,6 +155,8 @@ pub struct Layout {
     /// Total number of flat legend entries expected (set by `auto_from_plots`).
     /// Used by `from_layout` to reserve enough right-margin for the overflow line.
     pub(crate) legend_entry_count: usize,
+    /// Longest legend label character count — set by `auto_from_plots` for column layout.
+    pub(crate) legend_max_label_chars: usize,
     // Stats box
     /// Pre-formatted text lines to display in a stats box (e.g. "R² = 0.847").
     pub stats_entries: Vec<String>,
@@ -309,6 +311,7 @@ impl Layout {
             legend_box: true,
             legend_height: None,
             legend_entry_count: 0,
+            legend_max_label_chars: 0,
             stats_entries: Vec::new(),
             stats_title: None,
             stats_position: LegendPosition::InsideTopLeft,
@@ -1091,6 +1094,7 @@ impl Layout {
         if has_legend {
             layout = layout.with_show_legend();
             layout.legend_entry_count = legend_entry_count;
+            layout.legend_max_label_chars = max_label_len;
             let dynamic_width = max_label_len as f64 * 8.0 + 40.0;
             layout.legend_width = dynamic_width.max(80.0);
 
@@ -1914,6 +1918,8 @@ pub struct ComputedLayout {
     /// The x-axis label must be offset upward by this amount so it stays
     /// above the legend rather than landing inside it.
     pub legend_bottom_extra: f64,
+    /// Number of columns for `OutsideBottomColumns` legend layout; 0 for all other positions.
+    pub legend_col_count: usize,
 }
 
 impl ComputedLayout {
@@ -2112,6 +2118,7 @@ impl ComputedLayout {
         }
 
         let mut legend_bottom_extra = 0.0_f64;
+        let mut legend_col_count: usize = 0;
         if layout.show_legend {
             // Estimate legend height for OutsideTop/Bottom margin adjustments.
             let legend_line_h = 18.0 * s;
@@ -2160,6 +2167,32 @@ impl ComputedLayout {
                     // the x-axis label can be positioned relative to the axis area,
                     // not the canvas bottom.
                     legend_bottom_extra = extra;
+                }
+                LegendPosition::OutsideBottomColumns => {
+                    // Available width = canvas minus side margins (no right margin added for this position)
+                    let avail_w = layout.width
+                        .map(|w| w - margin_left - margin_right)
+                        .unwrap_or(600.0 * s);
+                    // Column entry width: swatch+gap (18px) + label text at 0.68 char_w + inter-col gap (20px)
+                    let char_px = tick_size * 0.68;
+                    let max_chars = if let Some(ref entries) = layout.legend_entries {
+                        entries.iter().map(|e| e.label.len()).max().unwrap_or(8) as f64
+                    } else {
+                        layout.legend_max_label_chars.max(8) as f64
+                    };
+                    let col_w = (18.0 + max_chars * char_px / s + 20.0) * s;
+                    let n_cols = ((avail_w / col_w).floor() as usize).max(1);
+                    let n_entries = if let Some(ref entries) = layout.legend_entries {
+                        entries.len()
+                    } else {
+                        layout.legend_entry_count.max(1)
+                    };
+                    let n_rows = (n_entries + n_cols - 1) / n_cols;
+                    let legend_h = n_rows as f64 * legend_line_h + 20.0 * s;
+                    let extra = legend_h + 10.0 * s;
+                    margin_bottom += extra;
+                    legend_bottom_extra = extra;
+                    legend_col_count = n_cols;
                 }
                 // Inside*, Custom, DataCoords: overlay or user controls — no margin change
                 _ => {}
@@ -2325,6 +2358,7 @@ impl ComputedLayout {
             y2_label_wrap: layout.y2_label_wrap,
             legend_wrap: layout.legend_wrap,
             legend_bottom_extra,
+            legend_col_count,
         };
         s.recompute_transforms();
         s
