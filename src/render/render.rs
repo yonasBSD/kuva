@@ -10975,16 +10975,26 @@ fn add_legend_plot(lp: &LegendPlot, scene: &mut Scene, computed: &ComputedLayout
     let plot_top = computed.margin_top;
     let avail_w = plot_right - plot_left;
 
-    // Auto-compute columns if not set
-    let n_cols = lp.cols.unwrap_or_else(|| {
+    let n_entries = lp.entries.len();
+
+    // Auto-compute columns if not set, then bump up columns to fit within cell height.
+    let mut n_cols = lp.cols.unwrap_or_else(|| {
         let max_chars = lp.entries.iter().map(|e| e.label.len()).max().unwrap_or(8) as f64;
         let char_px = computed.body_size as f64 * 0.68;
         let col_w = 18.0 + max_chars * char_px + 20.0;
         ((avail_w / col_w).floor() as usize).max(1)
     });
+    let mut n_rows = n_entries.div_ceil(n_cols);
 
-    let n_entries = lp.entries.len();
-    let n_rows = n_entries.div_ceil(n_cols);
+    // Title row consumes one line_height; account for it when checking fit.
+    let title_h = if lp.title.is_some() { line_height } else { 0.0 };
+    let avail_h = computed.height - plot_top - title_h - legend_padding * 2.0;
+    // Increase columns until all rows fit within the cell, without splitting entries
+    // across more columns than there are entries.
+    while n_cols < n_entries && (n_rows as f64 * line_height) > avail_h {
+        n_cols += 1;
+        n_rows = n_entries.div_ceil(n_cols);
+    }
 
     // Optional title
     let mut cur_y = plot_top;

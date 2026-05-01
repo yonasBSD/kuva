@@ -107,6 +107,10 @@ pub struct Figure {
     keep_panel_legends: bool,
     /// Sparse list of twin-Y cells: (cell_index, primary_plots, secondary_plots).
     twin_y_plots: Vec<(usize, Vec<Plot>, Vec<Plot>)>,
+    /// Per-row height overrides (indexed by row, 0-based). None = use cell_height.
+    row_heights: Vec<Option<f64>>,
+    /// Per-col width overrides (indexed by col, 0-based). None = use cell_width.
+    col_widths: Vec<Option<f64>>,
 }
 
 impl Figure {
@@ -133,6 +137,8 @@ impl Figure {
             shared_legend_entries: None,
             keep_panel_legends: false,
             twin_y_plots: Vec::new(),
+            row_heights: Vec::new(),
+            col_widths: Vec::new(),
         }
     }
 
@@ -244,8 +250,30 @@ impl Figure {
         self
     }
 
+    /// Override the height of a specific grid row (0-based).
+    /// Useful for thin legend rows or tall data rows. Unset rows use `cell_height`.
+    pub fn with_row_height(mut self, row: usize, height: f64) -> Self {
+        if self.row_heights.len() <= row {
+            self.row_heights.resize(row + 1, None);
+        }
+        self.row_heights[row] = Some(height);
+        self
+    }
+
+    /// Override the width of a specific grid column (0-based).
+    /// Unset columns use `cell_width`.
+    pub fn with_col_width(mut self, col: usize, width: f64) -> Self {
+        if self.col_widths.len() <= col {
+            self.col_widths.resize(col + 1, None);
+        }
+        self.col_widths[col] = Some(width);
+        self
+    }
+
     /// Set the total figure size in pixels; cells auto-compute to fit.
     /// Takes precedence over `with_cell_size` when both are set.
+    /// Explicit per-row/col sizes (from `with_row_height`/`with_col_width`) are
+    /// subtracted first; the remaining space is divided among un-constrained rows/cols.
     pub fn with_figure_size(mut self, w: f64, h: f64) -> Self {
         self.figure_width = Some(w);
         self.figure_height = Some(h);
@@ -372,6 +400,8 @@ impl Figure {
             figure_width, figure_height,
             shared_legend, shared_legend_entries, keep_panel_legends,
             twin_y_plots,
+            row_heights: explicit_row_heights,
+            col_widths: explicit_col_widths,
         } = self;
 
         // Build a lookup from cell_index → (primary, secondary) for twin-Y cells.
@@ -441,16 +471,36 @@ impl Figure {
                | FigureLegendPosition::BottomCenter | FigureLegendPosition::BottomRight));
 
         // If total figure size is specified, back-compute cell dimensions to fit.
+        // Explicit per-row/col sizes are subtracted first; remaining space is shared
+        // equally among unconstrained rows/cols.
         if let (Some(fw), Some(fh)) = (figure_width, figure_height) {
             let legend_w_used = if legend_on_right || legend_on_left { legend_width + legend_spacing } else { 0.0 };
             let legend_h_used = if legend_on_top || legend_on_bottom { legend_height + legend_spacing } else { 0.0 };
             let title_h = if title.is_some() { 30.0 } else { 0.0 };
-            cell_width = ((fw - legend_w_used - 2.0 * padding - (cols as f64 - 1.0) * spacing)
-                / cols as f64)
-                .max(1.0);
-            cell_height = ((fh - legend_h_used - 2.0 * padding - (rows as f64 - 1.0) * spacing - title_h)
-                / rows as f64)
-                .max(1.0);
+
+            let explicit_col_total: f64 = (0..cols)
+                .filter_map(|c| explicit_col_widths.get(c).copied().flatten())
+                .sum();
+            let free_cols = (0..cols)
+                .filter(|&c| explicit_col_widths.get(c).copied().flatten().is_none())
+                .count();
+            if free_cols > 0 {
+                cell_width = ((fw - legend_w_used - 2.0 * padding - (cols as f64 - 1.0) * spacing - explicit_col_total)
+                    / free_cols as f64)
+                    .max(1.0);
+            }
+
+            let explicit_row_total: f64 = (0..rows)
+                .filter_map(|r| explicit_row_heights.get(r).copied().flatten())
+                .sum();
+            let free_rows = (0..rows)
+                .filter(|&r| explicit_row_heights.get(r).copied().flatten().is_none())
+                .count();
+            if free_rows > 0 {
+                cell_height = ((fh - legend_h_used - 2.0 * padding - (rows as f64 - 1.0) * spacing - title_h - explicit_row_total)
+                    / free_rows as f64)
+                    .max(1.0);
+            }
         }
 
         let figure_title_height = if title.is_some() { 30.0 } else { 0.0 };
@@ -515,7 +565,26 @@ impl Figure {
             }
         }
 
-        // Prefix sums for fast cell_y calculation.
+        // Apply explicit per-row height overrides (highest priority).
+        for (r, rh) in explicit_row_heights.iter().enumerate() {
+            if let Some(h) = rh {
+                if r < rows {
+                    per_row_heights[r] = *h;
+                }
+            }
+        }
+
+        // Build per-column widths, applying any explicit overrides.
+        let mut per_col_widths: Vec<f64> = vec![cell_width; cols];
+        for (c, cw) in explicit_col_widths.iter().enumerate() {
+            if let Some(w) = cw {
+                if c < cols {
+                    per_col_widths[c] = *w;
+                }
+            }
+        }
+
+        // Prefix sums for fast cell_y / cell_x calculation.
         let row_y_starts: Vec<f64> = {
             let mut starts = vec![0.0f64; rows + 1];
             for r in 0..rows {
@@ -523,8 +592,15 @@ impl Figure {
             }
             starts
         };
+        let col_x_starts: Vec<f64> = {
+            let mut starts = vec![0.0f64; cols + 1];
+            for c in 0..cols {
+                starts[c + 1] = starts[c] + per_col_widths[c] + spacing;
+            }
+            starts
+        };
 
-        let grid_width = cols as f64 * cell_width
+        let grid_width = per_col_widths.iter().sum::<f64>()
             + (cols as f64 - 1.0) * spacing
             + 2.0 * padding;
         let grid_height = per_row_heights.iter().sum::<f64>()
@@ -561,9 +637,12 @@ impl Figure {
             let col_span = rect.3 - rect.1 + 1;
             let row_span = rect.2 - rect.0 + 1;
 
-            let cell_x = cell_x_offset + padding + rect.1 as f64 * (cell_width + spacing);
+            let cell_x = cell_x_offset + padding + col_x_starts[rect.1];
             let cell_y = cell_y_offset + padding + figure_title_height + row_y_starts[rect.0];
-            let cell_w = col_span as f64 * cell_width + (col_span as f64 - 1.0) * spacing;
+            let cell_w = (rect.1..rect.1 + col_span)
+                .map(|c| per_col_widths[c])
+                .sum::<f64>()
+                + (col_span as f64 - 1.0) * spacing;
             // Multi-row spans: sum all spanned row heights + inter-row spacings.
             let cell_h = (rect.0..rect.0 + row_span)
                 .map(|r| per_row_heights[r])

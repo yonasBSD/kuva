@@ -1,4 +1,4 @@
-use kuva::plot::{ScatterPlot, LinePlot, LegendEntry, LegendShape};
+use kuva::plot::{ScatterPlot, LinePlot, LegendEntry, LegendShape, LegendPlot};
 use kuva::backend::svg::SvgBackend;
 use kuva::render::figure::{Figure, FigureLegendPosition};
 use kuva::render::layout::Layout;
@@ -911,4 +911,251 @@ fn figure_legend_top_grid_offset() {
     let svg = render_legend_pos(FigureLegendPosition::TopCenter, "figure_legend_top_offset_check");
     // Cell 0 translate: x=10, y = cell_y_offset(76) + padding(10) + figure_title(0) = 86
     assert!(svg.contains(",86)"), "top legend should shift grid cells down by 76px");
+}
+
+// ── Per-row / per-col sizing ─────────────────────────────────────────────────
+
+fn make_legend_entries(labels: &[&str], colors: &[&str]) -> Vec<LegendEntry> {
+    labels.iter().zip(colors.iter()).map(|(&label, &color)| LegendEntry {
+        label: label.into(),
+        color: color.into(),
+        shape: LegendShape::Circle,
+        dasharray: None,
+    }).collect()
+}
+
+#[test]
+fn figure_per_row_height() {
+    // 2×1 grid: scatter plot in row 0 (300 px), LegendPlot in row 1 (80 px).
+    // This is the canonical "thin legend strip below a data plot" use case.
+    // Expected total height:
+    //   per_row_heights.sum() + (rows-1)*spacing + 2*padding
+    //   = (300 + 80) + 1*15 + 2*10 = 415
+    // Width: cell_width(500) + 0*spacing + 2*padding = 520
+    let entries = make_legend_entries(&["Control", "Treatment"], &["steelblue", "crimson"]);
+    let data_plots: Vec<Plot> = vec![
+        scatter_with_legend("steelblue", "Control"),
+        scatter_with_legend("crimson",   "Treatment"),
+    ].into_iter().flatten().collect();
+    let mut layout = Layout::auto_from_plots(&data_plots)
+        .with_title("Response over time")
+        .with_x_label("Time")
+        .with_y_label("Value");
+    layout.show_legend = false; // legend is in the LegendPlot row below
+
+    let figure = Figure::new(2, 1)
+        .with_plots(vec![
+            data_plots,
+            vec![Plot::LegendPlot(LegendPlot::from_entries(entries))],
+        ])
+        .with_layouts(vec![layout])
+        .with_row_height(0, 300.0)
+        .with_row_height(1, 80.0);
+
+    let scene = figure.render();
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/figure_per_row_height.svg", &svg).unwrap();
+
+    assert!(svg.contains("<circle"), "scatter points should be present");
+    assert!(svg.contains("Control") && svg.contains("Treatment"), "legend labels should appear");
+    assert_eq!(svg_dim(&svg, "width"),  520.0, "width should be cell_width + 2*padding");
+    assert_eq!(svg_dim(&svg, "height"), 415.0, "height should reflect explicit row heights");
+}
+
+#[test]
+fn figure_per_col_width() {
+    // 1×2 grid: col 0 = 600 px (wide scatter), col 1 = 300 px (compact line).
+    // Expected total width:
+    //   (600 + 300) + 1*spacing + 2*padding = 935
+    // Height: cell_height(380) + 0*spacing + 2*padding = 400
+    let scatter_data = vec![(1.0,2.0),(2.0,3.5),(3.0,2.8),(4.0,4.1),(5.0,5.0),(6.0,4.6)];
+    let line_data = vec![(0.0,0.0),(1.0,1.2),(2.0,2.5),(3.0,2.0),(4.0,3.8),(5.0,4.5)];
+
+    let sp = vec![Plot::Scatter(
+        ScatterPlot::new().with_data(scatter_data).with_color("steelblue"),
+    )];
+    let lp = vec![Plot::Line(
+        LinePlot::new().with_data(line_data).with_color("crimson"),
+    )];
+
+    let layouts = vec![
+        Layout::auto_from_plots(&sp).with_title("Wide panel").with_x_label("X").with_y_label("Y"),
+        Layout::auto_from_plots(&lp).with_title("Compact panel").with_x_label("X"),
+    ];
+
+    let figure = Figure::new(1, 2)
+        .with_plots(vec![sp, lp])
+        .with_layouts(layouts)
+        .with_col_width(0, 600.0)
+        .with_col_width(1, 300.0);
+
+    let scene = figure.render();
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/figure_per_col_width.svg", &svg).unwrap();
+
+    assert!(svg.contains("<circle"), "scatter points should render");
+    assert!(svg.contains("<path"),   "line path should render");
+    assert!(svg.contains("Wide panel") && svg.contains("Compact panel"));
+    assert_eq!(svg_dim(&svg, "width"),  935.0, "width should reflect explicit col widths");
+    assert_eq!(svg_dim(&svg, "height"), 400.0, "height should be cell_height + 2*padding");
+}
+
+#[test]
+fn figure_per_row_col_mixed() {
+    // 2×2 grid: row 0 has two data panels, row 1 (80 px) has a LegendPlot spanning
+    // both columns; col 0 is narrower (250 px), col 1 uses default (500 px).
+    // Width:  (250 + 500) + 1*15 + 2*10 = 785
+    // Height: (380 +  80) + 1*15 + 2*10 = 495
+    let entries = make_legend_entries(
+        &["Alpha", "Beta"],
+        &["steelblue", "crimson"],
+    );
+    let plots_a = scatter_with_legend("steelblue", "Alpha");
+    let plots_b = scatter_with_legend("crimson",   "Beta");
+    let mut layout_a = Layout::auto_from_plots(&plots_a)
+        .with_title("Group A").with_x_label("X").with_y_label("Y");
+    layout_a.show_legend = false;
+    let mut layout_b = Layout::auto_from_plots(&plots_b)
+        .with_title("Group B").with_x_label("X");
+    layout_b.show_legend = false;
+
+    let figure = Figure::new(2, 2)
+        .with_structure(vec![
+            vec![0], vec![1],   // row 0: two data panels
+            vec![2, 3],         // row 1: legend spans both cols
+        ])
+        .with_plots(vec![
+            plots_a,
+            plots_b,
+            vec![Plot::LegendPlot(LegendPlot::from_entries(entries))],
+        ])
+        .with_layouts(vec![layout_a, layout_b])
+        .with_row_height(1, 80.0)
+        .with_col_width(0, 250.0);
+
+    let scene = figure.render();
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/figure_per_row_col_mixed.svg", &svg).unwrap();
+
+    assert!(svg.contains("Group A") && svg.contains("Group B"));
+    assert!(svg.contains("Alpha") && svg.contains("Beta"));
+    assert_eq!(svg_dim(&svg, "width"),  785.0, "col 0 explicit + col 1 default");
+    assert_eq!(svg_dim(&svg, "height"), 495.0, "row 0 default + row 1 explicit");
+}
+
+#[test]
+fn figure_figure_size_with_explicit_row() {
+    // 2×1 grid: scatter plot in row 0, LegendPlot in row 1 (60 px).
+    // with_figure_size forces total 800×600; row 0 absorbs the remaining height.
+    let entries = make_legend_entries(
+        &["Series A", "Series B"],
+        &["steelblue", "crimson"],
+    );
+    let data_plots: Vec<Plot> = vec![
+        scatter_with_legend("steelblue", "Series A"),
+        scatter_with_legend("crimson",   "Series B"),
+    ].into_iter().flatten().collect();
+    let mut layout = Layout::auto_from_plots(&data_plots)
+        .with_title("Experiment results")
+        .with_x_label("Time")
+        .with_y_label("Response");
+    layout.show_legend = false; // legend is in the LegendPlot row below
+
+    let figure = Figure::new(2, 1)
+        .with_plots(vec![
+            data_plots,
+            vec![Plot::LegendPlot(LegendPlot::from_entries(entries))],
+        ])
+        .with_layouts(vec![layout])
+        .with_row_height(1, 60.0)
+        .with_figure_size(800.0, 600.0);
+
+    let scene = figure.render();
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/figure_size_explicit_row.svg", &svg).unwrap();
+
+    assert!(svg.contains("Experiment results"));
+    assert!(svg.contains("Series A") && svg.contains("Series B"));
+    assert_eq!(svg_dim(&svg, "width"),  800.0, "figure_size width must be honoured");
+    assert_eq!(svg_dim(&svg, "height"), 600.0, "figure_size height must be honoured");
+}
+
+// ── LegendPlot auto-sizing ────────────────────────────────────────────────────
+
+#[test]
+fn figure_legend_plot_fits_short_cell() {
+    // 2×1 grid: scatter data in row 0 (default height), LegendPlot in row 1 (120 px).
+    // The legend has 12 entries; at 18 px/row a single column would need 216 px > 120 px,
+    // so the renderer must bump up columns until all rows fit.
+    let colors = ["steelblue","crimson","seagreen","darkorange",
+                  "mediumpurple","teal","coral","goldenrod",
+                  "slateblue","peru","cadetblue","indianred"];
+    let labels: Vec<String> = (1..=12).map(|i| format!("Group {i}")).collect();
+    let entries: Vec<LegendEntry> = labels.iter().zip(colors.iter()).map(|(l, c)| LegendEntry {
+        label: l.clone(), color: (*c).into(), shape: LegendShape::Circle, dasharray: None,
+    }).collect();
+
+    // Data panel: one scatter series per color so the plot area is non-empty.
+    // No .with_legend() calls — the LegendPlot row below carries the labels.
+    let data_plots: Vec<Plot> = colors.iter().map(|&c| {
+        Plot::Scatter(ScatterPlot::new()
+            .with_data(vec![(1.0, 2.0), (3.0, 4.0), (5.0, 3.0)])
+            .with_color(c))
+    }).collect();
+    let layout = Layout::auto_from_plots(&data_plots)
+        .with_title("12-group scatter").with_x_label("X").with_y_label("Y");
+
+    let figure = Figure::new(2, 1)
+        .with_plots(vec![
+            data_plots,
+            vec![Plot::LegendPlot(LegendPlot::from_entries(entries))],
+        ])
+        .with_layouts(vec![layout])
+        .with_row_height(1, 120.0);
+
+    let scene = figure.render();
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/figure_legend_plot_fits.svg", &svg).unwrap();
+
+    assert!(svg.contains("<circle"), "scatter points should render");
+    assert!(svg.contains("12-group scatter"), "panel title should appear");
+    for i in 1..=12 {
+        assert!(svg.contains(&format!("Group {i}")), "legend entry Group {i} missing");
+    }
+}
+
+#[test]
+fn figure_legend_plot_single_col_when_tall_enough() {
+    // 2×1 grid: line data in row 0, LegendPlot in row 1 (200 px).
+    // 4 entries × 18 px = 72 px < 200 px available — should stay in 1 column.
+    let colors = ["steelblue", "crimson", "seagreen", "darkorange"];
+    let labels = ["Alpha", "Beta", "Gamma", "Delta"];
+    let entries: Vec<LegendEntry> = labels.iter().zip(colors.iter()).map(|(&l, &c)| LegendEntry {
+        label: l.into(), color: c.into(), shape: LegendShape::Rect, dasharray: None,
+    }).collect();
+
+    // No .with_legend() — the LegendPlot row carries the labels.
+    let data_plots: Vec<Plot> = colors.iter().enumerate().map(|(k, &c)| {
+        let data: Vec<(f64,f64)> = (0..6).map(|i| (i as f64, i as f64 * 0.8 + k as f64)).collect();
+        Plot::Line(LinePlot::new().with_data(data).with_color(c))
+    }).collect();
+    let layout = Layout::auto_from_plots(&data_plots)
+        .with_title("Four series").with_x_label("Time").with_y_label("Value");
+
+    let figure = Figure::new(2, 1)
+        .with_plots(vec![
+            data_plots,
+            vec![Plot::LegendPlot(LegendPlot::from_entries(entries))],
+        ])
+        .with_layouts(vec![layout])
+        .with_row_height(1, 200.0);
+
+    let scene = figure.render();
+    let svg = SvgBackend.render_scene(&scene);
+    std::fs::write("test_outputs/figure_legend_plot_single_col.svg", &svg).unwrap();
+
+    assert!(svg.contains("<path"),  "line paths should render");
+    assert!(svg.contains("Four series"), "panel title should appear");
+    assert!(svg.contains("Alpha") && svg.contains("Beta")
+        && svg.contains("Gamma") && svg.contains("Delta"));
 }

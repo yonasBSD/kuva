@@ -7,11 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Figure::with_row_height(row, px)`** — overrides the height of a single grid row (0-based). Rows without an explicit override use the default `cell_height`. Useful for thin legend strips, compact annotation rows, or asymmetric layouts where one row should be much taller or shorter than the others.
+- **`Figure::with_col_width(col, px)`** — overrides the width of a single grid column (0-based). Columns without an explicit override use the default `cell_width`.
+- **`with_figure_size` + explicit rows/cols** — when `with_figure_size` is combined with per-row or per-col overrides, the explicit sizes are subtracted first and the remaining space is divided equally among unconstrained rows/cols, so the total SVG size is still exactly honoured.
+- **`LegendPlot` auto-column reflow** — when a `LegendPlot` is placed in a short cell (e.g. a thin legend row), the renderer now automatically increases the column count until all entries fit within the available cell height. Previously, entries overflowed the bottom of the cell.
+
+### Fixed
+
+- **`Figure` column x-positions** — cell x-coordinates and multi-column span widths now use per-column prefix sums instead of uniform `cell_width × col`, so explicit `with_col_width` overrides are correctly reflected in cell placement.
+
 ---
 
 ## [0.1.7] — 2026-04-29
 
 ### Added
+
+- **`LegendPlot`** — new plot type that renders a pure legend grid with no axes or data. Designed to occupy a dedicated figure cell so multiple data panels can share one legend without duplicating it; also usable standalone. Entries are supplied directly via `LegendPlot::from_entries(entries)` or built incrementally with `with_entry`. Column count is auto-computed from the available cell width using a conservative all-caps character-width estimate (`0.68 × font_size`), or fixed with `with_cols(n)`. Supports an optional title (`with_title`) and background box suppression (`without_box`). `LegendPlot` and `collect_legend_entries` are now re-exported from `kuva::prelude`.
+
+- **`LegendPosition::OutsideBottomColumns`** — places all legend entries below the plot in an auto-packed multi-column grid. Column width is estimated from the longest label at `0.68` character-width; the canvas height is automatically extended to fit every entry (no truncation). Use via `Layout::with_legend_position(LegendPosition::OutsideBottomColumns)`.
 
 - **`TextPlot`** — new plot type for placing formatted, word-wrapped text inside a figure cell alongside data plots. Supports an optional title, body text with inline markdown-style markup (`**bold**`, `*italic*`, `__underline__`), heading lines (`# H1`, `## H2`), horizontal rules (`---`), paragraph spacing (blank lines), optional background fill, configurable border, text alignment (left/center/right), font size, padding, and text color. Rendered via `Primitive::RichText` — a new multi-span primitive that emits `<tspan>` children in SVG (and the raster backend's mini-SVG overlay), giving pixel-accurate inline styling. PNG and PDF inherit the SVG output automatically; the terminal backend flattens spans to plain text. Word wrapping always breaks on full words, never mid-word. Resolves [#72](https://github.com/Psy-Fer/kuva/issues/72).
 - **Date/time axis documentation** — new reference page `docs/src/reference/datetime.md` with four worked examples (monthly line, scatter with dates, multi-series, hourly), covering `ymd()`, `ymd_hms()`, `DateTimeAxis` constructors, `.with_step()`, auto mode, and conversion notes for `chrono`, `time`, and `std::time`. `examples/datetime.rs` generates the accompanying SVG assets. Closes [#32](https://github.com/Psy-Fer/kuva/issues/32).
@@ -66,6 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`JointPlot` label duplication in figure** — x/y labels are suppressed from `add_labels_and_title` when a `JointPlot` is detected in the panel; the custom-positioned labels are the only ones drawn.
 - **Clippy warnings (Rust 1.85)** — resolved `collapsible_match`, `useless_conversion` (`into_iter`), `unnecessary_sort_by`, and `clone_on_copy` lints across `dotplot.rs`, `upset.rs`, `candlestick.rs`, `network.rs`, `layout.rs`, `render.rs`, and `src/bin/kuva/rose.rs`.
 - **Legend height overflow** — legends with more entries than fit in the canvas height are now capped: visible entries fill the available space (minimum 10 always shown) and a `… (+N more)` line is appended. The canvas right margin is automatically widened to fit the overflow label so it is not clipped by the canvas edge. Affects `BrickPlot` loci with large numbers of distinct repeat motifs (e.g. CANVAS, NIID) as well as any plot using `with_legend_entries` with many entries.
+- **Legend bounding box height after entry capping** — when entries were truncated to fit the canvas height, the background and border rectangles were still drawn at the full (pre-cap) height, causing the box to extend below the canvas. The box is now resized to match the number of entries actually rendered.
+- **`OutsideBottomColumns` legend Y position** — the legend was anchored relative to the bottom of the plot axes area rather than the bottom of the x-axis content, causing it to overlap tick labels and the axis label. The anchor is now `height − legend_bottom_extra`, i.e. the first pixel below the x-axis content.
 
 ### Changed
 

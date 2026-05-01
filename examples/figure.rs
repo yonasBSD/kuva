@@ -9,7 +9,7 @@
 //!
 //! SVGs are written to `docs/src/assets/figure/`.
 
-use kuva::plot::{ScatterPlot, LinePlot};
+use kuva::plot::{ScatterPlot, LinePlot, LegendEntry, LegendShape, LegendPlot};
 use kuva::backend::svg::SvgBackend;
 use kuva::render::figure::Figure;
 use kuva::render::layout::Layout;
@@ -25,6 +25,7 @@ fn main() {
     shared_axes();
     shared_legend();
     figure_size();
+    per_row_col_sizing();
     println!("Figure SVGs written to {OUT}/");
 }
 
@@ -216,6 +217,80 @@ fn figure_size() {
         .render();
 
     std::fs::write(format!("{OUT}/figure_size.svg"), SvgBackend.render_scene(&scene)).unwrap();
+}
+
+/// 3×2 grid showing per-row and per-column size overrides.
+///
+/// Layout:
+///   Row 0 (350 px): two normal scatter plots
+///   Row 1 ( 90 px): a thin legend-only row spanning both columns
+///   Row 2 (350 px): narrow left column (250 px) + wide right column (600 px)
+///
+/// Demonstrates:
+///   - `with_row_height(row, px)` — sets an individual row height
+///   - `with_col_width(col, px)` — sets an individual column width
+///   - `LegendPlot` auto-sizing: many entries in the 90 px row reflow into
+///     multiple columns automatically to avoid overflow
+fn per_row_col_sizing() {
+    let data_a: Vec<(f64, f64)> = (0..12)
+        .map(|i| { let x = i as f64; (x, x * 0.9 + (x * 0.7).sin() * 1.5) })
+        .collect();
+    let data_b: Vec<(f64, f64)> = (0..12)
+        .map(|i| { let x = i as f64; (x, x * 0.6 + (x * 0.5).cos() * 2.0) })
+        .collect();
+
+    // Build a LegendPlot with 8 entries — at 18 px/row these would overflow the
+    // 90 px row as a single column; the renderer will reflow into multiple columns.
+    let entries: Vec<LegendEntry> = [
+        ("Control A", "steelblue"), ("Treatment A", "crimson"),
+        ("Control B", "seagreen"),  ("Treatment B", "darkorange"),
+        ("Control C", "mediumpurple"), ("Treatment C", "teal"),
+        ("Reference", "#888888"),   ("Baseline", "#333333"),
+    ]
+    .iter()
+    .map(|&(label, color)| LegendEntry {
+        label: label.into(),
+        color: color.into(),
+        shape: LegendShape::Circle,
+        dasharray: None,
+    })
+    .collect();
+
+    // cell indices for a 3×2 grid:
+    //   0  1    ← row 0 (data)
+    //   2  3    ← row 1 (legend, spanned)
+    //   4  5    ← row 2 (data)
+    // No legend labels on the scatter series — the LegendPlot row carries them.
+    let all_plots: Vec<Vec<Plot>> = vec![
+        vec![scatter(data_a.clone(), "steelblue", None)],
+        vec![scatter(data_b.clone(), "crimson",   None)],
+        vec![Plot::LegendPlot(LegendPlot::from_entries(entries))],
+        vec![scatter(data_a, "seagreen",   None)],
+        vec![scatter(data_b, "darkorange", None)],
+    ];
+
+    let layouts: Vec<Layout> = vec![
+        Layout::auto_from_plots(&all_plots[0]).with_title("Scatter A").with_y_label("Value"),
+        Layout::auto_from_plots(&all_plots[1]).with_title("Scatter B"),
+        Layout::new((0.0, 1.0), (0.0, 1.0)),  // legend cell — auto layout unused
+        Layout::auto_from_plots(&all_plots[3]).with_title("Scatter C").with_x_label("X").with_y_label("Value"),
+        Layout::auto_from_plots(&all_plots[4]).with_title("Scatter D").with_x_label("X"),
+    ];
+
+    let scene = Figure::new(3, 2)
+        .with_structure(vec![
+            vec![0], vec![1],      // row 0: two independent cells
+            vec![2, 3],            // row 1: legend spans both columns
+            vec![4], vec![5],      // row 2: two independent cells
+        ])
+        .with_plots(all_plots)
+        .with_layouts(layouts)
+        .with_row_height(1, 90.0)   // thin legend row
+        .with_col_width(0, 250.0)   // narrow left column in row 2
+        .with_col_width(1, 600.0)   // wide right column in row 2
+        .render();
+
+    std::fs::write(format!("{OUT}/per_row_col_sizing.svg"), SvgBackend.render_scene(&scene)).unwrap();
 }
 
 /// 1×2 grid with a shared legend collected from all panels.
