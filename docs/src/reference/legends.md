@@ -139,6 +139,7 @@ Full set of outside variants:
 | `OutsideBottomLeft` | Bottom margin, left-aligned |
 | `OutsideBottomCenter` | Bottom margin, centred |
 | `OutsideBottomRight` | Bottom margin, right-aligned |
+| `OutsideBottomColumns` | Bottom margin, auto-packed multi-column grid; canvas height extends to fit all entries |
 
 ---
 
@@ -358,7 +359,8 @@ figure.with_shared_legend_entries(vec![
 `OutsideRightTop` *(default)*, `OutsideRightMiddle`, `OutsideRightBottom`,
 `OutsideLeftTop`, `OutsideLeftMiddle`, `OutsideLeftBottom`,
 `OutsideTopLeft`, `OutsideTopCenter`, `OutsideTopRight`,
-`OutsideBottomLeft`, `OutsideBottomCenter`, `OutsideBottomRight`
+`OutsideBottomLeft`, `OutsideBottomCenter`, `OutsideBottomRight`,
+`OutsideBottomColumns`
 
 **Freeform** (no margin change):
 `Custom(f64, f64)` — pixel coordinates; `DataCoords(f64, f64)` — data coordinates

@@ -340,6 +340,22 @@ let layout = Layout::auto_from_plots(&plots)
 
 ---
 
+## Equal aspect ratio
+
+`.with_equal_aspect()` expands the shorter axis so that 1 data unit maps to the same number of pixels on both x and y. This is useful for plots where spatial distance matters — scatter plots of geographic coordinates, orbit diagrams, or any visualisation where distorting the axes would be misleading.
+
+```rust,no_run
+# use kuva::render::layout::Layout;
+# use kuva::render::plots::Plot;
+# let plots: Vec<Plot> = vec![];
+let layout = Layout::auto_from_plots(&plots)
+    .with_equal_aspect();
+```
+
+`with_equal_aspect` is a no-op on log-scale axes and on pixel-space plots (polar, ternary, pie, chord, etc.) where kuva controls the coordinate system directly. It also guards against degenerate zero-width ranges.
+
+---
+
 ## Scale
 
 `with_scale(f)` applies a single multiplier to every piece of plot chrome — font sizes, margins, tick mark lengths, stroke widths, legend padding and swatch geometry, and annotation arrow sizes. The default is `1.0` (no change). The canvas `width` and `height` are **not** affected.
@@ -591,6 +607,7 @@ Wrapping splits at whitespace boundaries. A single word longer than the limit is
 | `.with_width(px)` | Total SVG width in pixels |
 | `.with_height(px)` | Total SVG height in pixels |
 | `.with_scale(f)` | Uniform scale factor for all plot chrome (default `1.0`). Font sizes, margins, tick marks, legend geometry, and arrow sizes all multiply by `f`. Canvas size is unaffected. `TextAnnotation::font_size` and `ReferenceLine::stroke_width` must be scaled manually. |
+| `.with_equal_aspect()` | Expand the shorter axis so 1 data unit maps to the same pixel count on both axes. No-op on log axes and pixel-space plots. |
 
 ### Annotations
 
@@ -655,6 +672,7 @@ Wrapping splits at whitespace boundaries. A single word longer than the limit is
 | `OutsideBottomLeft` | Bottom margin, left-aligned |
 | `OutsideBottomCenter` | Bottom margin, centred |
 | `OutsideBottomRight` | Bottom margin, right-aligned |
+| `OutsideBottomColumns` | Bottom margin, auto-packed multi-column grid; canvas height extends to fit all entries |
 
 **Freeform** — no margin change; you control the position:
 

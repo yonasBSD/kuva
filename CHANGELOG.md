@@ -7,23 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **`Figure::with_row_height(row, px)`** — overrides the height of a single grid row (0-based). Rows without an explicit override use the default `cell_height`. Useful for thin legend strips, compact annotation rows, or asymmetric layouts where one row should be much taller or shorter than the others.
-- **`Figure::with_col_width(col, px)`** — overrides the width of a single grid column (0-based). Columns without an explicit override use the default `cell_width`.
-- **`with_figure_size` + explicit rows/cols** — when `with_figure_size` is combined with per-row or per-col overrides, the explicit sizes are subtracted first and the remaining space is divided equally among unconstrained rows/cols, so the total SVG size is still exactly honoured.
-- **`LegendPlot` auto-column reflow** — when a `LegendPlot` is placed in a short cell (e.g. a thin legend row), the renderer now automatically increases the column count until all entries fit within the available cell height. Previously, entries overflowed the bottom of the cell.
-
-### Fixed
-
-- **`Figure` column x-positions** — cell x-coordinates and multi-column span widths now use per-column prefix sums instead of uniform `cell_width × col`, so explicit `with_col_width` overrides are correctly reflected in cell placement.
-
 ---
 
 ## [0.1.7] — 2026-04-29
 
 ### Added
 
+- **`Figure::with_row_height(row, px)`** — overrides the height of a single grid row (0-based). Rows without an explicit override use the default `cell_height`. Useful for thin legend strips, compact annotation rows, or asymmetric layouts where one row should be much taller or shorter than the others.
+- **`Figure::with_col_width(col, px)`** — overrides the width of a single grid column (0-based). Columns without an explicit override use the default `cell_width`.
+- **`with_figure_size` + explicit rows/cols** — when `with_figure_size` is combined with per-row or per-col overrides, the explicit sizes are subtracted first and the remaining space is divided equally among unconstrained rows/cols, so the total SVG size is still exactly honoured.
+- **`LegendPlot` auto-column reflow** — when a `LegendPlot` is placed in a short cell (e.g. a thin legend row), the renderer now automatically increases the column count until all entries fit within the available cell height. Previously, entries overflowed the bottom of the cell.
 - **`LegendPlot`** — new plot type that renders a pure legend grid with no axes or data. Designed to occupy a dedicated figure cell so multiple data panels can share one legend without duplicating it; also usable standalone. Entries are supplied directly via `LegendPlot::from_entries(entries)` or built incrementally with `with_entry`. Column count is auto-computed from the available cell width using a conservative all-caps character-width estimate (`0.68 × font_size`), or fixed with `with_cols(n)`. Supports an optional title (`with_title`) and background box suppression (`without_box`). `LegendPlot` and `collect_legend_entries` are now re-exported from `kuva::prelude`.
 
 - **`LegendPosition::OutsideBottomColumns`** — places all legend entries below the plot in an auto-packed multi-column grid. Column width is estimated from the longest label at `0.68` character-width; the canvas height is automatically extended to fit every entry (no truncation). Use via `Layout::with_legend_position(LegendPosition::OutsideBottomColumns)`.
@@ -72,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Figure` column x-positions** — cell x-coordinates and multi-column span widths now use per-column prefix sums instead of uniform `cell_width × col`, so explicit `with_col_width` overrides are correctly reflected in cell placement.
 - **Fonts in minimal environments** — DejaVu Sans is now bundled inside the crate and loaded into the font database before system fonts in the PNG and PDF backends. Plots rendered in containers or CI pipelines with no installed fonts (e.g. bioconda recipes) will now have correct text rendering instead of blank labels.
 - **`SvgBackend::with_embedded_font(true)`** — new builder method that injects a base64-encoded `@font-face` block into the SVG `<style>` element, making the SVG self-contained for environments where system fonts are unavailable (headless servers, `rsvg-convert` in containers, etc.). Off by default to keep SVG file sizes small. CLI: `--embed-font`. Closes [#71](https://github.com/Psy-Fer/kuva/issues/71).
 - **`BumpPlot` endpoint label clipping** — endpoint labels on bump charts are now drawn after `ClipEnd` so they are no longer clipped at the plot edge when the final rank is 1 or the series extends to the rightmost column.
@@ -86,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Bundled font compressed** — DejaVu Sans TTF is now stored as a gzip stream (~358 KB, down from ~757 KB raw) and inflated on first use via `OnceLock`. Saves ~400 KB from the published crate at the cost of a one-time ~5–10 ms inflate on first font access. The raw `.ttf` is retained in the repo for regeneration but excluded from the published crate.
 - **`Heatmap::with_x_range(lo, hi)` / `with_y_range(lo, hi)`** — set custom axis extents for the heatmap so it can represent a scalar field over a physical domain (e.g. `with_x_range(-10.0, 10.0)`, `with_y_range(-4.0, 4.0)`). Cell positions are mapped linearly across the specified range; default behaviour (`[0.5, cols+0.5]` / `[0.5, rows+0.5]`) is unchanged when neither method is called. 5 tests. Closes [#64](https://github.com/Psy-Fer/kuva/issues/64).
 - **`Heatmap::with_cell_size(factor)`** — controls the fraction of each cell's natural size used when drawing the cell rectangle. Default `0.99` preserves the existing thin gap between cells; `1.0` draws cells flush with no visible boundary, which is recommended for large grids where the gap becomes a distracting pattern. Values are clamped to `[0.5, 1.0]`. 3 tests.
 

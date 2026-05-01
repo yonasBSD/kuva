@@ -67,6 +67,8 @@
 - [Nightingale Rose](./plots/rose.md)
 - [Calendar Heatmap](./plots/calendar.md)
 - [Gantt Chart](./plots/gantt.md)
+- [Legend Plot](./plots/legend.md)
+- [Text Plot](./plots/text.md)
 
 # CLI
 
