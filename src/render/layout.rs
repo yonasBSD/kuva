@@ -2187,7 +2187,7 @@ impl ComputedLayout {
                     } else {
                         layout.legend_entry_count.max(1)
                     };
-                    let n_rows = (n_entries + n_cols - 1) / n_cols;
+                    let n_rows = n_entries.div_ceil(n_cols);
                     let legend_h = n_rows as f64 * legend_line_h + 20.0 * s;
                     let extra = legend_h + 10.0 * s;
                     margin_bottom += extra;

@@ -5691,7 +5691,7 @@ fn add_legend_with_offset(legend: &Legend, scene: &mut Scene, computed: &Compute
         let plot_bottom = computed.height - computed.margin_bottom;
         // Legend sits just below the x-axis area
         let n_entries = legend.entries.len().max(1);
-        let n_rows = (n_entries + n_cols - 1) / n_cols;
+        let n_rows = n_entries.div_ceil(n_cols);
         let legend_y = plot_bottom + computed.legend_bottom_extra - (
             n_rows as f64 * line_height + legend_padding * 2.0 + 5.0
         );
@@ -10986,7 +10986,7 @@ fn add_legend_plot(lp: &LegendPlot, scene: &mut Scene, computed: &ComputedLayout
     });
 
     let n_entries = lp.entries.len();
-    let n_rows = if n_entries == 0 { 0 } else { (n_entries + n_cols - 1) / n_cols };
+    let n_rows = n_entries.div_ceil(n_cols);
 
     // Optional title
     let mut cur_y = plot_top;
