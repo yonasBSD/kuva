@@ -262,6 +262,12 @@ pub struct Layout {
     /// rendered with equal aspect look circular; without it they look like
     /// ellipses whenever the x and y data ranges differ.
     pub equal_aspect: bool,
+    /// When `true` (default), the y-axis lower bound is clamped to 0 when all
+    /// data values are non-negative.  Set to `false` for plot types where zero
+    /// has no special meaning (line, scatter, box, etc.) so the axis fits the
+    /// data range instead.  Set automatically by `auto_from_plots`; can also be
+    /// overridden manually.
+    pub anchor_y_zero: bool,
     /// Number of vertical stagger tiers reserved above a BrickPlot notation track.
     /// Set automatically by `auto_from_plots` when a `BrickPlot` with `notations`
     /// is present.  `0` = no extra space.
@@ -365,6 +371,7 @@ impl Layout {
             polar_r_label_angle: None,
             interactive: false,
             equal_aspect: false,
+            anchor_y_zero: true,
             brick_notation_tiers: 0,
             title_wrap: None,
             x_label_wrap: None,
@@ -396,6 +403,9 @@ impl Layout {
         let mut has_colorbar: bool = false;
         let mut has_manhattan: bool = false;
         let mut has_polar: bool = false;
+        // Tracks whether any plot type requires the y-axis to be anchored at 0
+        // (bar, histogram, stacked-area, etc.).  When false, the axis fits the data.
+        let mut anchor_y_zero: bool = false;
         let mut max_label_len: usize = 0;
         let mut legend_entry_count: usize = 0;
         let mut brick_has_notations: bool = false;
@@ -411,6 +421,25 @@ impl Layout {
                 x_max = x_max.max(xmax);
                 y_min = y_min.min(ymin);
                 y_max = y_max.max(ymax);
+            }
+
+            if matches!(
+                plot,
+                Plot::Bar(_)
+                    | Plot::Histogram(_)
+                    | Plot::StackedArea(_)
+                    | Plot::Waterfall(_)
+                    | Plot::Lollipop(_)
+                    | Plot::Density(_)
+                    | Plot::Ridgeline(_)
+                    | Plot::Ecdf(_)
+                    | Plot::Survival(_)
+                    | Plot::Roc(_)
+                    | Plot::Pr(_)
+                    | Plot::Funnel(_)
+                    | Plot::Streamgraph(_)
+            ) {
+                anchor_y_zero = true;
             }
 
             if let Plot::Strip(sp) = plot {
@@ -1061,7 +1090,7 @@ impl Layout {
         if !has_y_cats && !has_colorbar && y_max > y_min {
             let y_span = y_max - y_min;
             y_max += y_span * 0.01;
-            if y_min >= 0.0 {
+            if y_min >= 0.0 && anchor_y_zero {
                 y_min = 0.0;
             } else {
                 y_min -= y_span * 0.01;
@@ -1069,6 +1098,7 @@ impl Layout {
         }
 
         let mut layout = Self::new((x_min, x_max), (y_min, y_max));
+        layout.anchor_y_zero = anchor_y_zero;
         layout.data_x_range = Some(raw_x);
         layout.data_y_range = Some(raw_y);
         layout.horizon_right_annot_px = horizon_right_annot_px;
