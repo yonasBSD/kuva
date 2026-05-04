@@ -1,6 +1,6 @@
 use clap::Args;
 
-use kuva::plot::streamgraph::{StreamBaseline, StreamgraphPlot, StreamOrder};
+use kuva::plot::streamgraph::{StreamBaseline, StreamOrder, StreamgraphPlot};
 use kuva::render::layout::Layout;
 use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
@@ -73,37 +73,52 @@ pub fn run(args: StreamgraphArgs) -> Result<(), String> {
         args.input.delimiter,
     )?;
 
-    let x_col     = args.x_col.unwrap_or(ColSpec::Index(0));
+    let x_col = args.x_col.unwrap_or(ColSpec::Index(0));
     let group_col = args.group_col.unwrap_or(ColSpec::Index(1));
-    let y_col     = args.y_col.unwrap_or(ColSpec::Index(2));
+    let y_col = args.y_col.unwrap_or(ColSpec::Index(2));
 
     let groups = table.group_by(&group_col)?;
 
-    let palette = args.base.palette.as_deref()
+    let palette = args
+        .base
+        .palette
+        .as_deref()
         .and_then(palette_from_name)
         .unwrap_or_else(Palette::category10);
 
     let baseline = match args.baseline.as_str() {
-        "symmetric" | "sym"  => StreamBaseline::Symmetric,
-        "zero"               => StreamBaseline::Zero,
-        _                    => StreamBaseline::Wiggle,
+        "symmetric" | "sym" => StreamBaseline::Symmetric,
+        "zero" => StreamBaseline::Zero,
+        _ => StreamBaseline::Wiggle,
     };
     let order = match args.order.as_str() {
         "by-total" | "total" => StreamOrder::ByTotal,
-        "original" | "orig"  => StreamOrder::Original,
-        _                    => StreamOrder::InsideOut,
+        "original" | "orig" => StreamOrder::Original,
+        _ => StreamOrder::InsideOut,
     };
 
     let mut plot = StreamgraphPlot::new()
         .with_baseline(baseline)
         .with_order(order);
 
-    if args.linear    { plot = plot.with_linear(); }
-    if args.normalize { plot = plot.with_normalized(); }
-    if args.stroke    { plot = plot.with_stroke(); }
-    if args.no_labels { plot = plot.with_stream_labels(false); }
-    if let Some(h) = args.min_label_height { plot = plot.with_min_label_height(h); }
-    if let Some(op) = args.fill_opacity    { plot = plot.with_fill_opacity(op); }
+    if args.linear {
+        plot = plot.with_linear();
+    }
+    if args.normalize {
+        plot = plot.with_normalized();
+    }
+    if args.stroke {
+        plot = plot.with_stroke();
+    }
+    if args.no_labels {
+        plot = plot.with_stream_labels(false);
+    }
+    if let Some(h) = args.min_label_height {
+        plot = plot.with_min_label_height(h);
+    }
+    if let Some(op) = args.fill_opacity {
+        plot = plot.with_fill_opacity(op);
+    }
 
     let mut x_set = false;
     for (i, (name, subtable)) in groups.into_iter().enumerate() {
@@ -116,23 +131,24 @@ pub fn run(args: StreamgraphArgs) -> Result<(), String> {
         }
 
         let color = palette[i].to_string();
-        plot = plot
-            .with_series(ys)
-            .with_color(color)
-            .with_label(name);
+        plot = plot.with_series(ys).with_color(color).with_label(name);
     }
 
     // Auto-set axis labels
     let x_label = args.axis.x_label.as_deref().unwrap_or("").to_string();
     let y_label = args.axis.y_label.as_deref().unwrap_or("").to_string();
 
-    let plots  = vec![Plot::Streamgraph(plot)];
+    let plots = vec![Plot::Streamgraph(plot)];
     let layout = Layout::auto_from_plots(&plots);
     let layout = apply_base_args(layout, &args.base);
     let mut axis_args = args.axis;
-    if x_label.is_empty() { axis_args.x_label = None; }
-    if y_label.is_empty() { axis_args.y_label = None; }
+    if x_label.is_empty() {
+        axis_args.x_label = None;
+    }
+    if y_label.is_empty() {
+        axis_args.y_label = None;
+    }
     let layout = apply_axis_args(layout, &axis_args);
-    let scene  = render_multiple(plots, layout);
+    let scene = render_multiple(plots, layout);
     write_output(scene, &args.base)
 }

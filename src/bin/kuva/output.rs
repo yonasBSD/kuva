@@ -1,7 +1,7 @@
-use std::fs;
-use kuva::render::render::Scene;
-use kuva::backend::svg::SvgBackend;
 use crate::layout_args::BaseArgs;
+use kuva::backend::svg::SvgBackend;
+use kuva::render::render::Scene;
+use std::fs;
 
 /// Write the scene to a file (format inferred from extension) or SVG to stdout.
 pub fn write_output(mut scene: Scene, args: &BaseArgs) -> Result<(), String> {
@@ -21,7 +21,10 @@ pub fn write_output(mut scene: Scene, args: &BaseArgs) -> Result<(), String> {
             .map(|h| h as usize)
             .or_else(|| std::env::var("LINES").ok().and_then(|s| s.parse().ok()))
             .unwrap_or(24);
-        print!("{}", kuva::TerminalBackend::new(cols, rows).render_scene(&scene));
+        print!(
+            "{}",
+            kuva::TerminalBackend::new(cols, rows).render_scene(&scene)
+        );
         return Ok(());
     }
 
@@ -57,10 +60,7 @@ pub fn write_output(mut scene: Scene, args: &BaseArgs) -> Result<(), String> {
                          Rebuild with: cargo build --bin kuva --features cli,pdf"
                         .to_string())
                 }
-                _ => {
-                    fs::write(path, svg_backend.render_scene(&scene))
-                        .map_err(|e| e.to_string())
-                }
+                _ => fs::write(path, svg_backend.render_scene(&scene)).map_err(|e| e.to_string()),
             }
         }
     }

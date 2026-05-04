@@ -70,7 +70,9 @@ pub struct ChordPlot {
 }
 
 impl Default for ChordPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ChordPlot {

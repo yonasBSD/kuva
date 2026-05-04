@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/band/`.
 
-use kuva::plot::{BandPlot, LinePlot, ScatterPlot};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{BandPlot, LinePlot, ScatterPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/band";
 
@@ -63,7 +63,9 @@ fn standalone() {
 /// `BandPlot` using the line's own x positions and inherits the line color
 /// automatically. The band is rendered behind the line.
 fn attached_line() {
-    let x: Vec<f64> = (0..80).map(|i| i as f64 * std::f64::consts::PI / 20.0).collect();
+    let x: Vec<f64> = (0..80)
+        .map(|i| i as f64 * std::f64::consts::PI / 20.0)
+        .collect();
     let y: Vec<f64> = x.iter().map(|&v| (-v * 0.15).exp() * v.cos()).collect();
     let lower: Vec<f64> = y.iter().map(|&v| v - 0.2).collect();
     let upper: Vec<f64> = y.iter().map(|&v| v + 0.2).collect();
@@ -121,19 +123,13 @@ fn multi_band() {
     let line1 = LinePlot::new()
         .with_data(x.iter().copied().zip(y1.iter().copied()))
         .with_color("steelblue")
-        .with_band(
-            y1.iter().map(|&v| v - 0.25),
-            y1.iter().map(|&v| v + 0.25),
-        )
+        .with_band(y1.iter().map(|&v| v - 0.25), y1.iter().map(|&v| v + 0.25))
         .with_legend("sin(x)");
 
     let line2 = LinePlot::new()
         .with_data(x.iter().copied().zip(y2.iter().copied()))
         .with_color("darkorange")
-        .with_band(
-            y2.iter().map(|&v| v - 0.25),
-            y2.iter().map(|&v| v + 0.25),
-        )
+        .with_band(y2.iter().map(|&v| v - 0.25), y2.iter().map(|&v| v + 0.25))
         .with_legend("0.8 · cos(0.5x)");
 
     let plots = vec![Plot::Line(line1), Plot::Line(line2)];

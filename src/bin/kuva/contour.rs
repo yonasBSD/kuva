@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Contour or filled-contour plot from scattered x/y/z data.
@@ -70,7 +70,10 @@ pub fn run(args: ContourArgs) -> Result<(), String> {
     let ys = table.col_f64(&y_col)?;
     let zs = table.col_f64(&z_col)?;
 
-    let pts: Vec<(f64, f64, f64)> = xs.into_iter().zip(ys).zip(zs)
+    let pts: Vec<(f64, f64, f64)> = xs
+        .into_iter()
+        .zip(ys)
+        .zip(zs)
         .map(|((x, y), z)| (x, y, z))
         .collect();
 

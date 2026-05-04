@@ -1,67 +1,71 @@
-mod data;
-mod layout_args;
-mod output;
-mod scatter;
-mod line;
 mod bar;
-mod histogram;
 mod boxplot;
-mod violin;
-mod pie;
-mod strip;
-mod waterfall;
-mod stacked_area;
-mod volcano;
-mod manhattan;
-mod candlestick;
-mod heatmap;
-mod hist2d;
-mod contour;
-mod dot;
-mod upset;
-mod chord;
-mod sankey;
-mod phylo;
-mod synteny;
-mod density;
-mod ecdf;
-mod qq;
-mod streamgraph;
-mod ridgeline;
-mod polar;
-mod ternary;
-mod forest;
-mod scatter3d;
-mod surface3d;
-mod network;
-mod radar;
-mod hexbin;
-mod treemap;
-mod sunburst;
 mod bump;
-mod funnel;
-mod rose;
-mod slope;
-mod lollipop;
-mod raincloud;
-mod mosaic;
-mod waffle;
-mod pyramid;
-mod roc;
-mod pr;
-mod survival;
-mod horizon;
-mod parallel;
-mod venn;
 mod calendar;
-mod gantt;
+mod candlestick;
+mod chord;
+mod contour;
+mod data;
+mod density;
 #[cfg(feature = "doom")]
 mod doom;
+mod dot;
+mod ecdf;
+mod forest;
+mod funnel;
+mod gantt;
+mod heatmap;
+mod hexbin;
+mod hist2d;
+mod histogram;
+mod horizon;
+mod layout_args;
+mod line;
+mod lollipop;
+mod manhattan;
+mod mosaic;
+mod network;
+mod output;
+mod parallel;
+mod phylo;
+mod pie;
+mod polar;
+mod pr;
+mod pyramid;
+mod qq;
+mod radar;
+mod raincloud;
+mod ridgeline;
+mod roc;
+mod rose;
+mod sankey;
+mod scatter;
+mod scatter3d;
+mod slope;
+mod stacked_area;
+mod streamgraph;
+mod strip;
+mod sunburst;
+mod surface3d;
+mod survival;
+mod synteny;
+mod ternary;
+mod treemap;
+mod upset;
+mod venn;
+mod violin;
+mod volcano;
+mod waffle;
+mod waterfall;
 
 use clap::{CommandFactory, Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "kuva", about = "Scientific plotting from the command line", version)]
+#[command(
+    name = "kuva",
+    about = "Scientific plotting from the command line",
+    version
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,

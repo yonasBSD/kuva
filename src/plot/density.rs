@@ -51,7 +51,9 @@ pub struct DensityPlot {
 }
 
 impl Default for DensityPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DensityPlot {

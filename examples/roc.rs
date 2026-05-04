@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/roc/`.
 
-use kuva::plot::roc::{RocPlot, RocGroup};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::roc::{RocGroup, RocPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/roc";
@@ -44,8 +44,7 @@ fn logistic_dataset(n: usize, mu: f64, scale: f64) -> Vec<(f64, bool)> {
 
 fn main() {
     // ── Basic single-group ROC ────────────────────────────────────────────────
-    let group = RocGroup::new("Classifier")
-        .with_raw(logistic_dataset(150, 1.0, 0.5));
+    let group = RocGroup::new("Classifier").with_raw(logistic_dataset(150, 1.0, 0.5));
     let roc = RocPlot::new().with_group(group);
     let plots = vec![Plot::Roc(roc)];
     let layout = Layout::auto_from_plots(&plots)

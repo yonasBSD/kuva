@@ -58,7 +58,9 @@ pub struct BarValue {
 }
 
 impl Default for BarPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BarPlot {
@@ -97,17 +99,17 @@ impl BarPlot {
         I: IntoIterator<Item = (V, S)>,
     {
         let bars = values
-                        .into_iter()
-                        .map(|(v, c)| BarValue {
-                            value: v.into(),
-                            color: c.into(),
-                        })
-                        .collect();
+            .into_iter()
+            .map(|(v, c)| BarValue {
+                value: v.into(),
+                color: c.into(),
+            })
+            .collect();
 
         self.groups.push(BarGroup {
-                        label: label.into(),
-                        bars,
-                    });
+            label: label.into(),
+            bars,
+        });
         self
     }
 
@@ -116,9 +118,7 @@ impl BarPlot {
     /// Must be called after the groups are defined so the label count
     /// matches the number of bars per group.
     pub fn with_legend(mut self, legend: Vec<&str>) -> Self {
-        self.legend_label = Some(legend.into_iter()
-                                 .map(|l| l.into())
-                                .collect());
+        self.legend_label = Some(legend.into_iter().map(|l| l.into()).collect());
         self
     }
 
@@ -158,7 +158,10 @@ impl BarPlot {
         let l = label.into();
         self.groups.push(BarGroup {
             label: l.clone(),
-            bars: vec![BarValue { value: value.into(), color }],
+            bars: vec![BarValue {
+                value: value.into(),
+                color,
+            }],
         });
 
         self
@@ -179,10 +182,17 @@ impl BarPlot {
     ///     .with_colored_bar("A2T", 31.0, "tomato");
     /// ```
     pub fn with_colored_bar<T, V, S>(mut self, label: T, value: V, color: S) -> Self
-    where T: Into<String>, V: Into<f64>, S: Into<String> {
+    where
+        T: Into<String>,
+        V: Into<f64>,
+        S: Into<String>,
+    {
         self.groups.push(BarGroup {
             label: label.into(),
-            bars: vec![BarValue { value: value.into(), color: color.into() }],
+            bars: vec![BarValue {
+                value: value.into(),
+                color: color.into(),
+            }],
         });
         self
     }
@@ -212,7 +222,10 @@ impl BarPlot {
         for (label, value, color) in data {
             self.groups.push(BarGroup {
                 label: label.into(),
-                bars: vec![BarValue { value: value.into(), color: color.into() }],
+                bars: vec![BarValue {
+                    value: value.into(),
+                    color: color.into(),
+                }],
             });
         }
         self
@@ -239,7 +252,10 @@ impl BarPlot {
         for (label, value) in data {
             self.groups.push(BarGroup {
                 label: label.into(),
-                bars: vec![BarValue { value: value.into(), color: color.clone() }],
+                bars: vec![BarValue {
+                    value: value.into(),
+                    color: color.clone(),
+                }],
             });
         }
         self
@@ -281,7 +297,10 @@ impl BarPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

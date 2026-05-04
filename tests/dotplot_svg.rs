@@ -1,8 +1,8 @@
-use kuva::plot::{DotPlot, ColorMap};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{ColorMap, DotPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_dot_basic() {
@@ -94,12 +94,10 @@ fn test_dot_size_range() {
         ("CT1", "G1", 20.0_f64, 1.0_f64),
         ("CT1", "G2", 50.0, 2.0),
         ("CT2", "G1", 80.0, 3.0),
-        ("CT2", "G2", 110.0, 4.0),  // will be clamped to 100
+        ("CT2", "G2", 110.0, 4.0), // will be clamped to 100
     ];
 
-    let dot = DotPlot::new()
-        .with_data(data)
-        .with_size_range(0.0, 100.0);
+    let dot = DotPlot::new().with_data(data).with_size_range(0.0, 100.0);
 
     let plots = vec![Plot::DotPlot(dot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Dot Plot Size Range");
@@ -118,13 +116,11 @@ fn test_dot_color_range() {
     let data = vec![
         ("CT1", "G1", 50.0_f64, 0.5_f64),
         ("CT1", "G2", 70.0, 3.0),
-        ("CT2", "G1", 40.0, 5.5),  // will be clamped to 5
+        ("CT2", "G1", 40.0, 5.5), // will be clamped to 5
         ("CT2", "G2", 90.0, 2.0),
     ];
 
-    let dot = DotPlot::new()
-        .with_data(data)
-        .with_color_range(0.0, 5.0);
+    let dot = DotPlot::new().with_data(data).with_color_range(0.0, 5.0);
 
     let plots = vec![Plot::DotPlot(dot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Dot Plot Color Range");
@@ -151,8 +147,7 @@ fn test_dot_size_legend() {
         .with_size_legend("% Expressing");
 
     let plots = vec![Plot::DotPlot(dot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Dot Plot Size Legend");
+    let layout = Layout::auto_from_plots(&plots).with_title("Dot Plot Size Legend");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -177,8 +172,7 @@ fn test_dot_colorbar() {
         .with_colorbar("Mean expression");
 
     let plots = vec![Plot::DotPlot(dot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Dot Plot Colorbar");
+    let layout = Layout::auto_from_plots(&plots).with_title("Dot Plot Colorbar");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -206,8 +200,7 @@ fn test_dot_both_legends() {
         .with_colorbar("Mean expression");
 
     let plots = vec![Plot::DotPlot(dot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Dot Plot: Size Legend + Colorbar");
+    let layout = Layout::auto_from_plots(&plots).with_title("Dot Plot: Size Legend + Colorbar");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);

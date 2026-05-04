@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use crate::plot::colormap::ColorMap;
+use std::collections::BTreeMap;
 
 /// Dice face positions (1-indexed in a 3×3 grid) for 1–6 dots.
 ///
@@ -11,13 +11,13 @@ use crate::plot::colormap::ColorMap;
 ///
 /// Positions follow row-major ordering so the legend key matches visual layout.
 const DICE_POSITIONS: [&[usize]; 7] = [
-    &[],                       // 0 dots
-    &[5],                      // 1 dot  – centre
-    &[1, 9],                   // 2 dots – diagonal
-    &[1, 5, 9],                // 3 dots – diagonal + centre
-    &[1, 7, 3, 9],             // 4 dots – corners (row-major so legend matches)
-    &[1, 7, 5, 3, 9],          // 5 dots – corners + centre
-    &[1, 4, 7, 3, 6, 9],       // 6 dots – two columns
+    &[],                 // 0 dots
+    &[5],                // 1 dot  – centre
+    &[1, 9],             // 2 dots – diagonal
+    &[1, 5, 9],          // 3 dots – diagonal + centre
+    &[1, 7, 3, 9],       // 4 dots – corners (row-major so legend matches)
+    &[1, 7, 5, 3, 9],    // 5 dots – corners + centre
+    &[1, 4, 7, 3, 6, 9], // 6 dots – two columns
 ];
 
 /// One data point: which grid cell, which categories are present, and visual encodings.
@@ -42,28 +42,30 @@ pub struct DicePoint {
 
 /// A DicePlot: a grid of cells where each cell shows up to 6 dots arranged like a die face.
 pub struct DicePlot {
-    pub points:             Vec<DicePoint>,
-    pub x_categories:       Vec<String>,
-    pub y_categories:       Vec<String>,
-    pub category_labels:    Vec<String>,
-    pub ndots:              usize,
-    pub cell_width:         f64,
-    pub cell_height:        f64,
-    pub pad:                f64,
-    pub dot_radius:         f64,
-    pub color_map:          ColorMap,
-    pub fill_range:         Option<(f64, f64)>,
-    pub size_range:         Option<(f64, f64)>,
-    pub fill_legend_label:  Option<String>,
-    pub size_legend_label:  Option<String>,
-    pub dot_legend:         Vec<(String, String)>,
+    pub points: Vec<DicePoint>,
+    pub x_categories: Vec<String>,
+    pub y_categories: Vec<String>,
+    pub category_labels: Vec<String>,
+    pub ndots: usize,
+    pub cell_width: f64,
+    pub cell_height: f64,
+    pub pad: f64,
+    pub dot_radius: f64,
+    pub color_map: ColorMap,
+    pub fill_range: Option<(f64, f64)>,
+    pub size_range: Option<(f64, f64)>,
+    pub fill_legend_label: Option<String>,
+    pub size_legend_label: Option<String>,
+    pub dot_legend: Vec<(String, String)>,
     pub position_legend_label: Option<String>,
     /// Draw a 3×3 sub-grid inside each die tile, showing the pip slot boundaries.
     pub grid_lines: bool,
 }
 
 impl Default for DicePlot {
-    fn default() -> Self { Self::new(4) }
+    fn default() -> Self {
+        Self::new(4)
+    }
 }
 
 impl DicePlot {
@@ -106,7 +108,11 @@ impl DicePlot {
                 self.y_categories.push(y_cat.clone());
             }
             self.points.push(DicePoint {
-                x_cat, y_cat, present, fill, size,
+                x_cat,
+                y_cat,
+                present,
+                fill,
+                size,
                 dot_colors: Vec::new(),
                 dot_fills: Vec::new(),
                 dot_sizes: Vec::new(),
@@ -137,7 +143,10 @@ impl DicePlot {
                 if !self.y_categories.contains(&y_cat) {
                     self.y_categories.push(y_cat.clone());
                 }
-                cell_map.entry((x_cat, y_cat)).or_default().push((dot_idx, color));
+                cell_map
+                    .entry((x_cat, y_cat))
+                    .or_default()
+                    .push((dot_idx, color));
             }
         }
         for ((x_cat, y_cat), dot_entries) in cell_map {
@@ -148,8 +157,11 @@ impl DicePlot {
                 }
             }
             self.points.push(DicePoint {
-                x_cat, y_cat,
-                present: Vec::new(), fill: None, size: None,
+                x_cat,
+                y_cat,
+                present: Vec::new(),
+                fill: None,
+                size: None,
                 dot_colors,
                 dot_fills: Vec::new(),
                 dot_sizes: Vec::new(),
@@ -176,7 +188,10 @@ impl DicePlot {
                 self.y_categories.push(y_cat.clone());
             }
             if dot_idx < self.ndots {
-                cell_map.entry((x_cat, y_cat)).or_default().push((dot_idx, fill, size));
+                cell_map
+                    .entry((x_cat, y_cat))
+                    .or_default()
+                    .push((dot_idx, fill, size));
             }
         }
         for ((x_cat, y_cat), dot_entries) in cell_map {
@@ -190,38 +205,50 @@ impl DicePlot {
                 continue;
             }
             self.points.push(DicePoint {
-                x_cat, y_cat,
-                present: Vec::new(), fill: None, size: None,
+                x_cat,
+                y_cat,
+                present: Vec::new(),
+                fill: None,
+                size: None,
                 dot_colors: Vec::new(),
-                dot_fills, dot_sizes,
+                dot_fills,
+                dot_sizes,
             });
         }
         self
     }
 
     pub fn with_x_categories(mut self, cats: Vec<String>) -> Self {
-        self.x_categories = cats; self
+        self.x_categories = cats;
+        self
     }
     pub fn with_y_categories(mut self, cats: Vec<String>) -> Self {
-        self.y_categories = cats; self
+        self.y_categories = cats;
+        self
     }
     pub fn with_category_labels(mut self, labels: Vec<String>) -> Self {
-        self.category_labels = labels; self
+        self.category_labels = labels;
+        self
     }
     pub fn with_color_map(mut self, map: ColorMap) -> Self {
-        self.color_map = map; self
+        self.color_map = map;
+        self
     }
     pub fn with_fill_range(mut self, min: f64, max: f64) -> Self {
-        self.fill_range = Some((min, max)); self
+        self.fill_range = Some((min, max));
+        self
     }
     pub fn with_size_range(mut self, min: f64, max: f64) -> Self {
-        self.size_range = Some((min, max)); self
+        self.size_range = Some((min, max));
+        self
     }
     pub fn with_fill_legend<S: Into<String>>(mut self, label: S) -> Self {
-        self.fill_legend_label = Some(label.into()); self
+        self.fill_legend_label = Some(label.into());
+        self
     }
     pub fn with_size_legend<S: Into<String>>(mut self, label: S) -> Self {
-        self.size_legend_label = Some(label.into()); self
+        self.size_legend_label = Some(label.into());
+        self
     }
     pub fn with_dot_legend<I, S1, S2>(mut self, entries: I) -> Self
     where
@@ -229,30 +256,42 @@ impl DicePlot {
         S1: Into<String>,
         S2: Into<String>,
     {
-        self.dot_legend = entries.into_iter().map(|(l, c)| (l.into(), c.into())).collect();
+        self.dot_legend = entries
+            .into_iter()
+            .map(|(l, c)| (l.into(), c.into()))
+            .collect();
         self
     }
     pub fn with_position_legend<S: Into<String>>(mut self, label: S) -> Self {
-        self.position_legend_label = Some(label.into()); self
+        self.position_legend_label = Some(label.into());
+        self
     }
     pub fn with_grid_lines(mut self, v: bool) -> Self {
-        self.grid_lines = v; self
+        self.grid_lines = v;
+        self
     }
     pub fn with_dot_radius(mut self, r: f64) -> Self {
-        self.dot_radius = r; self
+        self.dot_radius = r;
+        self
     }
     pub fn with_cell_size(mut self, width: f64, height: f64) -> Self {
-        self.cell_width = width; self.cell_height = height; self
+        self.cell_width = width;
+        self.cell_height = height;
+        self
     }
     pub fn with_pad(mut self, pad: f64) -> Self {
-        self.pad = pad; self
+        self.pad = pad;
+        self
     }
 
     /// Returns (grid_row, grid_col) for each pip position in order, 0-indexed, row-major.
     /// grid_row: 0=top, 1=middle, 2=bottom; grid_col: 0=left, 1=center, 2=right.
     pub fn dot_grid_positions(&self) -> Vec<(usize, usize)> {
         let positions = DICE_POSITIONS.get(self.ndots).copied().unwrap_or(&[]);
-        positions.iter().map(|&p| ((p - 1) / 3, (p - 1) % 3)).collect()
+        positions
+            .iter()
+            .map(|&p| ((p - 1) / 3, (p - 1) % 3))
+            .collect()
     }
 
     pub fn dot_offsets(&self) -> Vec<(f64, f64)> {
@@ -262,32 +301,55 @@ impl DicePlot {
         let pad = self.pad;
         let avail_w = w - 2.0 * pad;
         let avail_h = h - 2.0 * pad;
-        positions.iter().map(|&p| {
-            let col = ((p - 1) / 3) as f64;  // row-major: pos 1-3 → row 0, 4-6 → row 1, 7-9 → row 2
-            let row = ((p - 1) % 3) as f64;  // column within row: pos 1,4,7 → col 0 (left)
-            let dx = col / 2.0 * avail_w + pad - w / 2.0;
-            let dy = row / 2.0 * avail_h + pad - h / 2.0;
-            (dx, dy)
-        }).collect()
+        positions
+            .iter()
+            .map(|&p| {
+                let col = ((p - 1) / 3) as f64; // row-major: pos 1-3 → row 0, 4-6 → row 1, 7-9 → row 2
+                let row = ((p - 1) % 3) as f64; // column within row: pos 1,4,7 → col 0 (left)
+                let dx = col / 2.0 * avail_w + pad - w / 2.0;
+                let dy = row / 2.0 * avail_h + pad - h / 2.0;
+                (dx, dy)
+            })
+            .collect()
     }
 
     pub fn fill_extent(&self) -> (f64, f64) {
         let mut min = f64::INFINITY;
         let mut max = f64::NEG_INFINITY;
         for p in &self.points {
-            if let Some(v) = p.fill { min = min.min(v); max = max.max(v); }
-            for v in p.dot_fills.iter().flatten() { min = min.min(*v); max = max.max(*v); }
+            if let Some(v) = p.fill {
+                min = min.min(v);
+                max = max.max(v);
+            }
+            for v in p.dot_fills.iter().flatten() {
+                min = min.min(*v);
+                max = max.max(*v);
+            }
         }
-        if min.is_infinite() { (0.0, 1.0) } else { (min, max) }
+        if min.is_infinite() {
+            (0.0, 1.0)
+        } else {
+            (min, max)
+        }
     }
 
     pub fn size_extent(&self) -> (f64, f64) {
         let mut min = f64::INFINITY;
         let mut max = f64::NEG_INFINITY;
         for p in &self.points {
-            if let Some(v) = p.size { min = min.min(v); max = max.max(v); }
-            for v in p.dot_sizes.iter().flatten() { min = min.min(*v); max = max.max(*v); }
+            if let Some(v) = p.size {
+                min = min.min(v);
+                max = max.max(v);
+            }
+            for v in p.dot_sizes.iter().flatten() {
+                min = min.min(*v);
+                max = max.max(*v);
+            }
         }
-        if min.is_infinite() { (0.0, 1.0) } else { (min, max) }
+        if min.is_infinite() {
+            (0.0, 1.0)
+        } else {
+            (min, max)
+        }
     }
 }

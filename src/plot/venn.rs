@@ -98,7 +98,9 @@ pub struct VennPlot {
 }
 
 impl Default for VennPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl VennPlot {
@@ -281,13 +283,18 @@ impl VennPlot {
         let total_masks = 1u8 << n;
 
         // Convert each set's element list to a BTreeSet for fast set ops
-        let sets: Vec<BTreeSet<&str>> = self.sets.iter().map(|s| {
-            s.elements.as_deref()
-                .unwrap_or(&[])
-                .iter()
-                .map(|e| e.as_str())
-                .collect()
-        }).collect();
+        let sets: Vec<BTreeSet<&str>> = self
+            .sets
+            .iter()
+            .map(|s| {
+                s.elements
+                    .as_deref()
+                    .unwrap_or(&[])
+                    .iter()
+                    .map(|e| e.as_str())
+                    .collect()
+            })
+            .collect();
 
         let mut result = HashMap::new();
         for mask in 1..total_masks {
@@ -360,13 +367,21 @@ impl VennPlot {
     #[allow(dead_code)]
     pub(crate) fn total_elements(&self) -> usize {
         let n = self.sets.len();
-        if n == 0 { return 0; }
+        if n == 0 {
+            return 0;
+        }
         let raw_mode = self.sets.iter().any(|s| s.elements.is_some());
         if raw_mode {
             // Union of all element sets
-            let union: BTreeSet<&str> = self.sets.iter()
+            let union: BTreeSet<&str> = self
+                .sets
+                .iter()
                 .flat_map(|s| {
-                    s.elements.as_deref().unwrap_or(&[]).iter().map(|e| e.as_str())
+                    s.elements
+                        .as_deref()
+                        .unwrap_or(&[])
+                        .iter()
+                        .map(|e| e.as_str())
                 })
                 .collect();
             union.len()

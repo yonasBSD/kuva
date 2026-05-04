@@ -9,13 +9,13 @@
 //!
 //! SVGs are written to `docs/src/assets/histogram/`.
 
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal};
-use kuva::plot::Histogram;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::Histogram;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
+use rand::SeedableRng;
+use rand_distr::{Distribution, Normal};
 
 const OUT: &str = "docs/src/assets/histogram";
 

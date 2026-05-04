@@ -9,14 +9,14 @@
 //!
 //! SVGs are written to `docs/src/assets/histogram2d/`.
 
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal};
-use kuva::plot::Histogram2D;
-use kuva::plot::histogram2d::ColorMap;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::histogram2d::ColorMap;
+use kuva::plot::Histogram2D;
 use kuva::render::layout::{Layout, TickFormat};
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
+use rand::SeedableRng;
+use rand_distr::{Distribution, Normal};
 
 const OUT: &str = "docs/src/assets/histogram2d";
 
@@ -27,22 +27,34 @@ fn bivariate(n: usize, mx: f64, my: f64, sx: f64, sy: f64, seed: u64) -> Vec<(f6
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
     let dx = Normal::new(mx, sx).unwrap();
     let dy = Normal::new(my, sy).unwrap();
-    (0..n).map(|_| (dx.sample(&mut rng), dy.sample(&mut rng))).collect()
+    (0..n)
+        .map(|_| (dx.sample(&mut rng), dy.sample(&mut rng)))
+        .collect()
 }
 
 /// Correlated bivariate Gaussian: x ~ N(mx, sx), y = rho*z1 + sqrt(1-rho²)*z2
 /// scaled to N(my, sy) — Pearson r ≈ rho.
-fn correlated(n: usize, mx: f64, my: f64, sx: f64, sy: f64, rho: f64, seed: u64) -> Vec<(f64, f64)> {
+fn correlated(
+    n: usize,
+    mx: f64,
+    my: f64,
+    sx: f64,
+    sy: f64,
+    rho: f64,
+    seed: u64,
+) -> Vec<(f64, f64)> {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
     let std = Normal::new(0.0_f64, 1.0).unwrap();
     let k = (1.0 - rho * rho).sqrt();
-    (0..n).map(|_| {
-        let z1 = std.sample(&mut rng);
-        let z2 = std.sample(&mut rng);
-        let x = mx + sx * z1;
-        let y = my + sy * (rho * z1 + k * z2);
-        (x, y)
-    }).collect()
+    (0..n)
+        .map(|_| {
+            let z1 = std.sample(&mut rng);
+            let z2 = std.sample(&mut rng);
+            let x = mx + sx * z1;
+            let y = my + sy * (rho * z1 + k * z2);
+            (x, y)
+        })
+        .collect()
 }
 
 // ── Examples ──────────────────────────────────────────────────────────────────
@@ -68,8 +80,7 @@ fn main() {
 fn basic() {
     let data = bivariate(5_000, 15.0, 15.0, 3.0, 3.0, 1);
 
-    let hist = Histogram2D::new()
-        .with_data(data, (0.0, 30.0), (0.0, 30.0), 30, 30);
+    let hist = Histogram2D::new().with_data(data, (0.0, 30.0), (0.0, 30.0), 30, 30);
 
     let plots = vec![Plot::Histogram2d(hist)];
     let layout = Layout::auto_from_plots(&plots)
@@ -107,7 +118,7 @@ fn correlation() {
 /// `ColorMap::Inferno` uses a dark-to-bright yellow-orange scheme that makes
 /// high-density regions stand out against a near-black background.
 fn bimodal() {
-    let mut data = bivariate(3_000,  9.0,  9.0, 2.0, 2.0, 3);
+    let mut data = bivariate(3_000, 9.0, 9.0, 2.0, 2.0, 3);
     data.extend(bivariate(3_000, 21.0, 21.0, 2.0, 2.0, 4));
 
     let hist = Histogram2D::new()
@@ -132,8 +143,8 @@ fn bimodal() {
 /// updates to "log(Count)" automatically.
 fn log_count() {
     // Highly skewed: 8 000 points in a tight core, 2 000 scattered in a halo.
-    let core  = bivariate(8_000, 15.0, 15.0, 1.0, 1.0, 10);
-    let halo  = bivariate(2_000, 15.0, 15.0, 5.0, 5.0, 11);
+    let core = bivariate(8_000, 15.0, 15.0, 1.0, 1.0, 10);
+    let halo = bivariate(2_000, 15.0, 15.0, 5.0, 5.0, 11);
     let mut data = core;
     data.extend(halo);
 
@@ -214,7 +225,7 @@ fn bin_resolution() {
 
     let configs: &[(usize, &str, ColorMap, &str)] = &[
         (10, "coarse", ColorMap::Grayscale, "Grayscale — 10×10 bins"),
-        (50, "fine",   ColorMap::Viridis,   "Viridis — 50×50 bins"),
+        (50, "fine", ColorMap::Viridis, "Viridis — 50×50 bins"),
     ];
     for &(bins, name, ref cmap, title) in configs {
         let hist = Histogram2D::new()

@@ -1,10 +1,10 @@
-use kuva::Theme;
-use kuva::plot::scatter::ScatterPlot;
-use kuva::plot::line::LinePlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_scatter;
-use kuva::render::render::render_line;
+use kuva::plot::line::LinePlot;
+use kuva::plot::scatter::ScatterPlot;
 use kuva::render::layout::Layout;
+use kuva::render::render::render_line;
+use kuva::render::render::render_scatter;
+use kuva::Theme;
 
 #[test]
 fn test_theme_dark() {
@@ -22,14 +22,26 @@ fn test_theme_dark() {
     std::fs::write("test_outputs/theme_dark.svg", &svg).unwrap();
 
     // Dark background
-    assert!(svg.contains(r##"fill="#1e1e1e""##), "expected dark background");
+    assert!(
+        svg.contains(r##"fill="#1e1e1e""##),
+        "expected dark background"
+    );
     // Text color on root svg element
-    assert!(svg.contains(r##"fill="#e0e0e0""##), "expected light text fill");
+    assert!(
+        svg.contains(r##"fill="#e0e0e0""##),
+        "expected light text fill"
+    );
     // Axis color (not red/green)
-    assert!(svg.contains(r##"stroke="#cccccc""##), "expected themed axis color");
+    assert!(
+        svg.contains(r##"stroke="#cccccc""##),
+        "expected themed axis color"
+    );
     // No red/green debug axes
     assert!(!svg.contains(r#"stroke="red""#), "should not have red axis");
-    assert!(!svg.contains(r#"stroke="green""#), "should not have green axis");
+    assert!(
+        !svg.contains(r#"stroke="green""#),
+        "should not have green axis"
+    );
 }
 
 #[test]
@@ -47,9 +59,15 @@ fn test_theme_minimal() {
     std::fs::write("test_outputs/theme_minimal.svg", &svg).unwrap();
 
     // Minimal has show_grid=false, so no grid lines (grid color should not appear)
-    assert!(!svg.contains(r##"stroke="#e0e0e0""##), "should have no grid lines");
+    assert!(
+        !svg.contains(r##"stroke="#e0e0e0""##),
+        "should have no grid lines"
+    );
     // Serif font from theme
-    assert!(svg.contains(r#"font-family="serif""#), "expected serif font");
+    assert!(
+        svg.contains(r#"font-family="serif""#),
+        "expected serif font"
+    );
 }
 
 #[test]
@@ -68,9 +86,15 @@ fn test_theme_solarized() {
     std::fs::write("test_outputs/theme_solarized.svg", &svg).unwrap();
 
     // Solarized background
-    assert!(svg.contains(r##"fill="#fdf6e3""##), "expected solarized background");
+    assert!(
+        svg.contains(r##"fill="#fdf6e3""##),
+        "expected solarized background"
+    );
     // Solarized text color
-    assert!(svg.contains(r##"fill="#657b83""##), "expected solarized text color");
+    assert!(
+        svg.contains(r##"fill="#657b83""##),
+        "expected solarized text color"
+    );
 }
 
 #[test]
@@ -82,7 +106,7 @@ fn test_theme_override() {
         .with_size(4.0);
 
     let layout = Layout::new((0.0, 4.0), (0.0, 5.0))
-        .with_theme(Theme::minimal())   // sets serif
+        .with_theme(Theme::minimal()) // sets serif
         .with_font_family("monospace"); // override to monospace
 
     let scene = render_scatter(&plot, layout);
@@ -90,6 +114,12 @@ fn test_theme_override() {
     std::fs::write("test_outputs/theme_override.svg", &svg).unwrap();
 
     // Override wins
-    assert!(svg.contains(r#"font-family="monospace""#), "expected monospace override");
-    assert!(!svg.contains(r#"font-family="serif""#), "serif should be overridden");
+    assert!(
+        svg.contains(r#"font-family="monospace""#),
+        "expected monospace override"
+    );
+    assert!(
+        !svg.contains(r#"font-family="serif""#),
+        "serif should be overridden"
+    );
 }

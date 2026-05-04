@@ -1,10 +1,10 @@
-use kuva::{Palette, Theme};
-use kuva::plot::scatter::ScatterPlot;
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::line::LinePlot;
+use kuva::plot::scatter::ScatterPlot;
+use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::layout::Layout;
-use kuva::backend::svg::SvgBackend;
+use kuva::{Palette, Theme};
 
 #[test]
 fn test_palette_dark_theme_with_colorblind() {
@@ -33,7 +33,10 @@ fn test_palette_dark_theme_with_colorblind() {
     assert!(svg.contains("#e69f00"), "expected wong color 0");
     assert!(svg.contains("#56b4e9"), "expected wong color 1");
     // Dark background
-    assert!(svg.contains(r##"fill="#1e1e1e""##), "expected dark background");
+    assert!(
+        svg.contains(r##"fill="#1e1e1e""##),
+        "expected dark background"
+    );
 }
 
 #[test]
@@ -79,9 +82,7 @@ fn test_palette_indexing() {
 
 #[test]
 fn test_palette_custom() {
-    let pal = Palette::custom("mine", vec![
-        "red".into(), "green".into(), "blue".into(),
-    ]);
+    let pal = Palette::custom("mine", vec!["red".into(), "green".into(), "blue".into()]);
 
     assert_eq!(pal.name, "mine");
     assert_eq!(pal.len(), 3);

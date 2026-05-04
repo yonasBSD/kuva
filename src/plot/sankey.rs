@@ -165,7 +165,12 @@ impl SankeyPlot {
     }
 
     /// Add a link, auto-creating nodes by label if needed.
-    pub fn with_link<S: Into<String>>(mut self, source: S, target: S, value: impl Into<f64>) -> Self {
+    pub fn with_link<S: Into<String>>(
+        mut self,
+        source: S,
+        target: S,
+        value: impl Into<f64>,
+    ) -> Self {
         let src_label = source.into();
         let tgt_label = target.into();
         let src = self.node_index_internal(&src_label, &src_label, None);

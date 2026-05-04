@@ -9,12 +9,12 @@
 //!
 //! SVGs are written to `docs/src/assets/text/`.
 
-use kuva::plot::{TextPlot, ScatterPlot, Histogram};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
-use kuva::render::layout::Layout;
+use kuva::plot::{Histogram, ScatterPlot, TextPlot};
 use kuva::render::figure::Figure;
+use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/text";
 
@@ -31,12 +31,11 @@ fn main() {
 
 /// Plain text box — no title, no markup.
 fn basic() {
-    let text = TextPlot::new()
-        .with_body(
-            "This is a simple text plot. It renders word-wrapped text inside a plot cell, \
+    let text = TextPlot::new().with_body(
+        "This is a simple text plot. It renders word-wrapped text inside a plot cell, \
             making it easy to add annotations, captions, or methodology notes alongside \
             data visualisations in a figure grid.",
-        );
+    );
 
     let plots = vec![Plot::Text(text)];
     let layout = Layout::auto_from_plots(&plots)
@@ -106,17 +105,44 @@ fn headings() {
 fn multiplot_with_description() {
     // --- Scatter data: three bivariate clusters ---
     let group_a: Vec<(f64, f64)> = [
-        (1.2, 2.1), (1.8, 2.9), (1.5, 2.4), (2.1, 3.1), (1.0, 1.8),
-        (2.3, 3.5), (1.6, 2.6), (0.9, 1.6), (1.4, 2.2), (2.0, 3.0),
-    ].into();
+        (1.2, 2.1),
+        (1.8, 2.9),
+        (1.5, 2.4),
+        (2.1, 3.1),
+        (1.0, 1.8),
+        (2.3, 3.5),
+        (1.6, 2.6),
+        (0.9, 1.6),
+        (1.4, 2.2),
+        (2.0, 3.0),
+    ]
+    .into();
     let group_b: Vec<(f64, f64)> = [
-        (4.1, 4.8), (4.7, 5.3), (5.2, 5.9), (4.5, 5.1), (5.8, 6.4),
-        (4.3, 4.6), (5.5, 6.0), (4.9, 5.5), (5.1, 5.7), (4.0, 4.3),
-    ].into();
+        (4.1, 4.8),
+        (4.7, 5.3),
+        (5.2, 5.9),
+        (4.5, 5.1),
+        (5.8, 6.4),
+        (4.3, 4.6),
+        (5.5, 6.0),
+        (4.9, 5.5),
+        (5.1, 5.7),
+        (4.0, 4.3),
+    ]
+    .into();
     let group_c: Vec<(f64, f64)> = [
-        (7.2, 2.2), (7.9, 2.8), (8.4, 3.3), (7.5, 2.5), (8.1, 3.0),
-        (7.8, 2.7), (8.6, 3.5), (7.3, 2.0), (8.0, 3.1), (7.6, 2.4),
-    ].into();
+        (7.2, 2.2),
+        (7.9, 2.8),
+        (8.4, 3.3),
+        (7.5, 2.5),
+        (8.1, 3.0),
+        (7.8, 2.7),
+        (8.6, 3.5),
+        (7.3, 2.0),
+        (8.0, 3.1),
+        (7.6, 2.4),
+    ]
+    .into();
 
     let scatter_a = ScatterPlot::new()
         .with_data(group_a.clone())
@@ -157,10 +183,17 @@ fn multiplot_with_description() {
         .with_y_label("Count");
 
     // --- Histogram: all X values pooled ---
-    let all_x: Vec<f64> = group_a.iter().chain(group_b.iter()).chain(group_c.iter())
+    let all_x: Vec<f64> = group_a
+        .iter()
+        .chain(group_b.iter())
+        .chain(group_c.iter())
         .map(|(x, _)| *x)
         .collect();
-    let (x_min, x_max) = all_x.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), &v| (lo.min(v), hi.max(v)));
+    let (x_min, x_max) = all_x
+        .iter()
+        .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), &v| {
+            (lo.min(v), hi.max(v))
+        });
 
     let hist = Histogram::new()
         .with_data(all_x)
@@ -199,8 +232,7 @@ fn multiplot_with_description() {
         .with_padding(18.0);
 
     let text_plots = vec![Plot::Text(description)];
-    let text_layout = Layout::auto_from_plots(&text_plots)
-        .with_title("Description");
+    let text_layout = Layout::auto_from_plots(&text_plots).with_title("Description");
 
     // --- 2×2 Figure ---
     let all_plots = vec![scatter_plots, bar_plots, hist_plots, text_plots];

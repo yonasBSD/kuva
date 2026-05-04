@@ -1,8 +1,8 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::SurvivalPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use std::fs;
 
 fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
@@ -14,18 +14,21 @@ fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
 }
 
 fn sample_times() -> (Vec<f64>, Vec<bool>) {
-    let times  = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
-                      11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0];
-    let events = vec![true, true, false, true, true, false, true, false, true, false,
-                      true, false, true, false, false, true, false, true, false, true];
+    let times = vec![
+        1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+        17.0, 18.0, 19.0, 20.0,
+    ];
+    let events = vec![
+        true, true, false, true, true, false, true, false, true, false, true, false, true, false,
+        false, true, false, true, false, true,
+    ];
     (times, events)
 }
 
 #[test]
 fn test_survival_basic() {
     let (times, events) = sample_times();
-    let sp = SurvivalPlot::new()
-        .with_group("All patients", times, events);
+    let sp = SurvivalPlot::new().with_group("All patients", times, events);
     let plots = vec![Plot::Survival(sp)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Kaplan-Meier")
@@ -42,12 +45,16 @@ fn test_survival_two_groups() {
         .with_group(
             "Control",
             vec![2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0],
-            vec![true, true, true, false, true, false, true, false, false, true],
+            vec![
+                true, true, true, false, true, false, true, false, false, true,
+            ],
         )
         .with_group(
             "Treatment",
             vec![3.0, 7.0, 9.0, 12.0, 15.0, 18.0, 20.0, 22.0, 24.0, 26.0],
-            vec![true, false, true, false, true, false, false, true, false, false],
+            vec![
+                true, false, true, false, true, false, false, true, false, false,
+            ],
         )
         .with_legend("Group");
     let plots = vec![Plot::Survival(sp)];
@@ -107,9 +114,21 @@ fn test_survival_pvalue_annotation() {
 #[test]
 fn test_survival_three_groups() {
     let sp = SurvivalPlot::new()
-        .with_group("Stage I",   vec![8.0, 12.0, 18.0, 24.0, 30.0], vec![false, true, false, false, true])
-        .with_group("Stage II",  vec![5.0, 8.0, 12.0, 15.0, 20.0],  vec![true, true, false, true, false])
-        .with_group("Stage III", vec![2.0, 4.0, 6.0, 9.0, 12.0],    vec![true, true, true, false, true])
+        .with_group(
+            "Stage I",
+            vec![8.0, 12.0, 18.0, 24.0, 30.0],
+            vec![false, true, false, false, true],
+        )
+        .with_group(
+            "Stage II",
+            vec![5.0, 8.0, 12.0, 15.0, 20.0],
+            vec![true, true, false, true, false],
+        )
+        .with_group(
+            "Stage III",
+            vec![2.0, 4.0, 6.0, 9.0, 12.0],
+            vec![true, true, true, false, true],
+        )
         .with_legend("Stage");
     let plots = vec![Plot::Survival(sp)];
     let layout = Layout::auto_from_plots(&plots)
@@ -149,7 +168,11 @@ fn test_survival_all_censored() {
 
 #[test]
 fn test_survival_single_event() {
-    let sp = SurvivalPlot::new().with_group("One event", vec![5.0, 10.0, 15.0], vec![false, true, false]);
+    let sp = SurvivalPlot::new().with_group(
+        "One event",
+        vec![5.0, 10.0, 15.0],
+        vec![false, true, false],
+    );
     assert!(Plot::Survival(sp).bounds().is_some());
 }
 
@@ -184,14 +207,22 @@ fn test_survival_colored_groups() {
 #[test]
 fn test_survival_realistic_os() {
     // 40-patient simulated OS dataset, two arms
-    let ctrl_times  = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
-                           11.0, 12.0, 14.0, 15.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0];
-    let ctrl_events = vec![true, true, true, false, true, true, false, true, false, true,
-                           true, false, true, false, false, true, false, true, false, false];
-    let trt_times   = vec![2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0,
-                           22.0, 24.0, 26.0, 28.0, 30.0, 32.0, 34.0, 36.0, 40.0, 42.0];
-    let trt_events  = vec![false, true, false, true, false, false, true, false, false, true,
-                           false, false, true, false, false, true, false, false, false, true];
+    let ctrl_times = vec![
+        1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 14.0, 15.0, 16.0, 18.0,
+        20.0, 22.0, 24.0, 26.0,
+    ];
+    let ctrl_events = vec![
+        true, true, true, false, true, true, false, true, false, true, true, false, true, false,
+        false, true, false, true, false, false,
+    ];
+    let trt_times = vec![
+        2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 22.0, 24.0, 26.0, 28.0, 30.0, 32.0,
+        34.0, 36.0, 40.0, 42.0,
+    ];
+    let trt_events = vec![
+        false, true, false, true, false, false, true, false, false, true, false, false, true,
+        false, false, true, false, false, false, true,
+    ];
     let sp = SurvivalPlot::new()
         .with_group("Control (n=20)", ctrl_times, ctrl_events)
         .with_group("Treatment (n=20)", trt_times, trt_events)

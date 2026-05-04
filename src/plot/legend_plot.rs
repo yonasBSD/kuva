@@ -100,7 +100,12 @@ pub struct LegendPlot {
 impl LegendPlot {
     /// Create an empty `LegendPlot`. Add entries with [`with_entry`](Self::with_entry).
     pub fn new() -> Self {
-        Self { entries: Vec::new(), cols: None, title: None, show_box: true }
+        Self {
+            entries: Vec::new(),
+            cols: None,
+            title: None,
+            show_box: true,
+        }
     }
 
     /// Create a `LegendPlot` pre-populated with `entries`.
@@ -108,7 +113,12 @@ impl LegendPlot {
     /// Use [`collect_legend_entries`](crate::render::render::collect_legend_entries)
     /// to derive entries automatically from a set of plots.
     pub fn from_entries(entries: Vec<LegendEntry>) -> Self {
-        Self { entries, cols: None, title: None, show_box: true }
+        Self {
+            entries,
+            cols: None,
+            title: None,
+            show_box: true,
+        }
     }
 
     /// Append a single entry.
@@ -140,5 +150,7 @@ impl LegendPlot {
 }
 
 impl Default for LegendPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

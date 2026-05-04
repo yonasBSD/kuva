@@ -9,14 +9,14 @@
 //!
 //! SVGs are written to `docs/src/assets/qq/`.
 
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal};
-use kuva::plot::QQPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::QQPlot;
 use kuva::render::layout::Layout;
 use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
+use rand::SeedableRng;
+use rand_distr::{Distribution, Normal};
 
 const OUT: &str = "docs/src/assets/qq";
 
@@ -35,7 +35,8 @@ fn main() {
 
 fn normal_samples(mean: f64, std: f64, n: usize, seed: u64) -> Vec<f64> {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
-    Normal::new(mean, std).unwrap()
+    Normal::new(mean, std)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(n)
         .collect()
@@ -63,7 +64,8 @@ fn normal_basic() {
 fn normal_skewed() {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(7);
     // Log-normal data (heavy right tail)
-    let data: Vec<f64> = Normal::new(0.0_f64, 1.0).unwrap()
+    let data: Vec<f64> = Normal::new(0.0_f64, 1.0)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(200)
         .map(|v: f64| v.exp())
@@ -87,7 +89,7 @@ fn normal_skewed() {
 fn normal_multigroup() {
     let pal = Palette::category10();
     let control = normal_samples(0.0, 1.0, 150, 1);
-    let treated  = normal_samples(1.5, 1.0, 150, 2);
+    let treated = normal_samples(1.5, 1.0, 150, 2);
 
     let plot = QQPlot::new()
         .with_data_colored("Control", control, pal[0].to_string())

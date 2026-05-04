@@ -97,7 +97,9 @@ pub struct PopulationPyramid {
 }
 
 impl Default for PopulationPyramid {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PopulationPyramid {
@@ -132,7 +134,9 @@ impl PopulationPyramid {
         if self.series.is_empty() {
             self.series.push(PyramidSeries::new(""));
         }
-        self.series[0].groups.push((age_label.into(), left.into(), right.into()));
+        self.series[0]
+            .groups
+            .push((age_label.into(), left.into(), right.into()));
         self
     }
 
@@ -263,7 +267,9 @@ impl PopulationPyramid {
     /// Maximum value across all data (after normalisation if enabled).
     /// This defines the half-width of the symmetric x axis.
     pub fn max_value(&self) -> f64 {
-        if self.series.is_empty() { return 1.0; }
+        if self.series.is_empty() {
+            return 1.0;
+        }
         let denom = if self.normalize {
             self.total_population().max(1e-10) / 100.0
         } else {

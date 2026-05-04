@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/stacked_area/`.
 
-use kuva::plot::{StackedAreaPlot, LegendPosition};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{LegendPosition, StackedAreaPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/stacked_area";
 
@@ -37,14 +37,26 @@ fn basic() {
 
     let sa = StackedAreaPlot::new()
         .with_x(months)
-        .with_series([420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0])
-        .with_color("steelblue").with_legend("SNVs")
-        .with_series([ 95.0, 102.0,  88.0, 115.0, 108.0, 112.0,  98.0, 125.0, 118.0, 130.0, 122.0, 140.0])
-        .with_color("orange").with_legend("Indels")
-        .with_series([ 22.0,  25.0,  20.0,  28.0,  26.0,  27.0,  24.0,  31.0,  28.0,  33.0,  30.0,  35.0])
-        .with_color("mediumseagreen").with_legend("SVs")
-        .with_series([ 15.0,  17.0,  14.0,  19.0,  18.0,  18.0,  16.0,  21.0,  19.0,  23.0,  21.0,  24.0])
-        .with_color("tomato").with_legend("CNVs");
+        .with_series([
+            420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0,
+        ])
+        .with_color("steelblue")
+        .with_legend("SNVs")
+        .with_series([
+            95.0, 102.0, 88.0, 115.0, 108.0, 112.0, 98.0, 125.0, 118.0, 130.0, 122.0, 140.0,
+        ])
+        .with_color("orange")
+        .with_legend("Indels")
+        .with_series([
+            22.0, 25.0, 20.0, 28.0, 26.0, 27.0, 24.0, 31.0, 28.0, 33.0, 30.0, 35.0,
+        ])
+        .with_color("mediumseagreen")
+        .with_legend("SVs")
+        .with_series([
+            15.0, 17.0, 14.0, 19.0, 18.0, 18.0, 16.0, 21.0, 19.0, 23.0, 21.0, 24.0,
+        ])
+        .with_color("tomato")
+        .with_legend("CNVs");
 
     let plots = vec![Plot::StackedArea(sa)];
     let layout = Layout::auto_from_plots(&plots)
@@ -65,14 +77,26 @@ fn normalized() {
 
     let sa = StackedAreaPlot::new()
         .with_x(months)
-        .with_series([420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0])
-        .with_color("steelblue").with_legend("SNVs")
-        .with_series([ 95.0, 102.0,  88.0, 115.0, 108.0, 112.0,  98.0, 125.0, 118.0, 130.0, 122.0, 140.0])
-        .with_color("orange").with_legend("Indels")
-        .with_series([ 22.0,  25.0,  20.0,  28.0,  26.0,  27.0,  24.0,  31.0,  28.0,  33.0,  30.0,  35.0])
-        .with_color("mediumseagreen").with_legend("SVs")
-        .with_series([ 15.0,  17.0,  14.0,  19.0,  18.0,  18.0,  16.0,  21.0,  19.0,  23.0,  21.0,  24.0])
-        .with_color("tomato").with_legend("CNVs")
+        .with_series([
+            420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0,
+        ])
+        .with_color("steelblue")
+        .with_legend("SNVs")
+        .with_series([
+            95.0, 102.0, 88.0, 115.0, 108.0, 112.0, 98.0, 125.0, 118.0, 130.0, 122.0, 140.0,
+        ])
+        .with_color("orange")
+        .with_legend("Indels")
+        .with_series([
+            22.0, 25.0, 20.0, 28.0, 26.0, 27.0, 24.0, 31.0, 28.0, 33.0, 30.0, 35.0,
+        ])
+        .with_color("mediumseagreen")
+        .with_legend("SVs")
+        .with_series([
+            15.0, 17.0, 14.0, 19.0, 18.0, 18.0, 16.0, 21.0, 19.0, 23.0, 21.0, 24.0,
+        ])
+        .with_color("tomato")
+        .with_legend("CNVs")
         .with_normalized();
 
     let plots = vec![Plot::StackedArea(sa)];
@@ -91,14 +115,26 @@ fn no_strokes() {
 
     let sa = StackedAreaPlot::new()
         .with_x(months)
-        .with_series([420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0])
-        .with_color("steelblue").with_legend("SNVs")
-        .with_series([ 95.0, 102.0,  88.0, 115.0, 108.0, 112.0,  98.0, 125.0, 118.0, 130.0, 122.0, 140.0])
-        .with_color("orange").with_legend("Indels")
-        .with_series([ 22.0,  25.0,  20.0,  28.0,  26.0,  27.0,  24.0,  31.0,  28.0,  33.0,  30.0,  35.0])
-        .with_color("mediumseagreen").with_legend("SVs")
-        .with_series([ 15.0,  17.0,  14.0,  19.0,  18.0,  18.0,  16.0,  21.0,  19.0,  23.0,  21.0,  24.0])
-        .with_color("tomato").with_legend("CNVs")
+        .with_series([
+            420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0,
+        ])
+        .with_color("steelblue")
+        .with_legend("SNVs")
+        .with_series([
+            95.0, 102.0, 88.0, 115.0, 108.0, 112.0, 98.0, 125.0, 118.0, 130.0, 122.0, 140.0,
+        ])
+        .with_color("orange")
+        .with_legend("Indels")
+        .with_series([
+            22.0, 25.0, 20.0, 28.0, 26.0, 27.0, 24.0, 31.0, 28.0, 33.0, 30.0, 35.0,
+        ])
+        .with_color("mediumseagreen")
+        .with_legend("SVs")
+        .with_series([
+            15.0, 17.0, 14.0, 19.0, 18.0, 18.0, 16.0, 21.0, 19.0, 23.0, 21.0, 24.0,
+        ])
+        .with_color("tomato")
+        .with_legend("CNVs")
         .with_strokes(false);
 
     let plots = vec![Plot::StackedArea(sa)];
@@ -117,14 +153,26 @@ fn legend_position() {
 
     let sa = StackedAreaPlot::new()
         .with_x(months)
-        .with_series([420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0])
-        .with_color("steelblue").with_legend("SNVs")
-        .with_series([ 95.0, 102.0,  88.0, 115.0, 108.0, 112.0,  98.0, 125.0, 118.0, 130.0, 122.0, 140.0])
-        .with_color("orange").with_legend("Indels")
-        .with_series([ 22.0,  25.0,  20.0,  28.0,  26.0,  27.0,  24.0,  31.0,  28.0,  33.0,  30.0,  35.0])
-        .with_color("mediumseagreen").with_legend("SVs")
-        .with_series([ 15.0,  17.0,  14.0,  19.0,  18.0,  18.0,  16.0,  21.0,  19.0,  23.0,  21.0,  24.0])
-        .with_color("tomato").with_legend("CNVs")
+        .with_series([
+            420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0,
+        ])
+        .with_color("steelblue")
+        .with_legend("SNVs")
+        .with_series([
+            95.0, 102.0, 88.0, 115.0, 108.0, 112.0, 98.0, 125.0, 118.0, 130.0, 122.0, 140.0,
+        ])
+        .with_color("orange")
+        .with_legend("Indels")
+        .with_series([
+            22.0, 25.0, 20.0, 28.0, 26.0, 27.0, 24.0, 31.0, 28.0, 33.0, 30.0, 35.0,
+        ])
+        .with_color("mediumseagreen")
+        .with_legend("SVs")
+        .with_series([
+            15.0, 17.0, 14.0, 19.0, 18.0, 18.0, 16.0, 21.0, 19.0, 23.0, 21.0, 24.0,
+        ])
+        .with_color("tomato")
+        .with_legend("CNVs")
         .with_legend_position(LegendPosition::InsideBottomLeft);
 
     let plots = vec![Plot::StackedArea(sa)];

@@ -1,8 +1,10 @@
-use kuva::plot::roc::{RocPlot, RocGroup, compute_group, compute_roc_points, auc_trapz, delong_auc, partial_auc};
+use kuva::backend::svg::SvgBackend;
+use kuva::plot::roc::{
+    auc_trapz, compute_group, compute_roc_points, delong_auc, partial_auc, RocGroup, RocPlot,
+};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use std::fs;
 
 fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
@@ -38,19 +40,23 @@ fn logistic_dataset(n: usize, mu: f64, scale: f64) -> Vec<(f64, bool)> {
 }
 
 /// Good classifier — AUC ~0.88 (mu=1.0, 100 pos + 100 neg).
-fn good_classifier() -> Vec<(f64, bool)> { logistic_dataset(100, 1.0, 0.5) }
+fn good_classifier() -> Vec<(f64, bool)> {
+    logistic_dataset(100, 1.0, 0.5)
+}
 
 /// Moderate classifier — AUC ~0.73 (mu=0.5, 100 pos + 100 neg).
-fn moderate_classifier() -> Vec<(f64, bool)> { logistic_dataset(100, 0.5, 0.5) }
+fn moderate_classifier() -> Vec<(f64, bool)> {
+    logistic_dataset(100, 0.5, 0.5)
+}
 
 /// Poor classifier — AUC ~0.61 (mu=0.2, 100 pos + 100 neg).
-fn poor_classifier() -> Vec<(f64, bool)> { logistic_dataset(100, 0.2, 0.5) }
+fn poor_classifier() -> Vec<(f64, bool)> {
+    logistic_dataset(100, 0.2, 0.5)
+}
 
 /// Perfect: all positives score strictly above all negatives.
 fn perfect_classifier() -> Vec<(f64, bool)> {
-    let mut data: Vec<(f64, bool)> = (0..50)
-        .map(|i| (0.51 + i as f64 * 0.009, true))
-        .collect();
+    let mut data: Vec<(f64, bool)> = (0..50).map(|i| (0.51 + i as f64 * 0.009, true)).collect();
     data.extend((0..50).map(|i| (0.01 + i as f64 * 0.009, false)));
     data
 }
@@ -92,13 +98,19 @@ fn test_roc_auc_value() {
     let pts2 = compute_roc_points(&moderate_classifier());
     let auc2 = auc_trapz(&pts2);
     assert!(auc2 > 0.65, "Moderate AUC too low: {auc2}");
-    assert!(auc2 < auc, "Moderate AUC should be lower than good: {auc2} vs {auc}");
+    assert!(
+        auc2 < auc,
+        "Moderate AUC should be lower than good: {auc2} vs {auc}"
+    );
 
     // Poor classifier: close to chance
     let pts3 = compute_roc_points(&poor_classifier());
     let auc3 = auc_trapz(&pts3);
     assert!(auc3 > 0.50, "Poor AUC should be above chance: {auc3}");
-    assert!(auc3 < auc2, "Poor AUC should be lower than moderate: {auc3} vs {auc2}");
+    assert!(
+        auc3 < auc2,
+        "Poor AUC should be lower than moderate: {auc3} vs {auc2}"
+    );
 }
 
 #[test]
@@ -110,8 +122,7 @@ fn test_roc_two_groups() {
         .with_group(g2)
         .with_legend("Model");
     let plots = vec![Plot::Roc(roc)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("ROC Curve Comparison");
+    let layout = Layout::auto_from_plots(&plots).with_title("ROC Curve Comparison");
     let svg = write_svg("roc_two_groups", plots, layout);
     assert!(svg.contains("Good classifier"));
     assert!(svg.contains("Moderate classifier"));
@@ -146,17 +157,23 @@ fn test_roc_with_ci() {
         .with_ci_alpha(0.2);
     let roc = RocPlot::new().with_group(group);
     let plots = vec![Plot::Roc(roc)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("ROC with 95% CI (DeLong)");
+    let layout = Layout::auto_from_plots(&plots).with_title("ROC with 95% CI (DeLong)");
     let svg = write_svg("roc_with_ci", plots, layout);
     assert!(svg.contains("<path"));
 }
 
 #[test]
 fn test_roc_two_groups_with_ci() {
-    let g1 = RocGroup::new("Good").with_raw(good_classifier()).with_ci(true);
-    let g2 = RocGroup::new("Moderate").with_raw(moderate_classifier()).with_ci(true);
-    let roc = RocPlot::new().with_group(g1).with_group(g2).with_legend("Model");
+    let g1 = RocGroup::new("Good")
+        .with_raw(good_classifier())
+        .with_ci(true);
+    let g2 = RocGroup::new("Moderate")
+        .with_raw(moderate_classifier())
+        .with_ci(true);
+    let roc = RocPlot::new()
+        .with_group(g1)
+        .with_group(g2)
+        .with_legend("Model");
     let plots = vec![Plot::Roc(roc)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("ROC with CI Bands")
@@ -173,8 +190,8 @@ fn test_roc_optimal_point() {
         .with_optimal_point();
     let roc = RocPlot::new().with_group(group);
     let plots = vec![Plot::Roc(roc)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("ROC with Optimal Threshold (Youden's J)");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("ROC with Optimal Threshold (Youden's J)");
     let svg = write_svg("roc_optimal_point", plots, layout);
     assert!(svg.contains("<circle") || svg.contains("circle"));
 }
@@ -188,7 +205,10 @@ fn test_roc_pauc() {
     assert!(pauc <= 1.0, "pAUC should not exceed 1.0, got {pauc}");
 
     // For a good classifier, high specificity region (low FPR) should be good
-    assert!(pauc > 0.5, "Good classifier pAUC[0,0.2] should be >0.5, got {pauc}");
+    assert!(
+        pauc > 0.5,
+        "Good classifier pAUC[0,0.2] should be >0.5, got {pauc}"
+    );
 }
 
 #[test]
@@ -223,14 +243,21 @@ fn test_roc_no_diagonal() {
 fn test_roc_perfect_classifier() {
     let group = RocGroup::new("Perfect").with_raw(perfect_classifier());
     let rc = compute_group(&group);
-    assert!(rc.auc > 0.99, "Perfect classifier AUC should be > 0.99, got {}", rc.auc);
+    assert!(
+        rc.auc > 0.99,
+        "Perfect classifier AUC should be > 0.99, got {}",
+        rc.auc
+    );
 }
 
 #[test]
 fn test_roc_random_classifier() {
     let pts = compute_roc_points(&random_classifier());
     let auc = auc_trapz(&pts);
-    assert!((auc - 0.5).abs() < 0.05, "Random classifier AUC should be ~0.5, got {auc}");
+    assert!(
+        (auc - 0.5).abs() < 0.05,
+        "Random classifier AUC should be ~0.5, got {auc}"
+    );
 }
 
 #[test]
@@ -272,8 +299,14 @@ fn test_delong_auc() {
     let (dauc, dvar) = delong_auc(&good);
     let pts = compute_roc_points(&good);
     let tauc = auc_trapz(&pts);
-    assert!((dauc - tauc).abs() < 0.02, "DeLong and trapezoidal AUC should agree: DeLong={dauc}, trapz={tauc}");
-    assert!(dvar > 0.0, "DeLong variance should be positive for imperfect classifier");
+    assert!(
+        (dauc - tauc).abs() < 0.02,
+        "DeLong and trapezoidal AUC should agree: DeLong={dauc}, trapz={tauc}"
+    );
+    assert!(
+        dvar > 0.0,
+        "DeLong variance should be positive for imperfect classifier"
+    );
     assert!(dvar < 0.01, "DeLong variance unreasonably large: {dvar}");
 }
 

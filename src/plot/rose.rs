@@ -32,7 +32,11 @@ pub struct RoseSeries {
 impl RoseSeries {
     /// Create a new named series with given values.
     pub fn new(name: impl Into<String>, values: Vec<f64>) -> Self {
-        RoseSeries { name: name.into(), values, color: None }
+        RoseSeries {
+            name: name.into(),
+            values,
+            color: None,
+        }
     }
 }
 
@@ -90,7 +94,9 @@ pub struct RosePlot {
 }
 
 impl Default for RosePlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RosePlot {
@@ -157,7 +163,10 @@ impl RosePlot {
         S: Into<f64>,
     {
         self.mode = RoseMode::Stacked;
-        self.series.push(RoseSeries::new(name, values.into_iter().map(Into::into).collect()));
+        self.series.push(RoseSeries::new(
+            name,
+            values.into_iter().map(Into::into).collect(),
+        ));
         self
     }
 
@@ -168,7 +177,10 @@ impl RosePlot {
         S: Into<f64>,
     {
         self.mode = RoseMode::Grouped;
-        self.series.push(RoseSeries::new(name, values.into_iter().map(Into::into).collect()));
+        self.series.push(RoseSeries::new(
+            name,
+            values.into_iter().map(Into::into).collect(),
+        ));
         self
     }
 
@@ -179,7 +191,9 @@ impl RosePlot {
     where
         I: IntoIterator<Item = f64>,
     {
-        if n_bins == 0 { return self; }
+        if n_bins == 0 {
+            return self;
+        }
         let mut counts = vec![0_u64; n_bins];
         let bin_size = 360.0 / n_bins as f64;
         for b in bearings {
@@ -289,7 +303,12 @@ impl RosePlot {
     /// Number of sectors (the maximum of labels length and max series values length).
     pub(crate) fn n_sectors(&self) -> usize {
         let label_n = self.labels.len();
-        let series_n = self.series.iter().map(|s| s.values.len()).max().unwrap_or(0);
+        let series_n = self
+            .series
+            .iter()
+            .map(|s| s.values.len())
+            .max()
+            .unwrap_or(0);
         label_n.max(series_n)
     }
 
@@ -297,21 +316,24 @@ impl RosePlot {
     /// For Stacked: maximum cumulative sum per sector.
     /// For Grouped: maximum individual value across all series and sectors.
     pub(crate) fn max_total(&self) -> f64 {
-        if self.series.is_empty() { return 0.0; }
+        if self.series.is_empty() {
+            return 0.0;
+        }
         let n = self.n_sectors();
         match self.mode {
-            RoseMode::Stacked => {
-                (0..n).map(|i| {
-                    self.series.iter()
+            RoseMode::Stacked => (0..n)
+                .map(|i| {
+                    self.series
+                        .iter()
                         .map(|s| s.values.get(i).copied().unwrap_or(0.0).max(0.0))
                         .sum::<f64>()
-                }).fold(0.0_f64, f64::max)
-            }
-            RoseMode::Grouped => {
-                self.series.iter()
-                    .flat_map(|s| s.values.iter().copied())
-                    .fold(0.0_f64, f64::max)
-            }
+                })
+                .fold(0.0_f64, f64::max),
+            RoseMode::Grouped => self
+                .series
+                .iter()
+                .flat_map(|s| s.values.iter().copied())
+                .fold(0.0_f64, f64::max),
         }
     }
 }
@@ -322,9 +344,13 @@ impl RosePlot {
 /// cardinal / intercardinal abbreviations are used.  Otherwise degree
 /// strings like `"0°"`, `"15°"`, … are returned.
 pub fn compass_labels_for_n(n: usize) -> Vec<String> {
-    if n == 0 { return vec![]; }
-    let compass = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
-                   "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+    if n == 0 {
+        return vec![];
+    }
+    let compass = [
+        "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW",
+        "NW", "NNW",
+    ];
     if n <= 16 && 16 % n == 0 {
         let stride = 16 / n;
         (0..n).map(|i| compass[i * stride].to_string()).collect()

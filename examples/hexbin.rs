@@ -1,9 +1,9 @@
 //! Hexbin plot documentation examples.
-use kuva::plot::{HexbinPlot, ColorMap};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{ColorMap, HexbinPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/hexbin";

@@ -1,6 +1,6 @@
-use kuva::plot::network::{NetworkPlot, NetworkLayout, NodeShape};
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::network::{NetworkLayout, NetworkPlot, NodeShape};
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 
 #[test]
 fn network_basic() {
@@ -11,8 +11,7 @@ fn network_basic() {
         .with_edge("C", "D", 1.0)
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Basic Network");
+    let layout = Layout::auto_from_plots(&plots).with_title("Basic Network");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_basic.svg", svg).unwrap();
 }
@@ -28,8 +27,7 @@ fn network_directed() {
         .with_directed()
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Directed Network");
+    let layout = Layout::auto_from_plots(&plots).with_title("Directed Network");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_directed.svg", svg).unwrap();
 }
@@ -38,15 +36,20 @@ fn network_directed() {
 fn network_circle_layout() {
     let net = NetworkPlot::new()
         .with_edges([
-            ("A", "B", 1.0), ("B", "C", 1.0), ("C", "D", 1.0),
-            ("D", "E", 1.0), ("E", "F", 1.0), ("F", "A", 1.0),
-            ("A", "D", 0.5), ("B", "E", 0.5), ("C", "F", 0.5),
+            ("A", "B", 1.0),
+            ("B", "C", 1.0),
+            ("C", "D", 1.0),
+            ("D", "E", 1.0),
+            ("E", "F", 1.0),
+            ("F", "A", 1.0),
+            ("A", "D", 0.5),
+            ("B", "E", 0.5),
+            ("C", "F", 0.5),
         ])
         .with_layout(NetworkLayout::Circle)
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Circle Layout");
+    let layout = Layout::auto_from_plots(&plots).with_title("Circle Layout");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_circle.svg", svg).unwrap();
 }
@@ -61,8 +64,7 @@ fn network_self_loop() {
         .with_directed()
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Self-Loop");
+    let layout = Layout::auto_from_plots(&plots).with_title("Self-Loop");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_self_loop.svg", svg).unwrap();
 }
@@ -79,8 +81,7 @@ fn network_matrix() {
         .with_matrix(matrix, ["Alpha", "Beta", "Gamma", "Delta"])
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("From Adjacency Matrix");
+    let layout = Layout::auto_from_plots(&plots).with_title("From Adjacency Matrix");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_matrix.svg", svg).unwrap();
 }
@@ -99,8 +100,7 @@ fn network_groups_legend() {
         .with_labels()
         .with_legend("Layer");
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Grouped Network");
+    let layout = Layout::auto_from_plots(&plots).with_title("Grouped Network");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_groups_legend.svg", svg).unwrap();
 }
@@ -115,8 +115,7 @@ fn network_weighted() {
         .with_edge("D", "E", 0.5)
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Weighted Edges");
+    let layout = Layout::auto_from_plots(&plots).with_title("Weighted Edges");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_weighted.svg", svg).unwrap();
 }
@@ -136,8 +135,7 @@ fn network_node_sizes() {
         .with_node_size("D", 3.0)
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Variable Node Sizes");
+    let layout = Layout::auto_from_plots(&plots).with_title("Variable Node Sizes");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_node_sizes.svg", svg).unwrap();
 }
@@ -170,8 +168,7 @@ fn network_disconnected() {
         .with_labels()
         .with_legend("Component");
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Disconnected Components");
+    let layout = Layout::auto_from_plots(&plots).with_title("Disconnected Components");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_disconnected.svg", svg).unwrap();
 }
@@ -187,13 +184,24 @@ fn network_pinned_positions() {
         .with_labels();
     let positions = net.compute_positions();
     // A and C should remain at their pinned positions.
-    assert!((positions[0].0 - 0.0).abs() < 1e-6, "pinned node A x should be 0.0");
-    assert!((positions[0].1 - 0.0).abs() < 1e-6, "pinned node A y should be 0.0");
-    assert!((positions[2].0 - 1.0).abs() < 1e-6, "pinned node C x should be 1.0");
-    assert!((positions[2].1 - 1.0).abs() < 1e-6, "pinned node C y should be 1.0");
+    assert!(
+        (positions[0].0 - 0.0).abs() < 1e-6,
+        "pinned node A x should be 0.0"
+    );
+    assert!(
+        (positions[0].1 - 0.0).abs() < 1e-6,
+        "pinned node A y should be 0.0"
+    );
+    assert!(
+        (positions[2].0 - 1.0).abs() < 1e-6,
+        "pinned node C x should be 1.0"
+    );
+    assert!(
+        (positions[2].1 - 1.0).abs() < 1e-6,
+        "pinned node C y should be 1.0"
+    );
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Pinned Positions");
+    let layout = Layout::auto_from_plots(&plots).with_title("Pinned Positions");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/network_pinned.svg", svg).unwrap();
 }
@@ -212,8 +220,7 @@ fn network_explicit_node_colors() {
         .with_labels()
         .with_legend("Groups");
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Explicit Colors Override Group");
+    let layout = Layout::auto_from_plots(&plots).with_title("Explicit Colors Override Group");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     // Verify the explicit colors appear in the SVG, not palette defaults.
     assert!(svg.contains("#e41a1c"), "node A should use explicit red");
@@ -229,11 +236,13 @@ fn network_single_node_self_loop() {
         .with_directed()
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Single Node Self-Loop");
+    let layout = Layout::auto_from_plots(&plots).with_title("Single Node Self-Loop");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     // Should not panic and should contain a bezier path for the loop.
-    assert!(svg.contains("<path"), "single-node self-loop should produce a path");
+    assert!(
+        svg.contains("<path"),
+        "single-node self-loop should produce a path"
+    );
     std::fs::write("test_outputs/network_single_self_loop.svg", svg).unwrap();
 }
 
@@ -255,7 +264,10 @@ fn network_matrix_directed_order_independent() {
     // Directed graph from this matrix has 3 edges: A→B, B→C, C→A.
     // Each directed edge emits a triangle arrowhead path.
     let arrow_count = svg.matches("<path").count();
-    assert!(arrow_count >= 3, "directed matrix should produce at least 3 arrowhead paths, got {arrow_count}");
+    assert!(
+        arrow_count >= 3,
+        "directed matrix should produce at least 3 arrowhead paths, got {arrow_count}"
+    );
     std::fs::write("test_outputs/network_matrix_directed.svg", svg).unwrap();
 }
 
@@ -271,8 +283,7 @@ fn network_kamada_kawai() {
         .with_layout(NetworkLayout::KamadaKawai)
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Kamada-Kawai Layout");
+    let layout = Layout::auto_from_plots(&plots).with_title("Kamada-Kawai Layout");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<circle"), "KK layout should produce nodes");
     std::fs::write("test_outputs/network_kamada_kawai.svg", svg).unwrap();
@@ -286,8 +297,7 @@ fn network_edge_labels() {
         .with_edge_label("C", "A", 0.45, "0.45")
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Edge Labels");
+    let layout = Layout::auto_from_plots(&plots).with_title("Edge Labels");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("0.95"), "edge label should appear in SVG");
     assert!(svg.contains("0.72"), "edge label should appear in SVG");
@@ -308,8 +318,7 @@ fn network_node_shapes() {
         .with_layout(NetworkLayout::Circle)
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Node Shapes");
+    let layout = Layout::auto_from_plots(&plots).with_title("Node Shapes");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<circle"), "should have circle nodes");
     assert!(svg.contains("<rect"), "should have square nodes");
@@ -326,10 +335,12 @@ fn network_antiparallel_curved() {
         .with_directed()
         .with_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Antiparallel Curved Edges");
+    let layout = Layout::auto_from_plots(&plots).with_title("Antiparallel Curved Edges");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
-    assert!(svg.contains(" Q "), "antiparallel edges should use quadratic bezier curves");
+    assert!(
+        svg.contains(" Q "),
+        "antiparallel edges should use quadratic bezier curves"
+    );
     assert!(svg.contains("strong"), "A→B edge label should appear");
     assert!(svg.contains("weak"), "B→A edge label should appear");
     std::fs::write("test_outputs/network_antiparallel.svg", svg).unwrap();
@@ -347,8 +358,7 @@ fn network_repel_labels() {
         .with_labels()
         .with_repel_labels();
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Label Repulsion");
+    let layout = Layout::auto_from_plots(&plots).with_title("Label Repulsion");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("Alpha"), "labels should still be present");
     std::fs::write("test_outputs/network_repel_labels.svg", svg).unwrap();
@@ -361,40 +371,46 @@ fn network_dense_clusters() {
     let mut net = NetworkPlot::new();
 
     // Cluster A: 8 nodes, heavily interconnected
-    let a: Vec<&str> = vec!["A1","A2","A3","A4","A5","A6","A7","A8"];
+    let a: Vec<&str> = vec!["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"];
     for i in 0..a.len() {
-        for j in (i+1)..a.len() {
+        for j in (i + 1)..a.len() {
             net = net.with_edge(a[i], a[j], 1.0);
         }
     }
     // Cluster B: 6 nodes, heavily interconnected
-    let b: Vec<&str> = vec!["B1","B2","B3","B4","B5","B6"];
+    let b: Vec<&str> = vec!["B1", "B2", "B3", "B4", "B5", "B6"];
     for i in 0..b.len() {
-        for j in (i+1)..b.len() {
+        for j in (i + 1)..b.len() {
             net = net.with_edge(b[i], b[j], 1.0);
         }
     }
     // Cluster C: 5 nodes, heavily interconnected
-    let c: Vec<&str> = vec!["C1","C2","C3","C4","C5"];
+    let c: Vec<&str> = vec!["C1", "C2", "C3", "C4", "C5"];
     for i in 0..c.len() {
-        for j in (i+1)..c.len() {
+        for j in (i + 1)..c.len() {
             net = net.with_edge(c[i], c[j], 1.0);
         }
     }
     // Sparse bridges between clusters
-    net = net.with_edge("A1", "B1", 0.3)
+    net = net
+        .with_edge("A1", "B1", 0.3)
         .with_edge("B3", "C1", 0.3)
         .with_edge("A5", "C3", 0.2);
 
     // Assign groups
-    for &label in &a { net = net.with_node_group(label, "Cluster A"); }
-    for &label in &b { net = net.with_node_group(label, "Cluster B"); }
-    for &label in &c { net = net.with_node_group(label, "Cluster C"); }
+    for &label in &a {
+        net = net.with_node_group(label, "Cluster A");
+    }
+    for &label in &b {
+        net = net.with_node_group(label, "Cluster B");
+    }
+    for &label in &c {
+        net = net.with_node_group(label, "Cluster C");
+    }
 
     net = net.with_labels().with_legend("Cluster");
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Dense Clusters with Bridges");
+    let layout = Layout::auto_from_plots(&plots).with_title("Dense Clusters with Bridges");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
     // All three cluster groups should be present
@@ -403,7 +419,10 @@ fn network_dense_clusters() {
     assert!(svg.contains("C1"), "cluster C nodes present");
     // Should have many edges (28+15+10+3 = 56 edges → 56 groups with opacity)
     let group_count = svg.matches("opacity=").count();
-    assert!(group_count >= 50, "dense graph should have many edge groups, got {group_count}");
+    assert!(
+        group_count >= 50,
+        "dense graph should have many edge groups, got {group_count}"
+    );
     std::fs::write("test_outputs/network_dense_clusters.svg", svg).unwrap();
 }
 
@@ -411,20 +430,25 @@ fn network_dense_clusters() {
 fn network_matrix_self_loop_directed() {
     // Diagonal entries produce self-loops when directed=true.
     // A=0 has a self-loop (diagonal 2.0); B=1 does not (diagonal 0.0).
-    let matrix = vec![
-        vec![2.0, 1.0],
-        vec![1.0, 0.0],
-    ];
+    let matrix = vec![vec![2.0, 1.0], vec![1.0, 0.0]];
     let mut net = NetworkPlot::new()
         .with_matrix(matrix, ["A", "B"])
         .with_directed();
     net.resolve_matrix();
-    let self_loops: Vec<_> = net.edges.iter()
-        .filter(|e| e.source == e.target)
-        .collect();
-    assert_eq!(self_loops.len(), 1, "directed matrix with one nonzero diagonal entry should produce exactly one self-loop");
-    assert_eq!(self_loops[0].source, 0, "self-loop should be on node A (index 0)");
-    assert!((self_loops[0].weight - 2.0).abs() < 1e-9, "self-loop weight should equal diagonal value");
+    let self_loops: Vec<_> = net.edges.iter().filter(|e| e.source == e.target).collect();
+    assert_eq!(
+        self_loops.len(),
+        1,
+        "directed matrix with one nonzero diagonal entry should produce exactly one self-loop"
+    );
+    assert_eq!(
+        self_loops[0].source, 0,
+        "self-loop should be on node A (index 0)"
+    );
+    assert!(
+        (self_loops[0].weight - 2.0).abs() < 1e-9,
+        "self-loop weight should equal diagonal value"
+    );
 }
 
 #[test]
@@ -436,13 +460,18 @@ fn network_matrix_self_loop_undirected() {
         vec![1.0, 3.0, 1.0],
         vec![1.0, 1.0, 7.0],
     ];
-    let mut net = NetworkPlot::new()
-        .with_matrix(matrix, ["A", "B", "C"]);
+    let mut net = NetworkPlot::new().with_matrix(matrix, ["A", "B", "C"]);
     net.resolve_matrix();
-    let self_loops: Vec<_> = net.edges.iter()
-        .filter(|e| e.source == e.target)
-        .collect();
-    assert_eq!(self_loops.len(), 0, "undirected matrix should produce no self-loops from diagonal");
+    let self_loops: Vec<_> = net.edges.iter().filter(|e| e.source == e.target).collect();
+    assert_eq!(
+        self_loops.len(),
+        0,
+        "undirected matrix should produce no self-loops from diagonal"
+    );
     // Should still have 3 off-diagonal edges: A-B, A-C, B-C
-    assert_eq!(net.edges.len(), 3, "undirected 3-node fully-connected matrix should have 3 edges");
+    assert_eq!(
+        net.edges.len(),
+        3,
+        "undirected 3-node fully-connected matrix should have 3 edges"
+    );
 }

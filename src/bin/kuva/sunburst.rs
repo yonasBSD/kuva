@@ -1,13 +1,13 @@
 use clap::Args;
 
-use kuva::plot::sunburst::{SunburstPlot, SunburstColorMode};
+use kuva::plot::sunburst::{SunburstColorMode, SunburstPlot};
 use kuva::plot::treemap::TreemapNode;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
-use crate::data::{ColSpec, DataTable, InputArgs, parse_colormap};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::data::{parse_colormap, ColSpec, DataTable, InputArgs};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Sunburst chart — radial hierarchy where arc widths encode proportional values.
@@ -84,7 +84,6 @@ pub enum CliColorBy {
     Explicit,
 }
 
-
 pub fn run(args: SunburstArgs) -> Result<(), String> {
     let table = DataTable::parse(
         args.input.input.as_deref(),
@@ -133,10 +132,14 @@ pub fn run(args: SunburstArgs) -> Result<(), String> {
         use std::collections::BTreeMap;
         let mut groups: BTreeMap<String, Vec<(String, f64)>> = BTreeMap::new();
         for ((lbl, val), parent) in labels.iter().zip(values.iter()).zip(parents.iter()) {
-            groups.entry(parent.clone()).or_default().push((lbl.clone(), *val));
+            groups
+                .entry(parent.clone())
+                .or_default()
+                .push((lbl.clone(), *val));
         }
         for (parent_name, children) in groups {
-            let child_nodes: Vec<TreemapNode> = children.into_iter()
+            let child_nodes: Vec<TreemapNode> = children
+                .into_iter()
                 .map(|(lbl, val)| TreemapNode::leaf(lbl, val))
                 .collect();
             plot = plot.with_children(parent_name, child_nodes);
@@ -148,7 +151,11 @@ pub fn run(args: SunburstArgs) -> Result<(), String> {
                 if let Some(ref cc) = args.color_col {
                     let colors = table.col_str(cc)?;
                     for ((lbl, val), color) in labels.iter().zip(values.iter()).zip(colors.iter()) {
-                        plot = plot.with_node(TreemapNode::leaf_colored(lbl.clone(), *val, color.clone()));
+                        plot = plot.with_node(TreemapNode::leaf_colored(
+                            lbl.clone(),
+                            *val,
+                            color.clone(),
+                        ));
                     }
                 } else {
                     for (lbl, val) in labels.iter().zip(values.iter()) {

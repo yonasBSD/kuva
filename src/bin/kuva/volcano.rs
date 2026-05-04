@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Volcano plot for differential expression analysis.
@@ -90,7 +90,8 @@ pub fn run(args: VolcanoArgs) -> Result<(), String> {
         raw_pvals
     };
 
-    let points: Vec<(String, f64, f64)> = names.into_iter()
+    let points: Vec<(String, f64, f64)> = names
+        .into_iter()
         .zip(fcs)
         .zip(pvals)
         .map(|((n, fc), p)| (n, fc, p))

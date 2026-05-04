@@ -1,7 +1,7 @@
-use kuva::render::layout::{Layout, ComputedLayout};
-use kuva::render::plots::Plot;
-use kuva::plot::scatter::ScatterPlot;
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::scatter::ScatterPlot;
+use kuva::render::layout::{ComputedLayout, Layout};
+use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 fn make_layout() -> Layout {
@@ -73,9 +73,15 @@ fn test_scale_2x_svg_contains_scaled_font_size() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/scale_2x.svg", svg.clone()).unwrap();
     // title font-size = 36
-    assert!(svg.contains("font-size=\"36\""), "SVG should contain scaled title font-size=36");
+    assert!(
+        svg.contains("font-size=\"36\""),
+        "SVG should contain scaled title font-size=36"
+    );
     // tick font-size = 24
-    assert!(svg.contains("font-size=\"24\""), "SVG should contain scaled tick font-size=24");
+    assert!(
+        svg.contains("font-size=\"24\""),
+        "SVG should contain scaled tick font-size=24"
+    );
     assert_eq!(computed.title_size, 36);
 }
 
@@ -94,12 +100,17 @@ fn test_scale_0_5x_halves_font_sizes() {
 fn test_scale_0_5x_svg() {
     let points: Vec<(f64, f64)> = vec![(1.0, 2.0), (3.0, 4.0)];
     let plots = vec![Plot::Scatter(ScatterPlot::new().with_data(points))];
-    let layout = Layout::auto_from_plots(&plots).with_scale(0.5).with_title("Small");
+    let layout = Layout::auto_from_plots(&plots)
+        .with_scale(0.5)
+        .with_title("Small");
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/scale_0_5x.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"), "SVG should be valid at scale=0.5");
-    assert!(svg.contains("font-size=\"9\""), "Should contain title font-size=9");
+    assert!(
+        svg.contains("font-size=\"9\""),
+        "Should contain title font-size=9"
+    );
 }
 
 #[test]
@@ -116,7 +127,10 @@ fn test_scale_3x_svg() {
     std::fs::write("test_outputs/scale_3x.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"), "SVG should be valid at scale=3.0");
     // title_size = round(18 * 3) = 54
-    assert!(svg.contains("font-size=\"54\""), "Should contain title font-size=54");
+    assert!(
+        svg.contains("font-size=\"54\""),
+        "Should contain title font-size=54"
+    );
 }
 
 #[test]
@@ -152,5 +166,8 @@ fn test_scale_1_5x_svg() {
     std::fs::write("test_outputs/scale_1_5x.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"), "SVG should be valid at scale=1.5");
     // title_size = round(18 * 1.5) = 27
-    assert!(svg.contains("font-size=\"27\""), "Should contain title font-size=27");
+    assert!(
+        svg.contains("font-size=\"27\""),
+        "Should contain title font-size=27"
+    );
 }

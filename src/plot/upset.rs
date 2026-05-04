@@ -32,7 +32,6 @@ pub enum UpSetSort {
     Natural,
 }
 
-
 /// Bioinformatics-style UpSet plot: vertical intersection-size bars, dot matrix,
 /// and optional horizontal set-size bars.
 ///

@@ -3,12 +3,12 @@ use clap::Args;
 use kuva::plot::scatter3d::Scatter3DPlot;
 use kuva::plot::ColorMap;
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 use crate::data::parse_colormap;
@@ -93,7 +93,11 @@ pub struct Scatter3DArgs {
 }
 
 /// Apply shared optional args to a plot builder.
-fn apply_options(mut plot: Scatter3DPlot, args: &Scatter3DArgs, z_cmap: &Option<ColorMap>) -> Scatter3DPlot {
+fn apply_options(
+    mut plot: Scatter3DPlot,
+    args: &Scatter3DArgs,
+    z_cmap: &Option<ColorMap>,
+) -> Scatter3DPlot {
     if let Some(ref c) = args.color {
         plot = plot.with_color(c.clone());
     }
@@ -112,9 +116,15 @@ fn apply_options(mut plot: Scatter3DPlot, args: &Scatter3DArgs, z_cmap: &Option<
     if let Some(ref cm) = z_cmap {
         plot = plot.with_z_colormap(cm.clone());
     }
-    if args.no_grid { plot = plot.with_no_grid(); }
-    if args.no_box { plot = plot.with_no_box(); }
-    if let Some(n) = args.grid_lines { plot = plot.with_grid_lines(n); }
+    if args.no_grid {
+        plot = plot.with_no_grid();
+    }
+    if args.no_box {
+        plot = plot.with_no_box();
+    }
+    if let Some(n) = args.grid_lines {
+        plot = plot.with_grid_lines(n);
+    }
     plot
 }
 
@@ -153,22 +163,28 @@ pub fn run(args: Scatter3DArgs) -> Result<(), String> {
             .with_colors(all_colors)
             .with_azimuth(args.azimuth)
             .with_elevation(args.elevation);
-        if args.z_axis_left { plot = plot.with_z_axis_right(false); }
-        if args.depth_shade { plot = plot.with_depth_shade(); }
+        if args.z_axis_left {
+            plot = plot.with_z_axis_right(false);
+        }
+        if args.depth_shade {
+            plot = plot.with_depth_shade();
+        }
         plot = apply_options(plot, &args, &z_cmap);
 
         let plots = vec![Plot::Scatter3D(plot)];
         let mut layout = Layout::auto_from_plots(&plots);
 
         // Build legend entries from group names
-        let entries: Vec<kuva::plot::legend::LegendEntry> = group_names.iter().enumerate().map(|(i, name)| {
-            kuva::plot::legend::LegendEntry {
+        let entries: Vec<kuva::plot::legend::LegendEntry> = group_names
+            .iter()
+            .enumerate()
+            .map(|(i, name)| kuva::plot::legend::LegendEntry {
                 label: name.clone(),
                 color: pal[i % pal.len()].to_string(),
                 shape: kuva::plot::legend::LegendShape::Circle,
                 dasharray: None,
-            }
-        }).collect();
+            })
+            .collect();
         if !entries.is_empty() {
             let max_len = entries.iter().map(|e| e.label.len()).max().unwrap_or(0);
             layout.show_legend = true;
@@ -184,7 +200,8 @@ pub fn run(args: Scatter3DArgs) -> Result<(), String> {
         let y_vals = table.col_f64(&args.y)?;
         let z_vals = table.col_f64(&args.z)?;
 
-        let data: Vec<(f64, f64, f64)> = x_vals.into_iter()
+        let data: Vec<(f64, f64, f64)> = x_vals
+            .into_iter()
             .zip(y_vals)
             .zip(z_vals)
             .map(|((x, y), z)| (x, y, z))
@@ -194,8 +211,12 @@ pub fn run(args: Scatter3DArgs) -> Result<(), String> {
             .with_data(data)
             .with_azimuth(args.azimuth)
             .with_elevation(args.elevation);
-        if args.z_axis_left { plot = plot.with_z_axis_right(false); }
-        if args.depth_shade { plot = plot.with_depth_shade(); }
+        if args.z_axis_left {
+            plot = plot.with_z_axis_right(false);
+        }
+        if args.depth_shade {
+            plot = plot.with_depth_shade();
+        }
 
         let plots = vec![Plot::Scatter3D(apply_options(plot, &args, &z_cmap))];
         let layout = Layout::auto_from_plots(&plots);

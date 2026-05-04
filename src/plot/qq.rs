@@ -81,12 +81,18 @@ impl Default for QQPlot {
 }
 
 impl QQPlot {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     // ── Data ────────────────────────────────────────────────────────────────
 
     /// Add a group of raw values (normal mode).
-    pub fn with_data(mut self, label: impl Into<String>, data: impl IntoIterator<Item = impl Into<f64>>) -> Self {
+    pub fn with_data(
+        mut self,
+        label: impl Into<String>,
+        data: impl IntoIterator<Item = impl Into<f64>>,
+    ) -> Self {
         self.groups.push(QQGroup {
             label: label.into(),
             data: data.into_iter().map(|v| v.into()).collect(),
@@ -96,7 +102,12 @@ impl QQPlot {
     }
 
     /// Add a group with an explicit color (normal mode).
-    pub fn with_data_colored(mut self, label: impl Into<String>, data: impl IntoIterator<Item = impl Into<f64>>, color: impl Into<String>) -> Self {
+    pub fn with_data_colored(
+        mut self,
+        label: impl Into<String>,
+        data: impl IntoIterator<Item = impl Into<f64>>,
+        color: impl Into<String>,
+    ) -> Self {
         self.groups.push(QQGroup {
             label: label.into(),
             data: data.into_iter().map(|v| v.into()).collect(),
@@ -107,7 +118,11 @@ impl QQPlot {
 
     /// Add a group of p-values and switch to genomic mode.
     /// P-values must be in (0, 1]. Values outside this range are silently filtered.
-    pub fn with_pvalues(mut self, label: impl Into<String>, pvals: impl IntoIterator<Item = impl Into<f64>>) -> Self {
+    pub fn with_pvalues(
+        mut self,
+        label: impl Into<String>,
+        pvals: impl IntoIterator<Item = impl Into<f64>>,
+    ) -> Self {
         self.mode = QQMode::Genomic;
         self.groups.push(QQGroup {
             label: label.into(),
@@ -118,7 +133,12 @@ impl QQPlot {
     }
 
     /// Add a group of p-values with an explicit color and switch to genomic mode.
-    pub fn with_pvalues_colored(mut self, label: impl Into<String>, pvals: impl IntoIterator<Item = impl Into<f64>>, color: impl Into<String>) -> Self {
+    pub fn with_pvalues_colored(
+        mut self,
+        label: impl Into<String>,
+        pvals: impl IntoIterator<Item = impl Into<f64>>,
+        color: impl Into<String>,
+    ) -> Self {
         self.mode = QQMode::Genomic;
         self.groups.push(QQGroup {
             label: label.into(),
@@ -131,37 +151,73 @@ impl QQPlot {
     // ── Mode ────────────────────────────────────────────────────────────────
 
     /// Switch to normal Q-Q mode (default).
-    pub fn with_normal(mut self) -> Self { self.mode = QQMode::Normal; self }
+    pub fn with_normal(mut self) -> Self {
+        self.mode = QQMode::Normal;
+        self
+    }
 
     /// Switch to genomic Q-Q mode.
-    pub fn with_genomic(mut self) -> Self { self.mode = QQMode::Genomic; self }
+    pub fn with_genomic(mut self) -> Self {
+        self.mode = QQMode::Genomic;
+        self
+    }
 
     // ── Features ────────────────────────────────────────────────────────────
 
     /// Show the reference line (default: on).
-    pub fn with_reference_line(mut self) -> Self { self.show_reference_line = true; self }
+    pub fn with_reference_line(mut self) -> Self {
+        self.show_reference_line = true;
+        self
+    }
 
     /// Hide the reference line.
-    pub fn without_reference_line(mut self) -> Self { self.show_reference_line = false; self }
+    pub fn without_reference_line(mut self) -> Self {
+        self.show_reference_line = false;
+        self
+    }
 
     /// Draw a 95 % pointwise CI band around the reference diagonal.
-    pub fn with_ci_band(mut self) -> Self { self.show_ci_band = true; self }
+    pub fn with_ci_band(mut self) -> Self {
+        self.show_ci_band = true;
+        self
+    }
 
     /// Set CI band fill opacity (default: `0.15`).
-    pub fn with_ci_alpha(mut self, alpha: f64) -> Self { self.ci_alpha = alpha; self }
+    pub fn with_ci_alpha(mut self, alpha: f64) -> Self {
+        self.ci_alpha = alpha;
+        self
+    }
 
     /// Annotate the genomic inflation factor λ on the plot (genomic mode only).
-    pub fn with_lambda(mut self) -> Self { self.show_lambda = true; self }
+    pub fn with_lambda(mut self) -> Self {
+        self.show_lambda = true;
+        self
+    }
 
     /// Hide the λ annotation.
-    pub fn without_lambda(mut self) -> Self { self.show_lambda = false; self }
+    pub fn without_lambda(mut self) -> Self {
+        self.show_lambda = false;
+        self
+    }
 
     // ── Appearance ──────────────────────────────────────────────────────────
 
-    pub fn with_marker_size(mut self, size: f64) -> Self { self.marker_size = size; self }
-    pub fn with_stroke_width(mut self, w: f64) -> Self { self.stroke_width = w; self }
-    pub fn with_color(mut self, color: impl Into<String>) -> Self { self.color = color.into(); self }
-    pub fn with_fill_opacity(mut self, opacity: f64) -> Self { self.fill_opacity = Some(opacity); self }
+    pub fn with_marker_size(mut self, size: f64) -> Self {
+        self.marker_size = size;
+        self
+    }
+    pub fn with_stroke_width(mut self, w: f64) -> Self {
+        self.stroke_width = w;
+        self
+    }
+    pub fn with_color(mut self, color: impl Into<String>) -> Self {
+        self.color = color.into();
+        self
+    }
+    pub fn with_fill_opacity(mut self, opacity: f64) -> Self {
+        self.fill_opacity = Some(opacity);
+        self
+    }
 
     // ── Legend ──────────────────────────────────────────────────────────────
 

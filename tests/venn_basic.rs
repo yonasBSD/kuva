@@ -1,6 +1,6 @@
-use kuva::plot::venn::VennPlot;
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::venn::VennPlot;
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 use std::fs;
 
 fn write_venn(name: &str, venn: VennPlot, title: &str) -> String {
@@ -214,7 +214,10 @@ fn test_venn_set_indicators_on_by_default() {
         .with_overlap(["A", "B", "C"], 10);
     let svg = write_venn("set_indicators_on", venn, "Set Indicators On (default)");
     // 3 shape circles + at least 7 indicator dots (one per region visible)
-    assert!(circle_count(&svg) > 3, "Expected indicator dots in addition to shape circles");
+    assert!(
+        circle_count(&svg) > 3,
+        "Expected indicator dots in addition to shape circles"
+    );
 }
 
 #[test]
@@ -230,7 +233,11 @@ fn test_venn_set_indicators_off() {
         .with_overlap(["A", "B", "C"], 10)
         .with_set_indicators(false);
     let svg = write_venn("set_indicators_off", venn, "Set Indicators Off");
-    assert_eq!(circle_count(&svg), 3, "Only 3 shape circles expected when indicators are off");
+    assert_eq!(
+        circle_count(&svg),
+        3,
+        "Only 3 shape circles expected when indicators are off"
+    );
 }
 
 #[test]
@@ -243,7 +250,10 @@ fn test_venn_set_indicators_2set() {
         .with_overlap(["X", "Y"], 25);
     let svg = write_venn("set_indicators_2set", venn, "2-Set with Indicators");
     // 2 shapes + 4 indicator dots (1+1+2 for the three regions)
-    assert!(circle_count(&svg) >= 6, "Expected 2 shape circles + 4 indicator dots");
+    assert!(
+        circle_count(&svg) >= 6,
+        "Expected 2 shape circles + 4 indicator dots"
+    );
 }
 
 #[test]
@@ -268,9 +278,17 @@ fn test_venn_set_indicators_leader_lines_off() {
         .with_overlap(["W", "X", "Y", "Z"], 5)
         .with_leader_lines(true)
         .with_set_indicators(false);
-    let svg = write_venn("set_indicators_leader_off", venn, "Leader Lines, No Indicators");
+    let svg = write_venn(
+        "set_indicators_leader_off",
+        venn,
+        "Leader Lines, No Indicators",
+    );
     // 4-set shapes are paths (not circles), so circle count should be 0.
-    assert_eq!(circle_count(&svg), 0, "No circles expected: 4-set shapes are paths and indicators are off");
+    assert_eq!(
+        circle_count(&svg),
+        0,
+        "No circles expected: 4-set shapes are paths and indicators are off"
+    );
 }
 
 // ── show_loss / stress tests ───────────────────────────────────────────────────
@@ -314,7 +332,10 @@ fn test_venn_loss_not_shown_without_flag() {
         .with_overlap(["A", "B"], 50)
         .with_proportional(true);
     let svg = write_venn("loss_not_shown", venn, "Proportional, No Stress Label");
-    assert!(!svg.contains("Layout stress"), "Stress box should not appear when with_loss is false");
+    assert!(
+        !svg.contains("Layout stress"),
+        "Stress box should not appear when with_loss is false"
+    );
 }
 
 #[test]
@@ -327,6 +348,10 @@ fn test_venn_loss_perfect_circles() {
         .with_overlap(["A", "B"], 0)
         .with_proportional(true)
         .with_loss(true);
-    let svg = write_venn("loss_no_overlap", venn, "Equal Circles, No Overlap, with Stress");
+    let svg = write_venn(
+        "loss_no_overlap",
+        venn,
+        "Equal Circles, No Overlap, with Stress",
+    );
     assert!(svg.contains("Layout stress"), "Stress box missing");
 }

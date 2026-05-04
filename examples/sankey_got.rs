@@ -73,11 +73,7 @@ fn build_got_plot() -> SankeyPlot {
 
 fn got_rows() -> Vec<Vec<String>> {
     let mut lines = DATA.lines();
-    let header: Vec<&str> = lines
-        .next()
-        .expect("missing header")
-        .split('\t')
-        .collect();
+    let header: Vec<&str> = lines.next().expect("missing header").split('\t').collect();
     let axis_indices = AXES
         .iter()
         .map(|name| {
@@ -140,8 +136,7 @@ fn crossing_count_from_svg(svg: &str, rows: &[Vec<String>]) -> usize {
                 let right_j = *right
                     .get(b1)
                     .unwrap_or_else(|| panic!("missing right node '{b1}' for axis {}", axis + 1));
-                if (left_i < left_j && right_i > right_j)
-                    || (left_i > left_j && right_i < right_j)
+                if (left_i < left_j && right_i > right_j) || (left_i > left_j && right_i < right_j)
                 {
                     total += 1;
                 }
@@ -182,7 +177,9 @@ fn rendered_orders(svg: &str) -> Vec<HashMap<String, usize>> {
             .and_then(|v| v.parse::<f64>().ok())
             .expect("missing text y");
 
-        if let Some((_, labels)) = labels_by_x.iter_mut().find(|(known_x, _)| (known_x - x).abs() < 1.0)
+        if let Some((_, labels)) = labels_by_x
+            .iter_mut()
+            .find(|(known_x, _)| (known_x - x).abs() < 1.0)
         {
             labels.push((y, content));
         } else {

@@ -31,11 +31,19 @@ pub struct FunnelStage {
 
 impl FunnelStage {
     pub fn new(label: impl Into<String>, value: f64) -> Self {
-        FunnelStage { label: label.into(), value, color: None }
+        FunnelStage {
+            label: label.into(),
+            value,
+            color: None,
+        }
     }
 
     pub fn colored(label: impl Into<String>, value: f64, color: impl Into<String>) -> Self {
-        FunnelStage { label: label.into(), value, color: Some(color.into()) }
+        FunnelStage {
+            label: label.into(),
+            value,
+            color: Some(color.into()),
+        }
     }
 }
 
@@ -97,7 +105,9 @@ pub struct FunnelPlot {
 }
 
 impl Default for FunnelPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FunnelPlot {
@@ -135,7 +145,8 @@ impl FunnelPlot {
         value: impl Into<f64>,
         color: impl Into<String>,
     ) -> Self {
-        self.stages.push(FunnelStage::colored(label, value.into(), color));
+        self.stages
+            .push(FunnelStage::colored(label, value.into(), color));
         self
     }
 
@@ -176,11 +187,7 @@ impl FunnelPlot {
     }
 
     /// Set labels for the left and right sides of a diverging funnel.
-    pub fn with_mirror_labels(
-        mut self,
-        left: impl Into<String>,
-        right: impl Into<String>,
-    ) -> Self {
+    pub fn with_mirror_labels(mut self, left: impl Into<String>, right: impl Into<String>) -> Self {
         self.left_label = Some(left.into());
         self.right_label = Some(right.into());
         self
@@ -249,13 +256,17 @@ impl FunnelPlot {
 
     /// Number of stages (used for estimated_primitives).
     pub(crate) fn stage_count(&self) -> usize {
-        self.stages.len().max(self.mirror.as_ref().map_or(0, |m| m.len()))
+        self.stages
+            .len()
+            .max(self.mirror.as_ref().map_or(0, |m| m.len()))
     }
 
     /// Maximum value across all stages (both sides in mirror mode).
     pub(crate) fn max_value(&self) -> f64 {
         let left = self.stages.iter().map(|s| s.value).fold(0.0_f64, f64::max);
-        let right = self.mirror.as_ref()
+        let right = self
+            .mirror
+            .as_ref()
             .map(|m| m.iter().map(|s| s.value).fold(0.0_f64, f64::max))
             .unwrap_or(0.0);
         left.max(right)

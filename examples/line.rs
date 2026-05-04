@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/line/`.
 
-use kuva::plot::{LinePlot, LineStyle};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{LinePlot, LineStyle};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/line";
 
@@ -131,8 +131,14 @@ fn fill() {
 /// Step plot — horizontal-then-vertical transitions between points.
 fn step() {
     let data: Vec<(f64, f64)> = vec![
-        (0.0, 2.0), (1.0, 5.0), (2.0, 3.0), (3.0, 7.0),
-        (4.0, 4.0), (5.0, 8.0), (6.0, 5.0), (7.0, 9.0),
+        (0.0, 2.0),
+        (1.0, 5.0),
+        (2.0, 3.0),
+        (3.0, 7.0),
+        (4.0, 4.0),
+        (5.0, 8.0),
+        (6.0, 5.0),
+        (7.0, 9.0),
     ];
 
     let plot = LinePlot::new()

@@ -1,9 +1,9 @@
-use kuva::plot::ScatterPlot;
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::legend::{LegendEntry, LegendShape};
-use kuva::render::render::render_multiple;
+use kuva::plot::ScatterPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-use kuva::backend::svg::SvgBackend;
+use kuva::render::render::render_multiple;
 
 fn svg(plots: Vec<Plot>, layout: Layout) -> String {
     std::fs::create_dir_all("test_outputs").ok();
@@ -71,7 +71,10 @@ fn x_label_wrap_splits() {
     std::fs::write("test_outputs/wrap_x_label.svg", &out).unwrap();
 
     // Should split into multiple lines.
-    assert!(out.contains("A long x-axis label for"), "first x-label line");
+    assert!(
+        out.contains("A long x-axis label for"),
+        "first x-label line"
+    );
     assert!(out.contains("testing wrapping"), "second x-label line");
 }
 
@@ -88,7 +91,10 @@ fn y_label_wrap_produces_multiple_rotated_texts() {
 
     // Each wrapped line should be a separate rotated text.
     let rotated_count = out.matches("rotate(-90").count();
-    assert!(rotated_count >= 2, "expected multiple rotated y-label lines, got {rotated_count}");
+    assert!(
+        rotated_count >= 2,
+        "expected multiple rotated y-label lines, got {rotated_count}"
+    );
 }
 
 // ── Legend wrapping ──────────────────────────────────────────────────────────
@@ -126,14 +132,12 @@ fn legend_wrap_splits_long_labels() {
 #[test]
 fn legend_wrap_title() {
     let plots = scatter_plots();
-    let entries = vec![
-        LegendEntry {
-            label: "Item".into(),
-            color: "steelblue".into(),
-            shape: LegendShape::Rect,
-            dasharray: None,
-        },
-    ];
+    let entries = vec![LegendEntry {
+        label: "Item".into(),
+        color: "steelblue".into(),
+        shape: LegendShape::Rect,
+        dasharray: None,
+    }];
     let layout = Layout::auto_from_plots(&plots)
         .with_legend_entries(entries)
         .with_legend_title("A long legend title that wraps")
@@ -152,14 +156,12 @@ fn legend_wrap_title() {
 #[test]
 fn global_wrap_applies_to_all() {
     let plots = scatter_plots();
-    let entries = vec![
-        LegendEntry {
-            label: "This is a long legend entry label".into(),
-            color: "steelblue".into(),
-            shape: LegendShape::Rect,
-            dasharray: None,
-        },
-    ];
+    let entries = vec![LegendEntry {
+        label: "This is a long legend entry label".into(),
+        color: "steelblue".into(),
+        shape: LegendShape::Rect,
+        dasharray: None,
+    }];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("This is a long title that should wrap on all elements")
         .with_x_label("This is a long x-axis label")
@@ -169,11 +171,15 @@ fn global_wrap_applies_to_all() {
     std::fs::write("test_outputs/wrap_global.svg", &out).unwrap();
 
     // Title should wrap.
-    assert!(!out.contains("This is a long title that should wrap on all elements"),
-        "title should NOT appear as single line");
+    assert!(
+        !out.contains("This is a long title that should wrap on all elements"),
+        "title should NOT appear as single line"
+    );
     // Legend should wrap.
-    assert!(!out.contains("This is a long legend entry label"),
-        "legend label should NOT appear as single line");
+    assert!(
+        !out.contains("This is a long legend entry label"),
+        "legend label should NOT appear as single line"
+    );
 }
 
 #[test]
@@ -181,13 +187,15 @@ fn per_element_overrides_global() {
     let plots = scatter_plots();
     let layout = Layout::auto_from_plots(&plots)
         .with_title("A medium-length title for testing")
-        .with_wrap(10)          // global: aggressive wrap
-        .with_title_wrap(40);   // override: title gets more room
+        .with_wrap(10) // global: aggressive wrap
+        .with_title_wrap(40); // override: title gets more room
     let out = svg(plots, layout);
 
     // Title is 32 chars, title_wrap is 40 → should NOT wrap.
-    assert!(out.contains("A medium-length title for testing"),
-        "title should stay on one line with per-element override");
+    assert!(
+        out.contains("A medium-length title for testing"),
+        "title should stay on one line with per-element override"
+    );
 }
 
 #[test]
@@ -196,13 +204,15 @@ fn per_element_set_before_global_still_wins() {
     let plots = scatter_plots();
     let layout = Layout::auto_from_plots(&plots)
         .with_title("A medium-length title for testing")
-        .with_title_wrap(40)    // per-element first: title gets 40 chars
-        .with_wrap(10);         // global second: must not override title_wrap
+        .with_title_wrap(40) // per-element first: title gets 40 chars
+        .with_wrap(10); // global second: must not override title_wrap
     let out = svg(plots, layout);
 
     // Title is 32 chars, effective title_wrap should still be 40 → no wrap.
-    assert!(out.contains("A medium-length title for testing"),
-        "title should stay on one line when per-element is set before global");
+    assert!(
+        out.contains("A medium-length title for testing"),
+        "title should stay on one line when per-element is set before global"
+    );
 }
 
 // ── Edge cases ───────────────────────────────────────────────────────────────
@@ -221,8 +231,7 @@ fn wrap_with_zero_is_disabled() {
 #[test]
 fn wrap_margin_grows_for_multiline_title() {
     let plots1 = scatter_plots();
-    let layout_no_wrap = Layout::auto_from_plots(&plots1)
-        .with_title("Short title");
+    let layout_no_wrap = Layout::auto_from_plots(&plots1).with_title("Short title");
     let svg_no_wrap = svg(plots1, layout_no_wrap);
 
     let plots2 = scatter_plots();
@@ -236,8 +245,10 @@ fn wrap_margin_grows_for_multiline_title() {
     let height_wrap = extract_height(&svg_wrap);
     // The wrapped version should have the same or larger canvas
     // (margin_top grows to accommodate extra title lines).
-    assert!(height_wrap >= height_no_wrap,
-        "wrapped height ({height_wrap}) should be >= no-wrap height ({height_no_wrap})");
+    assert!(
+        height_wrap >= height_no_wrap,
+        "wrapped height ({height_wrap}) should be >= no-wrap height ({height_no_wrap})"
+    );
 }
 
 fn extract_height(svg: &str) -> f64 {
@@ -253,12 +264,16 @@ fn extract_height(svg: &str) -> f64 {
 fn y2_label_wrap_produces_multiple_rotated_texts() {
     use kuva::render::render::render_twin_y;
 
-    let primary = vec![Plot::Scatter(ScatterPlot::new()
-        .with_data(vec![(1.0, 2.0), (3.0, 4.0)])
-        .with_color("steelblue"))];
-    let secondary = vec![Plot::Scatter(ScatterPlot::new()
-        .with_data(vec![(1.0, 10.0), (3.0, 20.0)])
-        .with_color("tomato"))];
+    let primary = vec![Plot::Scatter(
+        ScatterPlot::new()
+            .with_data(vec![(1.0, 2.0), (3.0, 4.0)])
+            .with_color("steelblue"),
+    )];
+    let secondary = vec![Plot::Scatter(
+        ScatterPlot::new()
+            .with_data(vec![(1.0, 10.0), (3.0, 20.0)])
+            .with_color("tomato"),
+    )];
 
     let layout = Layout::new((0.0, 5.0), (0.0, 5.0))
         .with_y_label("Primary axis")
@@ -271,8 +286,10 @@ fn y2_label_wrap_produces_multiple_rotated_texts() {
     std::fs::write("test_outputs/wrap_y2_label.svg", &out).unwrap();
 
     let rotated_90_count = out.matches("rotate(90").count();
-    assert!(rotated_90_count >= 2,
-        "expected multiple +90° rotated y2-label lines, got {rotated_90_count}");
+    assert!(
+        rotated_90_count >= 2,
+        "expected multiple +90° rotated y2-label lines, got {rotated_90_count}"
+    );
 }
 
 // ── Grouped legend wrapping ──────────────────────────────────────────────────
@@ -284,8 +301,18 @@ fn grouped_legend_wrap() {
         .with_legend_group(
             "A long group title that wraps",
             vec![
-                LegendEntry { label: "Entry with a long label text".into(), color: "steelblue".into(), shape: LegendShape::Rect, dasharray: None },
-                LegendEntry { label: "Short".into(), color: "tomato".into(), shape: LegendShape::Rect, dasharray: None },
+                LegendEntry {
+                    label: "Entry with a long label text".into(),
+                    color: "steelblue".into(),
+                    shape: LegendShape::Rect,
+                    dasharray: None,
+                },
+                LegendEntry {
+                    label: "Short".into(),
+                    color: "tomato".into(),
+                    shape: LegendShape::Rect,
+                    dasharray: None,
+                },
             ],
         )
         .with_legend_wrap(15);
@@ -310,8 +337,18 @@ fn outside_bottom_legend_wrap_adjusts_height() {
 
     let plots1 = scatter_plots();
     let entries = vec![
-        LegendEntry { label: "A very long legend entry that should definitely wrap".into(), color: "steelblue".into(), shape: LegendShape::Rect, dasharray: None },
-        LegendEntry { label: "Another long entry for good measure here".into(), color: "tomato".into(), shape: LegendShape::Rect, dasharray: None },
+        LegendEntry {
+            label: "A very long legend entry that should definitely wrap".into(),
+            color: "steelblue".into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Another long entry for good measure here".into(),
+            color: "tomato".into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        },
     ];
     let layout = Layout::auto_from_plots(&plots1)
         .with_legend_entries(entries.clone())
@@ -329,8 +366,10 @@ fn outside_bottom_legend_wrap_adjusts_height() {
     // The wrapped version needs more vertical space for the taller legend.
     let h_wrap = extract_height(&svg_wrap);
     let h_no = extract_height(&svg_no_wrap);
-    assert!(h_wrap >= h_no,
-        "wrapped outside-bottom height ({h_wrap}) should be >= no-wrap ({h_no})");
+    assert!(
+        h_wrap >= h_no,
+        "wrapped outside-bottom height ({h_wrap}) should be >= no-wrap ({h_no})"
+    );
 }
 
 #[test]
@@ -342,8 +381,18 @@ fn outside_bottom_legend_no_wrap_renders_entries() {
 
     let plots = scatter_plots();
     let entries = vec![
-        LegendEntry { label: "Alpha".into(), color: "steelblue".into(), shape: LegendShape::Rect, dasharray: None },
-        LegendEntry { label: "Beta".into(),  color: "tomato".into(),    shape: LegendShape::Rect, dasharray: None },
+        LegendEntry {
+            label: "Alpha".into(),
+            color: "steelblue".into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Beta".into(),
+            color: "tomato".into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        },
     ];
     let layout = Layout::auto_from_plots(&plots)
         .with_legend_entries(entries)
@@ -352,13 +401,21 @@ fn outside_bottom_legend_no_wrap_renders_entries() {
     std::fs::write("test_outputs/outside_bottom_no_wrap.svg", &out).unwrap();
 
     // Both entries must appear.
-    assert!(out.contains(">Alpha<"), "Alpha entry missing from OutsideBottom legend");
-    assert!(out.contains(">Beta<"),  "Beta entry missing from OutsideBottom legend");
+    assert!(
+        out.contains(">Alpha<"),
+        "Alpha entry missing from OutsideBottom legend"
+    );
+    assert!(
+        out.contains(">Beta<"),
+        "Beta entry missing from OutsideBottom legend"
+    );
 
     // Canvas must have grown beyond the default plot height to fit the legend.
     let height = extract_height(&out);
-    assert!(height > 380.0,
-        "canvas height ({height}) should exceed default 380px when OutsideBottom legend is present");
+    assert!(
+        height > 380.0,
+        "canvas height ({height}) should exceed default 380px when OutsideBottom legend is present"
+    );
 }
 
 #[test]
@@ -379,13 +436,22 @@ fn legend_height_cap_shows_overflow_line() {
     std::fs::write("test_outputs/legend_height_cap.svg", &out).unwrap();
 
     // The overflow line must be present.
-    assert!(out.contains("more)"), "legend height cap: overflow line missing");
+    assert!(
+        out.contains("more)"),
+        "legend height cap: overflow line missing"
+    );
 
     // The 80th entry must NOT be rendered (it was truncated).
-    assert!(!out.contains(">Group 80<"), "legend height cap: last entry should be truncated");
+    assert!(
+        !out.contains(">Group 80<"),
+        "legend height cap: last entry should be truncated"
+    );
 
     // The first entry must still appear.
-    assert!(out.contains(">Group 1<"), "legend height cap: first entry missing");
+    assert!(
+        out.contains(">Group 1<"),
+        "legend height cap: first entry missing"
+    );
 
     // The overflow text must not be clipped by the right canvas edge.
     // Parse the canvas width from the SVG root element.

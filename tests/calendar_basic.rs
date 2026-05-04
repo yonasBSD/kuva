@@ -1,6 +1,6 @@
-use kuva::plot::calendar::{CalendarPlot, CalendarAgg, WeekStart};
-use kuva::render::{plots::Plot, layout::Layout, render::render_calendar};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::calendar::{CalendarAgg, CalendarPlot, WeekStart};
+use kuva::render::{layout::Layout, plots::Plot, render::render_calendar};
 use std::fs;
 
 fn output(name: &str, svg: &str) {
@@ -83,7 +83,10 @@ fn calendar_tooltip_js_injected() {
     let layout = Layout::auto_from_plots(&[Plot::Calendar(plot.clone())]);
     let svg = SvgBackend.render_scene(&render_calendar(plot, layout));
     assert!(svg.contains("cal-tip"), "tooltip JS should be present");
-    assert!(svg.contains("cal-day"), "day cells should have cal-day class");
+    assert!(
+        svg.contains("cal-day"),
+        "day cells should have cal-day class"
+    );
     assert!(svg.contains("<script"), "script tag should be present");
     output("calendar_tooltip.svg", &svg);
 }
@@ -97,7 +100,10 @@ fn calendar_distinct_zero_color() {
         .with_year(2024);
     let layout = Layout::auto_from_plots(&[Plot::Calendar(plot.clone())]);
     let svg = SvgBackend.render_scene(&render_calendar(plot, layout));
-    assert!(svg.contains("#ffff00"), "zero-color should appear in output");
+    assert!(
+        svg.contains("#ffff00"),
+        "zero-color should appear in output"
+    );
     output("calendar_zero_color.svg", &svg);
 }
 
@@ -134,13 +140,31 @@ fn calendar_date_range_within_year() {
 fn calendar_financial_year_australia() {
     let mut data = Vec::new();
     // Q1 (Jul–Sep 2023)
-    for m in 7u32..=9 { for d in [5, 12, 19, 26] { data.push((format!("2023-{m:02}-{d:02}"), (m * d) as f64 % 8.0 + 1.0)); } }
+    for m in 7u32..=9 {
+        for d in [5, 12, 19, 26] {
+            data.push((format!("2023-{m:02}-{d:02}"), (m * d) as f64 % 8.0 + 1.0));
+        }
+    }
     // Q2 (Oct–Dec 2023)
-    for m in 10u32..=12 { for d in [3, 10, 17, 24] { data.push((format!("2023-{m:02}-{d:02}"), (m + d) as f64 % 6.0 + 2.0)); } }
+    for m in 10u32..=12 {
+        for d in [3, 10, 17, 24] {
+            data.push((format!("2023-{m:02}-{d:02}"), (m + d) as f64 % 6.0 + 2.0));
+        }
+    }
     // Q3 (Jan–Mar 2024)
-    for m in 1u32..=3 { for d in [8, 15, 22, 29] { data.push((format!("2024-{m:02}-{d:02}"), (m * d) as f64 % 9.0 + 1.0)); } }
+    for m in 1u32..=3 {
+        for d in [8, 15, 22, 29] {
+            data.push((format!("2024-{m:02}-{d:02}"), (m * d) as f64 % 9.0 + 1.0));
+        }
+    }
     // Q4 (Apr–Jun 2024)
-    for m in 4u32..=6 { for d in [1, 8, 15, 22, 29] { if d <= 30 { data.push((format!("2024-{m:02}-{d:02}"), (m + d) as f64 % 7.0 + 1.0)); } } }
+    for m in 4u32..=6 {
+        for d in [1, 8, 15, 22, 29] {
+            if d <= 30 {
+                data.push((format!("2024-{m:02}-{d:02}"), (m + d) as f64 % 7.0 + 1.0));
+            }
+        }
+    }
 
     let plot = CalendarPlot::new()
         .with_data(data)
@@ -151,7 +175,7 @@ fn calendar_financial_year_australia() {
     let svg = SvgBackend.render_scene(&render_calendar(plot, layout));
     assert!(svg.contains("FY2023/24"), "period label must appear");
     assert!(svg.contains("Jul"));
-    assert!(svg.contains("Jan"));  // crosses calendar year
+    assert!(svg.contains("Jan")); // crosses calendar year
     assert!(svg.contains("Jun"));
     output("calendar_financial_year.svg", &svg);
 }
@@ -164,13 +188,19 @@ fn calendar_multi_financial_years() {
         // Jul–Dec of cal_year
         for m in 7u32..=12 {
             for d in (1u32..=28).step_by(4) {
-                v.push((format!("{cal_year}-{m:02}-{d:02}"), (m + d) as f64 % 7.0 + 1.0));
+                v.push((
+                    format!("{cal_year}-{m:02}-{d:02}"),
+                    (m + d) as f64 % 7.0 + 1.0,
+                ));
             }
         }
         // Jan–Jun of next_cal_year
         for m in 1u32..=6 {
             for d in (1u32..=28).step_by(4) {
-                v.push((format!("{next_cal_year}-{m:02}-{d:02}"), (m * d) as f64 % 8.0 + 1.0));
+                v.push((
+                    format!("{next_cal_year}-{m:02}-{d:02}"),
+                    (m * d) as f64 % 8.0 + 1.0,
+                ));
             }
         }
         v
@@ -209,7 +239,9 @@ fn calendar_dense_full_year() {
         let m = mi as u32 + 1;
         for d in 1..=days {
             // Skip ~20 % of days (every 5th day) to leave some missing cells
-            if (m + d) % 5 == 0 { continue; }
+            if (m + d) % 5 == 0 {
+                continue;
+            }
             let val = ((m * 7 + d * 3) % 15 + 1) as f64;
             data.push((format!("2024-{m:02}-{d:02}"), val));
         }
@@ -225,11 +257,16 @@ fn calendar_dense_full_year() {
     assert!(svg.contains("<svg"));
     // Expect many cal-day cells
     let cell_count = svg.matches("cal-day").count();
-    assert!(cell_count >= 300, "expected ≥300 day cells, got {cell_count}");
+    assert!(
+        cell_count >= 300,
+        "expected ≥300 day cells, got {cell_count}"
+    );
     // Most cells should have real data — check at least n_data SVG groups carry a non-"no data" val
     let no_data_count = svg.matches("no data").count();
-    assert!(no_data_count < n_data / 2,
-        "too many missing cells: {no_data_count} no-data vs {n_data} data points");
+    assert!(
+        no_data_count < n_data / 2,
+        "too many missing cells: {no_data_count} no-data vs {n_data} data points"
+    );
     output("calendar_dense.svg", &svg);
 }
 
@@ -276,12 +313,15 @@ fn calendar_github_psy_fer() {
         .with_data(data.iter().map(|&(d, v)| (d, v)))
         .with_aggregation(CalendarAgg::Sum)
         .with_period("Apr 2025 – Apr 2026", "2025-04-13", "2026-04-13")
-        .with_week_start(WeekStart::Sunday)  // GitHub uses Sunday-start
+        .with_week_start(WeekStart::Sunday) // GitHub uses Sunday-start
         .with_legend_label("contributions");
     let layout = Layout::auto_from_plots(&[Plot::Calendar(plot.clone())]);
     let svg = SvgBackend.render_scene(&render_calendar(plot, layout));
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("Apr 2025 \u{2013} Apr 2026"), "period label should appear");
+    assert!(
+        svg.contains("Apr 2025 \u{2013} Apr 2026"),
+        "period label should appear"
+    );
     // Spot-check: high-activity dates and confirmed single-contribution days
     assert!(svg.contains("2026-03-16")); // peak day (23 contributions)
     assert!(svg.contains("2025-04-16")); // single-contribution day — must appear, not be suppressed

@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Gantt chart — horizontal task bars with optional groups, progress, and milestones.
@@ -68,19 +68,20 @@ pub fn run(args: GanttArgs) -> Result<(), String> {
         args.input.delimiter,
     )?;
 
-    let label_col   = args.label_col.unwrap_or(ColSpec::Index(0));
-    let start_col   = args.start_col.unwrap_or(ColSpec::Index(1));
-    let end_col     = args.end_col.unwrap_or(ColSpec::Index(2));
+    let label_col = args.label_col.unwrap_or(ColSpec::Index(0));
+    let start_col = args.start_col.unwrap_or(ColSpec::Index(1));
+    let end_col = args.end_col.unwrap_or(ColSpec::Index(2));
 
-    let labels  = table.col_str(&label_col)?;
-    let starts  = table.col_f64(&start_col)?;
-    let ends    = table.col_f64(&end_col)?;
+    let labels = table.col_str(&label_col)?;
+    let starts = table.col_f64(&start_col)?;
+    let ends = table.col_f64(&end_col)?;
 
     let n = labels.len();
     if starts.len() != n || ends.len() != n {
         return Err(format!(
             "column length mismatch: label={n}, start={}, end={}",
-            starts.len(), ends.len()
+            starts.len(),
+            ends.len()
         ));
     }
 
@@ -104,37 +105,60 @@ pub fn run(args: GanttArgs) -> Result<(), String> {
 
     let mut plot = GanttPlot::new();
 
-    if let Some(c) = args.color { plot = plot.with_color(c); }
-    if let Some(bh) = args.bar_height { plot = plot.with_bar_height(bh); }
-    if args.no_labels { plot = plot.with_show_labels(false); }
-    if let Some(now) = args.now { plot = plot.with_now_line(now); }
+    if let Some(c) = args.color {
+        plot = plot.with_color(c);
+    }
+    if let Some(bh) = args.bar_height {
+        plot = plot.with_bar_height(bh);
+    }
+    if args.no_labels {
+        plot = plot.with_show_labels(false);
+    }
+    if let Some(now) = args.now {
+        plot = plot.with_now_line(now);
+    }
 
     for i in 0..n {
         let label = labels[i].as_str();
         let start = starts[i];
-        let end   = ends[i];
-        let group = groups.as_ref().map(|g| g[i].clone()).filter(|g| !g.is_empty());
+        let end = ends[i];
+        let group = groups
+            .as_ref()
+            .map(|g| g[i].clone())
+            .filter(|g| !g.is_empty());
         let progress = progresses.as_ref().map(|p| {
             let v = p[i];
-            if v > 1.0 { v / 100.0 } else { v }
+            if v > 1.0 {
+                v / 100.0
+            } else {
+                v
+            }
         });
-        let is_milestone = milestones.as_ref().map(|m| {
-            let s = m[i].to_lowercase();
-            s == "1" || s == "true" || s == "yes" || !s.is_empty() && s != "0" && s != "false" && s != "no"
-        }).unwrap_or(false);
+        let is_milestone = milestones
+            .as_ref()
+            .map(|m| {
+                let s = m[i].to_lowercase();
+                s == "1"
+                    || s == "true"
+                    || s == "yes"
+                    || !s.is_empty() && s != "0" && s != "false" && s != "no"
+            })
+            .unwrap_or(false);
 
         if is_milestone {
             let at = start;
             match &group {
                 Some(g) => plot = plot.with_milestone_group(g.clone(), label, at),
-                None    => plot = plot.with_milestone(label, at),
+                None => plot = plot.with_milestone(label, at),
             }
         } else {
             match (&group, progress) {
-                (Some(g), Some(p)) => plot = plot.with_task_group_progress(g.clone(), label, start, end, p),
-                (Some(g), None)    => plot = plot.with_task_group(g.clone(), label, start, end),
-                (None, Some(p))    => plot = plot.with_task_progress(label, start, end, p),
-                (None, None)       => plot = plot.with_task(label, start, end),
+                (Some(g), Some(p)) => {
+                    plot = plot.with_task_group_progress(g.clone(), label, start, end, p)
+                }
+                (Some(g), None) => plot = plot.with_task_group(g.clone(), label, start, end),
+                (None, Some(p)) => plot = plot.with_task_progress(label, start, end, p),
+                (None, None) => plot = plot.with_task(label, start, end),
             }
         }
     }

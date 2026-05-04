@@ -50,7 +50,9 @@ pub struct BoxGroup {
 }
 
 impl Default for BoxPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BoxPlot {

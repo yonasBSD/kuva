@@ -1,8 +1,8 @@
-use kuva::plot::Histogram;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::Histogram;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_histogram_svg_output_builder() {
@@ -18,12 +18,12 @@ fn test_histogram_svg_output_builder() {
     //     .with_title("Histogram")
     //     .with_x_label("Value")
     //     .with_y_label("Frequency");
-        // .with_ticks(10);
+    // .with_ticks(10);
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Histogram")
         .with_x_label("Value")
         .with_y_label("Frequency");
-        // .with_ticks(10);
+    // .with_ticks(10);
 
     // let scene = render_histogram(&hist, &layout);
     let scene = render_multiple(plots, layout);
@@ -51,9 +51,14 @@ fn test_normalized_histogram_y_axis_clamp() {
     std::fs::write("test_outputs/hist_normalized_clamp.svg", &svg).unwrap();
 
     // clamp_y_axis should be triggered automatically: axis must stop at 1 not 1.1
-    assert!(svg.contains(">1<") || svg.contains(">1.0<"),
-        "normalized histogram y-axis should show a tick at 1");
-    assert!(!svg.contains(">1.1<"), "y-axis must not extend past 1.0 for normalized data");
+    assert!(
+        svg.contains(">1<") || svg.contains(">1.0<"),
+        "normalized histogram y-axis should show a tick at 1"
+    );
+    assert!(
+        !svg.contains(">1.1<"),
+        "y-axis must not extend past 1.0 for normalized data"
+    );
 }
 
 // Non-normalized histograms must not be affected by the clamp.
@@ -62,7 +67,7 @@ fn test_non_normalized_histogram_y_axis_free() {
     let hist = Histogram::new()
         .with_data(vec![1.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0])
         .with_bins(4)
-        .with_range((0.0, 5.0));  // no with_normalize()
+        .with_range((0.0, 5.0)); // no with_normalize()
 
     let plots = vec![Plot::Histogram(hist)];
     let layout = Layout::auto_from_plots(&plots);
@@ -70,8 +75,10 @@ fn test_non_normalized_histogram_y_axis_free() {
     std::fs::write("test_outputs/hist_non_normalized.svg", &svg).unwrap();
 
     // y-axis should reflect actual counts (max count = 3), well above 1
-    assert!(!svg.contains(">1.1<") || svg.contains(">2<") || svg.contains(">3<"),
-        "non-normalized histogram y-axis should show count ticks");
+    assert!(
+        !svg.contains(">1.1<") || svg.contains(">2<") || svg.contains(">3<"),
+        "non-normalized histogram y-axis should show count ticks"
+    );
 }
 
 // Bug #4: ticks must land on bin boundaries for auto-binned histograms.
@@ -94,11 +101,15 @@ fn test_histogram_bin_aligned_ticks() {
     std::fs::write("test_outputs/hist_bin_aligned_ticks.svg", &svg).unwrap();
 
     // The rightmost bin edge (4.8) must appear as a tick label
-    assert!(svg.contains(">4.8<"),
-        "bin-aligned ticks should include the rightmost bin edge 4.8");
+    assert!(
+        svg.contains(">4.8<"),
+        "bin-aligned ticks should include the rightmost bin edge 4.8"
+    );
     // A non-edge tick like 1 would only appear with the generic tick generator
-    assert!(!svg.contains(">1<"),
-        "bin-aligned ticks must not emit non-edge tick 1");
+    assert!(
+        !svg.contains(">1<"),
+        "bin-aligned ticks must not emit non-edge tick 1"
+    );
 }
 
 // Feature #6: Histogram::from_bins — precomputed edges + counts, no range needed.
@@ -114,9 +125,15 @@ fn test_histogram_from_bins_basic() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/hist_from_bins.svg", &svg).unwrap();
 
-    assert!(svg.contains("<rect"), "precomputed histogram must draw bars");
+    assert!(
+        svg.contains("<rect"),
+        "precomputed histogram must draw bars"
+    );
     // Bin edges are 0, 1, 2, 3 — bin-aligned ticks should include 3
-    assert!(svg.contains(">3<"), "bin-aligned ticks should include the right edge 3");
+    assert!(
+        svg.contains(">3<"),
+        "bin-aligned ticks should include the right edge 3"
+    );
 }
 
 // Feature #6: precomputed histogram with normalization.
@@ -133,8 +150,10 @@ fn test_histogram_from_bins_normalize() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/hist_from_bins_normalized.svg", &svg).unwrap();
 
-    assert!(!svg.contains(">1.1<"),
-        "normalized precomputed histogram y-axis must not exceed 1.0");
+    assert!(
+        !svg.contains(">1.1<"),
+        "normalized precomputed histogram y-axis must not exceed 1.0"
+    );
 }
 
 // Issue #51: zero-count bins must not produce <rect height="0">.
@@ -143,8 +162,8 @@ fn test_histogram_from_bins_normalize() {
 #[test]
 fn test_histogram_zero_count_bins_skipped() {
     // Two clusters far apart with a gap in the middle → zero-count bins guaranteed.
-    let mut data: Vec<f64> = (0..20).map(|i| i as f64 * 0.1).collect();       // 0.0 – 1.9
-    data.extend((80..100).map(|i| i as f64 * 0.1));                            // 8.0 – 9.9
+    let mut data: Vec<f64> = (0..20).map(|i| i as f64 * 0.1).collect(); // 0.0 – 1.9
+    data.extend((80..100).map(|i| i as f64 * 0.1)); // 8.0 – 9.9
     let hist = Histogram::new()
         .with_data(data)
         .with_bins(20)
@@ -155,8 +174,14 @@ fn test_histogram_zero_count_bins_skipped() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/hist_zero_count_gap.svg", &svg).unwrap();
 
-    assert!(svg.contains("<rect"), "bimodal histogram must still draw bars");
-    assert!(!svg.contains("height=\"0\""), "zero-count bins must not emit height=0 rects");
+    assert!(
+        svg.contains("<rect"),
+        "bimodal histogram must still draw bars"
+    );
+    assert!(
+        !svg.contains("height=\"0\""),
+        "zero-count bins must not emit height=0 rects"
+    );
 }
 
 // Issue #51: same check for Histogram::from_bins with explicit zeros in the middle.
@@ -171,8 +196,14 @@ fn test_histogram_from_bins_zero_counts_skipped() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/hist_from_bins_zero_gap.svg", &svg).unwrap();
 
-    assert!(svg.contains("<rect"), "from_bins histogram must still draw non-zero bars");
-    assert!(!svg.contains("height=\"0\""), "zero-count bins must not emit height=0 rects");
+    assert!(
+        svg.contains("<rect"),
+        "from_bins histogram must still draw non-zero bars"
+    );
+    assert!(
+        !svg.contains("height=\"0\""),
+        "zero-count bins must not emit height=0 rects"
+    );
 }
 
 // Regression test for issue #46: last x-axis tick label was truncated when
@@ -204,7 +235,10 @@ fn test_histogram_last_tick_no_overflow() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/hist_last_tick_no_overflow.svg", &svg).unwrap();
 
-    assert!(svg.contains(">15000<"), "last tick label '15000' must be present");
+    assert!(
+        svg.contains(">15000<"),
+        "last tick label '15000' must be present"
+    );
 
     // Extract SVG canvas width from the width="..." attribute on the root element
     let canvas_width: f64 = {

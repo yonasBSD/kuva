@@ -91,7 +91,9 @@ pub struct SlopePlot {
 }
 
 impl Default for SlopePlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SlopePlot {
@@ -118,15 +120,31 @@ impl SlopePlot {
     }
 
     /// Add a single row with the given label, before value, and after value.
-    pub fn with_point(mut self, label: impl Into<String>, before: impl Into<f64>, after: impl Into<f64>) -> Self {
-        self.points.push(SlopePoint { label: label.into(), before: before.into(), after: after.into() });
+    pub fn with_point(
+        mut self,
+        label: impl Into<String>,
+        before: impl Into<f64>,
+        after: impl Into<f64>,
+    ) -> Self {
+        self.points.push(SlopePoint {
+            label: label.into(),
+            before: before.into(),
+            after: after.into(),
+        });
         self
     }
 
     /// Add multiple rows from an iterator of `(label, before, after)` triples.
-    pub fn with_points(mut self, pts: impl IntoIterator<Item = (impl Into<String>, impl Into<f64>, impl Into<f64>)>) -> Self {
+    pub fn with_points(
+        mut self,
+        pts: impl IntoIterator<Item = (impl Into<String>, impl Into<f64>, impl Into<f64>)>,
+    ) -> Self {
         for (label, before, after) in pts {
-            self.points.push(SlopePoint { label: label.into(), before: before.into(), after: after.into() });
+            self.points.push(SlopePoint {
+                label: label.into(),
+                before: before.into(),
+                after: after.into(),
+            });
         }
         self
     }
@@ -175,7 +193,10 @@ impl SlopePlot {
     }
 
     /// Set per-row color overrides.  Index corresponds to the row in `points`.
-    pub fn with_group_colors(mut self, colors: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_group_colors(
+        mut self,
+        colors: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.group_colors = Some(colors.into_iter().map(Into::into).collect());
         self
     }

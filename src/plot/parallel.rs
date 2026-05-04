@@ -80,7 +80,9 @@ pub struct ParallelPlot {
 }
 
 impl Default for ParallelPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ParallelPlot {
@@ -113,20 +115,33 @@ impl ParallelPlot {
 
     /// Add a row with no group (uses the fallback color).
     pub fn with_row(mut self, values: impl IntoIterator<Item = impl Into<f64>>) -> Self {
-        self.rows.push(ParallelRow { values: values.into_iter().map(|v| v.into()).collect(), group: None });
+        self.rows.push(ParallelRow {
+            values: values.into_iter().map(|v| v.into()).collect(),
+            group: None,
+        });
         self
     }
 
     /// Add a row assigned to a named group.
-    pub fn with_row_group(mut self, group: impl Into<String>, values: impl IntoIterator<Item = impl Into<f64>>) -> Self {
-        self.rows.push(ParallelRow { values: values.into_iter().map(|v| v.into()).collect(), group: Some(group.into()) });
+    pub fn with_row_group(
+        mut self,
+        group: impl Into<String>,
+        values: impl IntoIterator<Item = impl Into<f64>>,
+    ) -> Self {
+        self.rows.push(ParallelRow {
+            values: values.into_iter().map(|v| v.into()).collect(),
+            group: Some(group.into()),
+        });
         self
     }
 
     /// Add multiple ungrouped rows at once.
     pub fn with_rows(mut self, rows: impl IntoIterator<Item = Vec<f64>>) -> Self {
         for v in rows {
-            self.rows.push(ParallelRow { values: v, group: None });
+            self.rows.push(ParallelRow {
+                values: v,
+                group: None,
+            });
         }
         self
     }
@@ -139,7 +154,10 @@ impl ParallelPlot {
     ) -> Self {
         let g = group.into();
         for v in rows {
-            self.rows.push(ParallelRow { values: v, group: Some(g.clone()) });
+            self.rows.push(ParallelRow {
+                values: v,
+                group: Some(g.clone()),
+            });
         }
         self
     }
@@ -179,7 +197,10 @@ impl ParallelPlot {
     }
 
     /// Set explicit per-group colors.
-    pub fn with_group_colors(mut self, colors: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_group_colors(
+        mut self,
+        colors: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.group_colors = Some(colors.into_iter().map(|c| c.into()).collect());
         self
     }

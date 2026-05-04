@@ -69,7 +69,9 @@ pub struct GanttPlot {
 }
 
 impl Default for GanttPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GanttPlot {
@@ -89,46 +91,101 @@ impl GanttPlot {
     }
 
     /// Add an ungrouped task.
-    pub fn with_task(mut self, label: impl Into<String>, start: impl Into<f64>, end: impl Into<f64>) -> Self {
+    pub fn with_task(
+        mut self,
+        label: impl Into<String>,
+        start: impl Into<f64>,
+        end: impl Into<f64>,
+    ) -> Self {
         self.tasks.push(GanttTask {
-            label: label.into(), start: start.into(), end: end.into(),
-            group: None, progress: None, color: None, is_milestone: false,
+            label: label.into(),
+            start: start.into(),
+            end: end.into(),
+            group: None,
+            progress: None,
+            color: None,
+            is_milestone: false,
         });
         self
     }
 
     /// Add a task belonging to a named group/phase.
-    pub fn with_task_group(mut self, group: impl Into<String>, label: impl Into<String>, start: impl Into<f64>, end: impl Into<f64>) -> Self {
+    pub fn with_task_group(
+        mut self,
+        group: impl Into<String>,
+        label: impl Into<String>,
+        start: impl Into<f64>,
+        end: impl Into<f64>,
+    ) -> Self {
         self.tasks.push(GanttTask {
-            label: label.into(), start: start.into(), end: end.into(),
-            group: Some(group.into()), progress: None, color: None, is_milestone: false,
+            label: label.into(),
+            start: start.into(),
+            end: end.into(),
+            group: Some(group.into()),
+            progress: None,
+            color: None,
+            is_milestone: false,
         });
         self
     }
 
     /// Add an ungrouped task with a progress fill (`0.0`–`1.0`).
-    pub fn with_task_progress(mut self, label: impl Into<String>, start: impl Into<f64>, end: impl Into<f64>, progress: impl Into<f64>) -> Self {
+    pub fn with_task_progress(
+        mut self,
+        label: impl Into<String>,
+        start: impl Into<f64>,
+        end: impl Into<f64>,
+        progress: impl Into<f64>,
+    ) -> Self {
         self.tasks.push(GanttTask {
-            label: label.into(), start: start.into(), end: end.into(),
-            group: None, progress: Some(progress.into().clamp(0.0, 1.0)), color: None, is_milestone: false,
+            label: label.into(),
+            start: start.into(),
+            end: end.into(),
+            group: None,
+            progress: Some(progress.into().clamp(0.0, 1.0)),
+            color: None,
+            is_milestone: false,
         });
         self
     }
 
     /// Add a grouped task with a progress fill.
-    pub fn with_task_group_progress(mut self, group: impl Into<String>, label: impl Into<String>, start: impl Into<f64>, end: impl Into<f64>, progress: impl Into<f64>) -> Self {
+    pub fn with_task_group_progress(
+        mut self,
+        group: impl Into<String>,
+        label: impl Into<String>,
+        start: impl Into<f64>,
+        end: impl Into<f64>,
+        progress: impl Into<f64>,
+    ) -> Self {
         self.tasks.push(GanttTask {
-            label: label.into(), start: start.into(), end: end.into(),
-            group: Some(group.into()), progress: Some(progress.into().clamp(0.0, 1.0)), color: None, is_milestone: false,
+            label: label.into(),
+            start: start.into(),
+            end: end.into(),
+            group: Some(group.into()),
+            progress: Some(progress.into().clamp(0.0, 1.0)),
+            color: None,
+            is_milestone: false,
         });
         self
     }
 
     /// Add an ungrouped task with a per-task color override.
-    pub fn with_colored_task(mut self, label: impl Into<String>, start: impl Into<f64>, end: impl Into<f64>, color: impl Into<String>) -> Self {
+    pub fn with_colored_task(
+        mut self,
+        label: impl Into<String>,
+        start: impl Into<f64>,
+        end: impl Into<f64>,
+        color: impl Into<String>,
+    ) -> Self {
         self.tasks.push(GanttTask {
-            label: label.into(), start: start.into(), end: end.into(),
-            group: None, progress: None, color: Some(color.into()), is_milestone: false,
+            label: label.into(),
+            start: start.into(),
+            end: end.into(),
+            group: None,
+            progress: None,
+            color: Some(color.into()),
+            is_milestone: false,
         });
         self
     }
@@ -137,18 +194,33 @@ impl GanttPlot {
     pub fn with_milestone(mut self, label: impl Into<String>, at: impl Into<f64>) -> Self {
         let at = at.into();
         self.tasks.push(GanttTask {
-            label: label.into(), start: at, end: at,
-            group: None, progress: None, color: None, is_milestone: true,
+            label: label.into(),
+            start: at,
+            end: at,
+            group: None,
+            progress: None,
+            color: None,
+            is_milestone: true,
         });
         self
     }
 
     /// Add a milestone belonging to a named group/phase.
-    pub fn with_milestone_group(mut self, group: impl Into<String>, label: impl Into<String>, at: impl Into<f64>) -> Self {
+    pub fn with_milestone_group(
+        mut self,
+        group: impl Into<String>,
+        label: impl Into<String>,
+        at: impl Into<f64>,
+    ) -> Self {
         let at = at.into();
         self.tasks.push(GanttTask {
-            label: label.into(), start: at, end: at,
-            group: Some(group.into()), progress: None, color: None, is_milestone: true,
+            label: label.into(),
+            start: at,
+            end: at,
+            group: Some(group.into()),
+            progress: None,
+            color: None,
+            is_milestone: true,
         });
         self
     }
@@ -250,10 +322,13 @@ impl GanttPlot {
 
     /// Row labels in top-to-bottom display order (used to build y_categories).
     pub fn row_labels(&self) -> Vec<String> {
-        self.ordered_display_rows().into_iter().map(|r| match r {
-            GanttDisplayRow::GroupHeader(g) => g,
-            GanttDisplayRow::Task(i) => self.tasks[i].label.clone(),
-        }).collect()
+        self.ordered_display_rows()
+            .into_iter()
+            .map(|r| match r {
+                GanttDisplayRow::GroupHeader(g) => g,
+                GanttDisplayRow::Task(i) => self.tasks[i].label.clone(),
+            })
+            .collect()
     }
 
     /// Compute x-axis bounds across all tasks and the now line.
@@ -268,6 +343,10 @@ impl GanttPlot {
             x_min = x_min.min(now);
             x_max = x_max.max(now);
         }
-        if x_min.is_finite() { Some((x_min, x_max)) } else { None }
+        if x_min.is_finite() {
+            Some((x_min, x_max))
+        } else {
+            None
+        }
     }
 }

@@ -1,68 +1,67 @@
 use std::sync::Arc;
 
-use crate::plot::scatter::{ScatterPlot, TrendLine};
-use crate::plot::line::LinePlot;
 use crate::plot::bar::BarPlot;
-use crate::plot::histogram::Histogram;
 use crate::plot::boxplot::BoxPlot;
-use crate::plot::violin::ViolinPlot;
 use crate::plot::brick::BrickPlot;
+use crate::plot::histogram::Histogram;
+use crate::plot::line::LinePlot;
+use crate::plot::scatter::{ScatterPlot, TrendLine};
+use crate::plot::violin::ViolinPlot;
 
-use crate::plot::{Heatmap, Histogram2D, PiePlot, SeriesPlot};
 use crate::plot::band::BandPlot;
-use crate::plot::waterfall::{WaterfallPlot, WaterfallKind};
-use crate::plot::strip::StripPlot;
-use crate::plot::volcano::VolcanoPlot;
-use crate::plot::manhattan::ManhattanPlot;
-use crate::plot::dotplot::DotPlot;
-use crate::plot::upset::UpSetPlot;
-use crate::plot::stacked_area::StackedAreaPlot;
-use crate::plot::candlestick::CandlestickPlot;
-use crate::plot::contour::ContourPlot;
-use crate::plot::chord::ChordPlot;
-use crate::plot::sankey::SankeyPlot;
-use crate::plot::phylo::PhyloTree;
-use crate::plot::synteny::SyntenyPlot;
-use crate::plot::density::DensityPlot;
-use crate::plot::ecdf::EcdfPlot;
-use crate::plot::ridgeline::RidgelinePlot;
-use crate::plot::polar::PolarPlot;
-use crate::plot::ternary::TernaryPlot;
-use crate::plot::diceplot::DicePlot;
-use crate::plot::forest::ForestPlot;
-use crate::plot::scatter3d::Scatter3DPlot;
-use crate::plot::surface3d::Surface3DPlot;
-use crate::plot::clustermap::Clustermap;
-use crate::plot::jointplot::JointPlot;
-use crate::plot::raincloud::RaincloudPlot;
-use crate::plot::lollipop::LollipopPlot;
-use crate::plot::survival::SurvivalPlot;
-use crate::plot::roc::RocPlot;
-use crate::plot::pr::PrPlot;
-use crate::plot::slope::SlopePlot;
-use crate::plot::venn::VennPlot;
-use crate::plot::parallel::ParallelPlot;
-use crate::plot::mosaic::MosaicPlot;
-use crate::plot::qq::QQPlot;
-use crate::plot::network::NetworkPlot;
-use crate::plot::streamgraph::StreamgraphPlot;
-use crate::plot::radar::RadarPlot;
-use crate::plot::hexbin::HexbinPlot;
-use crate::plot::treemap::TreemapPlot;
-use crate::plot::sunburst::SunburstPlot;
 use crate::plot::bump::BumpPlot;
-use crate::plot::funnel::FunnelPlot;
-use crate::plot::rose::RosePlot;
 use crate::plot::calendar::CalendarPlot;
-use crate::plot::pyramid::PopulationPyramid;
-use crate::plot::waffle::WafflePlot;
-use crate::plot::horizon::HorizonPlot;
+use crate::plot::candlestick::CandlestickPlot;
+use crate::plot::chord::ChordPlot;
+use crate::plot::clustermap::Clustermap;
+use crate::plot::contour::ContourPlot;
+use crate::plot::density::DensityPlot;
+use crate::plot::diceplot::DicePlot;
+use crate::plot::dotplot::DotPlot;
+use crate::plot::ecdf::EcdfPlot;
+use crate::plot::forest::ForestPlot;
+use crate::plot::funnel::FunnelPlot;
 use crate::plot::gantt::GanttPlot;
-use crate::plot::text::TextPlot;
-use crate::plot::legend_plot::LegendPlot;
+use crate::plot::hexbin::HexbinPlot;
+use crate::plot::horizon::HorizonPlot;
+use crate::plot::jointplot::JointPlot;
 use crate::plot::legend::ColorBarInfo;
+use crate::plot::legend_plot::LegendPlot;
+use crate::plot::lollipop::LollipopPlot;
+use crate::plot::manhattan::ManhattanPlot;
+use crate::plot::mosaic::MosaicPlot;
+use crate::plot::network::NetworkPlot;
+use crate::plot::parallel::ParallelPlot;
+use crate::plot::phylo::PhyloTree;
+use crate::plot::polar::PolarPlot;
+use crate::plot::pr::PrPlot;
+use crate::plot::pyramid::PopulationPyramid;
+use crate::plot::qq::QQPlot;
+use crate::plot::radar::RadarPlot;
+use crate::plot::raincloud::RaincloudPlot;
+use crate::plot::ridgeline::RidgelinePlot;
+use crate::plot::roc::RocPlot;
+use crate::plot::rose::RosePlot;
+use crate::plot::sankey::SankeyPlot;
+use crate::plot::scatter3d::Scatter3DPlot;
+use crate::plot::slope::SlopePlot;
+use crate::plot::stacked_area::StackedAreaPlot;
+use crate::plot::streamgraph::StreamgraphPlot;
+use crate::plot::strip::StripPlot;
+use crate::plot::sunburst::SunburstPlot;
+use crate::plot::surface3d::Surface3DPlot;
+use crate::plot::survival::SurvivalPlot;
+use crate::plot::synteny::SyntenyPlot;
+use crate::plot::ternary::TernaryPlot;
+use crate::plot::text::TextPlot;
+use crate::plot::treemap::TreemapPlot;
+use crate::plot::upset::UpSetPlot;
+use crate::plot::venn::VennPlot;
+use crate::plot::volcano::VolcanoPlot;
+use crate::plot::waffle::WafflePlot;
+use crate::plot::waterfall::{WaterfallKind, WaterfallPlot};
+use crate::plot::{Heatmap, Histogram2D, PiePlot, SeriesPlot};
 use crate::render::render_utils;
-
 
 pub enum Plot {
     Scatter(ScatterPlot),
@@ -129,75 +128,329 @@ pub enum Plot {
     LegendPlot(LegendPlot),
 }
 
-impl From<ScatterPlot>    for Plot { fn from(p: ScatterPlot)    -> Self { Plot::Scatter(p) } }
-impl From<LinePlot>       for Plot { fn from(p: LinePlot)       -> Self { Plot::Line(p) } }
-impl From<BarPlot>        for Plot { fn from(p: BarPlot)        -> Self { Plot::Bar(p) } }
-impl From<Histogram>      for Plot { fn from(p: Histogram)      -> Self { Plot::Histogram(p) } }
-impl From<Histogram2D>    for Plot { fn from(p: Histogram2D)    -> Self { Plot::Histogram2d(p) } }
-impl From<BoxPlot>        for Plot { fn from(p: BoxPlot)        -> Self { Plot::Box(p) } }
-impl From<ViolinPlot>     for Plot { fn from(p: ViolinPlot)     -> Self { Plot::Violin(p) } }
-impl From<SeriesPlot>     for Plot { fn from(p: SeriesPlot)     -> Self { Plot::Series(p) } }
-impl From<PiePlot>        for Plot { fn from(p: PiePlot)        -> Self { Plot::Pie(p) } }
-impl From<Heatmap>        for Plot { fn from(p: Heatmap)        -> Self { Plot::Heatmap(p) } }
-impl From<BrickPlot>      for Plot { fn from(p: BrickPlot)      -> Self { Plot::Brick(p) } }
-impl From<BandPlot>       for Plot { fn from(p: BandPlot)       -> Self { Plot::Band(p) } }
-impl From<WaterfallPlot>  for Plot { fn from(p: WaterfallPlot)  -> Self { Plot::Waterfall(p) } }
-impl From<StripPlot>      for Plot { fn from(p: StripPlot)      -> Self { Plot::Strip(p) } }
-impl From<VolcanoPlot>    for Plot { fn from(p: VolcanoPlot)    -> Self { Plot::Volcano(p) } }
-impl From<ManhattanPlot>  for Plot { fn from(p: ManhattanPlot)  -> Self { Plot::Manhattan(p) } }
-impl From<DotPlot>        for Plot { fn from(p: DotPlot)        -> Self { Plot::DotPlot(p) } }
-impl From<UpSetPlot>      for Plot { fn from(p: UpSetPlot)      -> Self { Plot::UpSet(p) } }
-impl From<StackedAreaPlot> for Plot { fn from(p: StackedAreaPlot) -> Self { Plot::StackedArea(p) } }
-impl From<CandlestickPlot> for Plot { fn from(p: CandlestickPlot) -> Self { Plot::Candlestick(p) } }
-impl From<ContourPlot>    for Plot { fn from(p: ContourPlot)    -> Self { Plot::Contour(p) } }
-impl From<ChordPlot>      for Plot { fn from(p: ChordPlot)      -> Self { Plot::Chord(p) } }
-impl From<SankeyPlot>     for Plot { fn from(p: SankeyPlot)     -> Self { Plot::Sankey(p) } }
-impl From<PhyloTree>      for Plot { fn from(p: PhyloTree)      -> Self { Plot::PhyloTree(p) } }
-impl From<SyntenyPlot>    for Plot { fn from(p: SyntenyPlot)    -> Self { Plot::Synteny(p) } }
-impl From<DensityPlot>   for Plot { fn from(p: DensityPlot)   -> Self { Plot::Density(p) } }
-impl From<RidgelinePlot> for Plot { fn from(p: RidgelinePlot) -> Self { Plot::Ridgeline(p) } }
-impl From<PolarPlot>     for Plot { fn from(p: PolarPlot)     -> Self { Plot::Polar(p) } }
-impl From<TernaryPlot>   for Plot { fn from(p: TernaryPlot)   -> Self { Plot::Ternary(p) } }
-impl From<DicePlot>      for Plot { fn from(p: DicePlot)      -> Self { Plot::DicePlot(p) } }
-impl From<ForestPlot>    for Plot { fn from(p: ForestPlot)    -> Self { Plot::Forest(p) } }
-impl From<Scatter3DPlot> for Plot { fn from(p: Scatter3DPlot) -> Self { Plot::Scatter3D(p) } }
-impl From<Surface3DPlot> for Plot { fn from(p: Surface3DPlot) -> Self { Plot::Surface3D(p) } }
-impl From<Clustermap>   for Plot { fn from(p: Clustermap)   -> Self { Plot::Clustermap(p) } }
-impl From<JointPlot>    for Plot { fn from(p: JointPlot)    -> Self { Plot::Joint(p) } }
-impl From<RaincloudPlot> for Plot { fn from(p: RaincloudPlot) -> Self { Plot::Raincloud(p) } }
-impl From<LollipopPlot>  for Plot { fn from(p: LollipopPlot)  -> Self { Plot::Lollipop(p) } }
-impl From<SurvivalPlot>  for Plot { fn from(p: SurvivalPlot)  -> Self { Plot::Survival(p) } }
-impl From<RocPlot>       for Plot { fn from(p: RocPlot)       -> Self { Plot::Roc(p) } }
-impl From<PrPlot>        for Plot { fn from(p: PrPlot)        -> Self { Plot::Pr(p) } }
-impl From<SlopePlot>     for Plot { fn from(p: SlopePlot)     -> Self { Plot::Slope(p) } }
-impl From<VennPlot>        for Plot { fn from(p: VennPlot)        -> Self { Plot::Venn(p) } }
-impl From<ParallelPlot>    for Plot { fn from(p: ParallelPlot)    -> Self { Plot::Parallel(p) } }
-impl From<MosaicPlot>      for Plot { fn from(p: MosaicPlot)      -> Self { Plot::Mosaic(p) } }
-impl From<EcdfPlot>        for Plot { fn from(p: EcdfPlot)        -> Self { Plot::Ecdf(p) } }
-impl From<QQPlot>          for Plot { fn from(p: QQPlot)          -> Self { Plot::QQ(p) } }
-impl From<NetworkPlot>     for Plot { fn from(p: NetworkPlot)     -> Self { Plot::Network(p) } }
-impl From<StreamgraphPlot> for Plot { fn from(p: StreamgraphPlot) -> Self { Plot::Streamgraph(p) } }
-impl From<RadarPlot>       for Plot { fn from(p: RadarPlot)       -> Self { Plot::Radar(p) } }
-impl From<HexbinPlot>      for Plot { fn from(p: HexbinPlot)      -> Self { Plot::Hexbin(p) } }
-impl From<TreemapPlot>     for Plot { fn from(p: TreemapPlot)     -> Self { Plot::Treemap(p) } }
-impl From<SunburstPlot>    for Plot { fn from(p: SunburstPlot)    -> Self { Plot::Sunburst(p) } }
-impl From<BumpPlot>        for Plot { fn from(p: BumpPlot)        -> Self { Plot::Bump(p) } }
-impl From<FunnelPlot>      for Plot { fn from(p: FunnelPlot)      -> Self { Plot::Funnel(p) } }
-impl From<RosePlot>        for Plot { fn from(p: RosePlot)        -> Self { Plot::Rose(p) } }
-impl From<CalendarPlot>       for Plot { fn from(p: CalendarPlot)       -> Self { Plot::Calendar(p) } }
-impl From<PopulationPyramid>  for Plot { fn from(p: PopulationPyramid)  -> Self { Plot::Pyramid(p) } }
-impl From<WafflePlot>         for Plot { fn from(p: WafflePlot)         -> Self { Plot::Waffle(p) } }
-impl From<HorizonPlot>        for Plot { fn from(p: HorizonPlot)        -> Self { Plot::Horizon(p) } }
-impl From<GanttPlot>          for Plot { fn from(p: GanttPlot)          -> Self { Plot::Gantt(p) } }
-impl From<TextPlot>           for Plot { fn from(p: TextPlot)           -> Self { Plot::Text(p) } }
-impl From<LegendPlot>         for Plot { fn from(p: LegendPlot)         -> Self { Plot::LegendPlot(p) } }
+impl From<ScatterPlot> for Plot {
+    fn from(p: ScatterPlot) -> Self {
+        Plot::Scatter(p)
+    }
+}
+impl From<LinePlot> for Plot {
+    fn from(p: LinePlot) -> Self {
+        Plot::Line(p)
+    }
+}
+impl From<BarPlot> for Plot {
+    fn from(p: BarPlot) -> Self {
+        Plot::Bar(p)
+    }
+}
+impl From<Histogram> for Plot {
+    fn from(p: Histogram) -> Self {
+        Plot::Histogram(p)
+    }
+}
+impl From<Histogram2D> for Plot {
+    fn from(p: Histogram2D) -> Self {
+        Plot::Histogram2d(p)
+    }
+}
+impl From<BoxPlot> for Plot {
+    fn from(p: BoxPlot) -> Self {
+        Plot::Box(p)
+    }
+}
+impl From<ViolinPlot> for Plot {
+    fn from(p: ViolinPlot) -> Self {
+        Plot::Violin(p)
+    }
+}
+impl From<SeriesPlot> for Plot {
+    fn from(p: SeriesPlot) -> Self {
+        Plot::Series(p)
+    }
+}
+impl From<PiePlot> for Plot {
+    fn from(p: PiePlot) -> Self {
+        Plot::Pie(p)
+    }
+}
+impl From<Heatmap> for Plot {
+    fn from(p: Heatmap) -> Self {
+        Plot::Heatmap(p)
+    }
+}
+impl From<BrickPlot> for Plot {
+    fn from(p: BrickPlot) -> Self {
+        Plot::Brick(p)
+    }
+}
+impl From<BandPlot> for Plot {
+    fn from(p: BandPlot) -> Self {
+        Plot::Band(p)
+    }
+}
+impl From<WaterfallPlot> for Plot {
+    fn from(p: WaterfallPlot) -> Self {
+        Plot::Waterfall(p)
+    }
+}
+impl From<StripPlot> for Plot {
+    fn from(p: StripPlot) -> Self {
+        Plot::Strip(p)
+    }
+}
+impl From<VolcanoPlot> for Plot {
+    fn from(p: VolcanoPlot) -> Self {
+        Plot::Volcano(p)
+    }
+}
+impl From<ManhattanPlot> for Plot {
+    fn from(p: ManhattanPlot) -> Self {
+        Plot::Manhattan(p)
+    }
+}
+impl From<DotPlot> for Plot {
+    fn from(p: DotPlot) -> Self {
+        Plot::DotPlot(p)
+    }
+}
+impl From<UpSetPlot> for Plot {
+    fn from(p: UpSetPlot) -> Self {
+        Plot::UpSet(p)
+    }
+}
+impl From<StackedAreaPlot> for Plot {
+    fn from(p: StackedAreaPlot) -> Self {
+        Plot::StackedArea(p)
+    }
+}
+impl From<CandlestickPlot> for Plot {
+    fn from(p: CandlestickPlot) -> Self {
+        Plot::Candlestick(p)
+    }
+}
+impl From<ContourPlot> for Plot {
+    fn from(p: ContourPlot) -> Self {
+        Plot::Contour(p)
+    }
+}
+impl From<ChordPlot> for Plot {
+    fn from(p: ChordPlot) -> Self {
+        Plot::Chord(p)
+    }
+}
+impl From<SankeyPlot> for Plot {
+    fn from(p: SankeyPlot) -> Self {
+        Plot::Sankey(p)
+    }
+}
+impl From<PhyloTree> for Plot {
+    fn from(p: PhyloTree) -> Self {
+        Plot::PhyloTree(p)
+    }
+}
+impl From<SyntenyPlot> for Plot {
+    fn from(p: SyntenyPlot) -> Self {
+        Plot::Synteny(p)
+    }
+}
+impl From<DensityPlot> for Plot {
+    fn from(p: DensityPlot) -> Self {
+        Plot::Density(p)
+    }
+}
+impl From<RidgelinePlot> for Plot {
+    fn from(p: RidgelinePlot) -> Self {
+        Plot::Ridgeline(p)
+    }
+}
+impl From<PolarPlot> for Plot {
+    fn from(p: PolarPlot) -> Self {
+        Plot::Polar(p)
+    }
+}
+impl From<TernaryPlot> for Plot {
+    fn from(p: TernaryPlot) -> Self {
+        Plot::Ternary(p)
+    }
+}
+impl From<DicePlot> for Plot {
+    fn from(p: DicePlot) -> Self {
+        Plot::DicePlot(p)
+    }
+}
+impl From<ForestPlot> for Plot {
+    fn from(p: ForestPlot) -> Self {
+        Plot::Forest(p)
+    }
+}
+impl From<Scatter3DPlot> for Plot {
+    fn from(p: Scatter3DPlot) -> Self {
+        Plot::Scatter3D(p)
+    }
+}
+impl From<Surface3DPlot> for Plot {
+    fn from(p: Surface3DPlot) -> Self {
+        Plot::Surface3D(p)
+    }
+}
+impl From<Clustermap> for Plot {
+    fn from(p: Clustermap) -> Self {
+        Plot::Clustermap(p)
+    }
+}
+impl From<JointPlot> for Plot {
+    fn from(p: JointPlot) -> Self {
+        Plot::Joint(p)
+    }
+}
+impl From<RaincloudPlot> for Plot {
+    fn from(p: RaincloudPlot) -> Self {
+        Plot::Raincloud(p)
+    }
+}
+impl From<LollipopPlot> for Plot {
+    fn from(p: LollipopPlot) -> Self {
+        Plot::Lollipop(p)
+    }
+}
+impl From<SurvivalPlot> for Plot {
+    fn from(p: SurvivalPlot) -> Self {
+        Plot::Survival(p)
+    }
+}
+impl From<RocPlot> for Plot {
+    fn from(p: RocPlot) -> Self {
+        Plot::Roc(p)
+    }
+}
+impl From<PrPlot> for Plot {
+    fn from(p: PrPlot) -> Self {
+        Plot::Pr(p)
+    }
+}
+impl From<SlopePlot> for Plot {
+    fn from(p: SlopePlot) -> Self {
+        Plot::Slope(p)
+    }
+}
+impl From<VennPlot> for Plot {
+    fn from(p: VennPlot) -> Self {
+        Plot::Venn(p)
+    }
+}
+impl From<ParallelPlot> for Plot {
+    fn from(p: ParallelPlot) -> Self {
+        Plot::Parallel(p)
+    }
+}
+impl From<MosaicPlot> for Plot {
+    fn from(p: MosaicPlot) -> Self {
+        Plot::Mosaic(p)
+    }
+}
+impl From<EcdfPlot> for Plot {
+    fn from(p: EcdfPlot) -> Self {
+        Plot::Ecdf(p)
+    }
+}
+impl From<QQPlot> for Plot {
+    fn from(p: QQPlot) -> Self {
+        Plot::QQ(p)
+    }
+}
+impl From<NetworkPlot> for Plot {
+    fn from(p: NetworkPlot) -> Self {
+        Plot::Network(p)
+    }
+}
+impl From<StreamgraphPlot> for Plot {
+    fn from(p: StreamgraphPlot) -> Self {
+        Plot::Streamgraph(p)
+    }
+}
+impl From<RadarPlot> for Plot {
+    fn from(p: RadarPlot) -> Self {
+        Plot::Radar(p)
+    }
+}
+impl From<HexbinPlot> for Plot {
+    fn from(p: HexbinPlot) -> Self {
+        Plot::Hexbin(p)
+    }
+}
+impl From<TreemapPlot> for Plot {
+    fn from(p: TreemapPlot) -> Self {
+        Plot::Treemap(p)
+    }
+}
+impl From<SunburstPlot> for Plot {
+    fn from(p: SunburstPlot) -> Self {
+        Plot::Sunburst(p)
+    }
+}
+impl From<BumpPlot> for Plot {
+    fn from(p: BumpPlot) -> Self {
+        Plot::Bump(p)
+    }
+}
+impl From<FunnelPlot> for Plot {
+    fn from(p: FunnelPlot) -> Self {
+        Plot::Funnel(p)
+    }
+}
+impl From<RosePlot> for Plot {
+    fn from(p: RosePlot) -> Self {
+        Plot::Rose(p)
+    }
+}
+impl From<CalendarPlot> for Plot {
+    fn from(p: CalendarPlot) -> Self {
+        Plot::Calendar(p)
+    }
+}
+impl From<PopulationPyramid> for Plot {
+    fn from(p: PopulationPyramid) -> Self {
+        Plot::Pyramid(p)
+    }
+}
+impl From<WafflePlot> for Plot {
+    fn from(p: WafflePlot) -> Self {
+        Plot::Waffle(p)
+    }
+}
+impl From<HorizonPlot> for Plot {
+    fn from(p: HorizonPlot) -> Self {
+        Plot::Horizon(p)
+    }
+}
+impl From<GanttPlot> for Plot {
+    fn from(p: GanttPlot) -> Self {
+        Plot::Gantt(p)
+    }
+}
+impl From<TextPlot> for Plot {
+    fn from(p: TextPlot) -> Self {
+        Plot::Text(p)
+    }
+}
+impl From<LegendPlot> for Plot {
+    fn from(p: LegendPlot) -> Self {
+        Plot::LegendPlot(p)
+    }
+}
 
-use crate::plot::plot3d::DataRanges3D;
 use crate::plot::colormap::ColorMap;
+use crate::plot::plot3d::DataRanges3D;
 
-fn colorbar_from_z(cmap: &ColorMap, ranges: DataRanges3D, label: Option<String>) -> Option<ColorBarInfo> {
+fn colorbar_from_z(
+    cmap: &ColorMap,
+    ranges: DataRanges3D,
+    label: Option<String>,
+) -> Option<ColorBarInfo> {
     let (z_min, z_max) = ranges.z;
-    if !z_min.is_finite() || !z_max.is_finite() { return None; }
+    if !z_min.is_finite() || !z_max.is_finite() {
+        return None;
+    }
     let cmap = cmap.clone();
     Some(ColorBarInfo {
         map_fn: Arc::new(move |t| {
@@ -212,10 +465,10 @@ fn colorbar_from_z(cmap: &ColorMap, ranges: DataRanges3D, label: Option<String>)
 }
 
 fn bounds_from_2d<I>(points: I) -> Option<((f64, f64), (f64, f64))>
-    where
-        I: IntoIterator,
-        I::Item: Into<(f64, f64)>,
-    {
+where
+    I: IntoIterator,
+    I::Item: Into<(f64, f64)>,
+{
     let mut iter = points.into_iter().map(Into::into);
     let (x0, y0) = iter.next()?;
     let (mut x_min, mut x_max) = (x0, x0);
@@ -237,13 +490,10 @@ fn _bounds_from_1d(points: &[f64]) -> Option<((f64, f64), (f64, f64))> {
     for i in points {
         min_val = min_val.min(*i);
         max_val = max_val.max(*i);
-       
     }
-    
+
     Some(((0.0f64, points.len() as f64), (min_val, max_val)))
 }
-
-
 
 impl Plot {
     /// Set the primary color for single-color plot types.
@@ -271,13 +521,12 @@ impl Plot {
             Plot::Parallel(p) => p.color = color.into(),
             Plot::Ecdf(e) => e.color = color.into(),
             Plot::QQ(q) => q.color = color.into(),
-            _ => {}  // multi-series plots (StackedArea, Streamgraph, etc.) skip palette auto-assign
+            _ => {} // multi-series plots (StackedArea, Streamgraph, etc.) skip palette auto-assign
         }
     }
 
     pub fn bounds(&self) -> Option<((f64, f64), (f64, f64))> {
         match self {
-            
             Plot::Scatter(s) => {
                 let ((mut x_min, mut x_max), (mut y_min, mut y_max)) = bounds_from_2d(&s.data)?;
 
@@ -296,29 +545,37 @@ impl Plot {
 
                 // Expand for band
                 if let Some(ref band) = s.band {
-                    for &y in &band.y_lower { y_min = y_min.min(y); }
-                    for &y in &band.y_upper { y_max = y_max.max(y); }
+                    for &y in &band.y_lower {
+                        y_min = y_min.min(y);
+                    }
+                    for &y in &band.y_upper {
+                        y_max = y_max.max(y);
+                    }
                 }
 
                 // Expand for trend line
                 if let Some(trend) = s.trend {
                     let TrendLine::Linear = trend;
-                        if let Some((slope, intercept, _)) = render_utils::linear_regression(&s.data) {
-                            let y_start = slope * x_min + intercept;
-                            let y_end = slope * x_max + intercept;
+                    if let Some((slope, intercept, _)) = render_utils::linear_regression(&s.data) {
+                        let y_start = slope * x_min + intercept;
+                        let y_end = slope * x_max + intercept;
 
-                            y_min = y_min.min(y_start).min(y_end);
-                            y_max = y_max.max(y_start).max(y_end);
-                        }
+                        y_min = y_min.min(y_start).min(y_end);
+                        y_max = y_max.max(y_start).max(y_end);
+                    }
                 }
 
                 Some(((x_min, x_max), (y_min, y_max)))
-            },
+            }
             Plot::Line(p) => {
                 let ((x_min, x_max), (mut y_min, mut y_max)) = bounds_from_2d(&p.data)?;
                 if let Some(ref band) = p.band {
-                    for &y in &band.y_lower { y_min = y_min.min(y); }
-                    for &y in &band.y_upper { y_max = y_max.max(y); }
+                    for &y in &band.y_lower {
+                        y_min = y_min.min(y);
+                    }
+                    for &y in &band.y_upper {
+                        y_max = y_max.max(y);
+                    }
                 }
                 Some(((x_min, x_max), (y_min, y_max)))
             }
@@ -329,24 +586,22 @@ impl Plot {
                 } else {
                     let x_min = 0.0;
                     let x_max = sp.values.len() as f64 - 1.0;
-            
+
                     let mut y_min = f64::INFINITY;
                     let mut y_max = f64::NEG_INFINITY;
-            
+
                     for &v in &sp.values {
                         y_min = y_min.min(v);
                         y_max = y_max.max(v);
                     }
-            
+
                     Some(((x_min, x_max), (y_min, y_max)))
                 }
             }
             Plot::Bar(bp) => {
-
                 if bp.groups.is_empty() {
                     None
-                }
-                else {
+                } else {
                     let x_min = 0.5;
                     let x_max = bp.groups.len() as f64 + 0.5;
                     let y_min = 0.0;
@@ -371,7 +626,9 @@ impl Plot {
             Plot::Histogram(h) => {
                 // Precomputed path: derive bounds from edges and counts directly
                 if let Some((edges, counts)) = &h.precomputed {
-                    if edges.len() < 2 || counts.is_empty() { return None; }
+                    if edges.len() < 2 || counts.is_empty() {
+                        return None;
+                    }
                     let x_min = edges[0];
                     let x_max = *edges.last().unwrap();
                     let max_y = if h.normalize {
@@ -384,7 +641,9 @@ impl Plot {
                 // Auto-binning path: use explicit range if set, else derive from data
                 // (mirrors the fallback in the renderer so bounds() always returns a usable range)
                 let range = h.range.unwrap_or_else(|| {
-                    if h.data.is_empty() { return (0.0, 1.0); }
+                    if h.data.is_empty() {
+                        return (0.0, 1.0);
+                    }
                     let min = h.data.iter().cloned().fold(f64::INFINITY, f64::min);
                     let max = h.data.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                     (min, max)
@@ -413,15 +672,16 @@ impl Plot {
             Plot::Box(bp) => {
                 if bp.groups.is_empty() {
                     None
-                }
-                else {
+                } else {
                     let x_min = 0.5;
                     let x_max = bp.groups.len() as f64 + 0.5;
-            
+
                     let mut y_min = f64::INFINITY;
                     let mut y_max = f64::NEG_INFINITY;
                     for g in &bp.groups {
-                        if g.values.is_empty() { continue; }
+                        if g.values.is_empty() {
+                            continue;
+                        }
                         let mut vals = g.values.clone();
                         vals.sort_by(|a, b| a.total_cmp(b));
                         let q1 = render_utils::percentile(&vals, 25.0);
@@ -432,7 +692,7 @@ impl Plot {
                         y_min = y_min.min(lo);
                         y_max = y_max.max(hi);
                     }
-            
+
                     Some(((x_min, x_max), (y_min, y_max)))
                 }
             }
@@ -447,10 +707,18 @@ impl Plot {
                     let mut y_max = f64::NEG_INFINITY;
 
                     for group in &vp.groups {
-                        if group.values.is_empty() { continue; }
+                        if group.values.is_empty() {
+                            continue;
+                        }
                         let g_min = group.values.iter().cloned().fold(f64::INFINITY, f64::min);
-                        let g_max = group.values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-                        let h = vp.bandwidth.unwrap_or_else(|| render_utils::silverman_bandwidth(&group.values));
+                        let g_max = group
+                            .values
+                            .iter()
+                            .cloned()
+                            .fold(f64::NEG_INFINITY, f64::max);
+                        let h = vp
+                            .bandwidth
+                            .unwrap_or_else(|| render_utils::silverman_bandwidth(&group.values));
                         y_min = y_min.min(g_min - 3.0 * h);
                         y_max = y_max.max(g_max + 3.0 * h);
                     }
@@ -460,7 +728,7 @@ impl Plot {
             }
             Plot::Pie(_) => {
                 // Centered at (0.0, 0.0) and rendered to fit the layout box
-                Some(((-1.0, 1.0), (-1.0, 1.0))) 
+                Some(((-1.0, 1.0), (-1.0, 1.0)))
             }
             Plot::Heatmap(hm) => {
                 let rows = hm.data.len();
@@ -472,10 +740,15 @@ impl Plot {
             Plot::Histogram2d(h2d) => {
                 // Return the physical axis range so the layout is calibrated in
                 // data coordinates, matching the physical coords used by the renderer.
-                Some(((h2d.x_range.0, h2d.x_range.1), (h2d.y_range.0, h2d.y_range.1)))
+                Some((
+                    (h2d.x_range.0, h2d.x_range.1),
+                    (h2d.y_range.0, h2d.y_range.1),
+                ))
             }
             Plot::Band(b) => {
-                if b.x.is_empty() { return None; }
+                if b.x.is_empty() {
+                    return None;
+                }
                 let x_min = b.x.iter().cloned().fold(f64::INFINITY, f64::min);
                 let x_max = b.x.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 let y_min = b.y_lower.iter().cloned().fold(f64::INFINITY, f64::min);
@@ -483,7 +756,9 @@ impl Plot {
                 Some(((x_min, x_max), (y_min, y_max)))
             }
             Plot::Waterfall(wp) => {
-                if wp.bars.is_empty() { return None; }
+                if wp.bars.is_empty() {
+                    return None;
+                }
                 let x_min = 0.5;
                 let x_max = wp.bars.len() as f64 + 0.5;
                 let mut running = 0.0_f64;
@@ -510,7 +785,9 @@ impl Plot {
                 Some(((x_min, x_max), (y_min, y_max)))
             }
             Plot::Strip(sp) => {
-                if sp.groups.is_empty() { return None; }
+                if sp.groups.is_empty() {
+                    return None;
+                }
                 let x_min = 0.5;
                 let x_max = sp.groups.len() as f64 + 0.5;
                 let mut y_min = f64::INFINITY;
@@ -521,11 +798,15 @@ impl Plot {
                         y_max = y_max.max(v);
                     }
                 }
-                if y_min == f64::INFINITY { return None; }
+                if y_min == f64::INFINITY {
+                    return None;
+                }
                 Some(((x_min, x_max), (y_min, y_max)))
             }
             Plot::Volcano(vp) => {
-                if vp.points.is_empty() { return None; }
+                if vp.points.is_empty() {
+                    return None;
+                }
                 let floor = vp.floor();
                 let mut x_min = f64::INFINITY;
                 let mut x_max = f64::NEG_INFINITY;
@@ -539,33 +820,57 @@ impl Plot {
                 Some(((x_min, x_max), (0.0, y_max)))
             }
             Plot::Manhattan(mp) => {
-                if mp.points.is_empty() { return None; }
+                if mp.points.is_empty() {
+                    return None;
+                }
                 let floor = mp.floor();
-                let x_min = mp.spans.iter().map(|s| s.x_start).fold(f64::INFINITY, f64::min);
-                let x_max = mp.spans.iter().map(|s| s.x_end).fold(f64::NEG_INFINITY, f64::max);
-                if !x_min.is_finite() { return None; }
+                let x_min = mp
+                    .spans
+                    .iter()
+                    .map(|s| s.x_start)
+                    .fold(f64::INFINITY, f64::min);
+                let x_max = mp
+                    .spans
+                    .iter()
+                    .map(|s| s.x_end)
+                    .fold(f64::NEG_INFINITY, f64::max);
+                if !x_min.is_finite() {
+                    return None;
+                }
                 // Ensure genome-wide threshold is always visible
-                let y_max = mp.points.iter()
+                let y_max = mp
+                    .points
+                    .iter()
                     .map(|p| -(p.pvalue.max(floor)).log10())
                     .fold(mp.genome_wide, f64::max);
                 Some(((x_min, x_max), (0.0, y_max)))
             }
             Plot::DotPlot(dp) => {
-                if dp.x_categories.is_empty() { return None; }
-                Some(((0.5, dp.x_categories.len() as f64 + 0.5),
-                      (0.5, dp.y_categories.len() as f64 + 0.5)))
+                if dp.x_categories.is_empty() {
+                    return None;
+                }
+                Some((
+                    (0.5, dp.x_categories.len() as f64 + 0.5),
+                    (0.5, dp.y_categories.len() as f64 + 0.5),
+                ))
             }
             Plot::DicePlot(dp) => {
-                if dp.x_categories.is_empty() { return None; }
-                Some(((0.5, dp.x_categories.len() as f64 + 0.5),
-                      (0.5, dp.y_categories.len() as f64 + 0.5)))
+                if dp.x_categories.is_empty() {
+                    return None;
+                }
+                Some((
+                    (0.5, dp.x_categories.len() as f64 + 0.5),
+                    (0.5, dp.y_categories.len() as f64 + 0.5),
+                ))
             }
             Plot::UpSet(_) => {
                 // Dummy bounds — UpSet renders in pixel space and ignores map_x/map_y.
                 Some(((0.0, 1.0), (0.0, 1.0)))
             }
             Plot::StackedArea(sa) => {
-                if sa.x.is_empty() || sa.series.is_empty() { return None; }
+                if sa.x.is_empty() || sa.series.is_empty() {
+                    return None;
+                }
                 let x_min = sa.x.iter().cloned().fold(f64::INFINITY, f64::min);
                 let x_max = sa.x.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 let n = sa.x.len();
@@ -573,32 +878,63 @@ impl Plot {
                     100.0
                 } else {
                     (0..n)
-                        .map(|i| sa.series.iter().map(|s| s.get(i).copied().unwrap_or(0.0)).sum::<f64>())
+                        .map(|i| {
+                            sa.series
+                                .iter()
+                                .map(|s| s.get(i).copied().unwrap_or(0.0))
+                                .sum::<f64>()
+                        })
                         .fold(0.0_f64, f64::max)
                 };
                 Some(((x_min, x_max), (0.0, y_max)))
             }
             Plot::Candlestick(cp) => {
-                if cp.candles.is_empty() { return None; }
+                if cp.candles.is_empty() {
+                    return None;
+                }
                 let continuous = cp.candles.iter().any(|c| c.x.is_some());
                 let (x_min, x_max) = if continuous {
                     (
-                        cp.candles.iter().filter_map(|c| c.x).fold(f64::INFINITY, f64::min),
-                        cp.candles.iter().filter_map(|c| c.x).fold(f64::NEG_INFINITY, f64::max),
+                        cp.candles
+                            .iter()
+                            .filter_map(|c| c.x)
+                            .fold(f64::INFINITY, f64::min),
+                        cp.candles
+                            .iter()
+                            .filter_map(|c| c.x)
+                            .fold(f64::NEG_INFINITY, f64::max),
                     )
                 } else {
                     (0.5, cp.candles.len() as f64 + 0.5)
                 };
-                let y_min = cp.candles.iter().map(|c| c.low).fold(f64::INFINITY, f64::min);
-                let y_max = cp.candles.iter().map(|c| c.high).fold(f64::NEG_INFINITY, f64::max);
+                let y_min = cp
+                    .candles
+                    .iter()
+                    .map(|c| c.low)
+                    .fold(f64::INFINITY, f64::min);
+                let y_max = cp
+                    .candles
+                    .iter()
+                    .map(|c| c.high)
+                    .fold(f64::NEG_INFINITY, f64::max);
                 Some(((x_min, x_max), (y_min, y_max)))
             }
             Plot::Contour(cp) => {
-                if cp.z.is_empty() { return None; }
+                if cp.z.is_empty() {
+                    return None;
+                }
                 let x_min = cp.x_coords.iter().cloned().fold(f64::INFINITY, f64::min);
-                let x_max = cp.x_coords.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+                let x_max = cp
+                    .x_coords
+                    .iter()
+                    .cloned()
+                    .fold(f64::NEG_INFINITY, f64::max);
                 let y_min = cp.y_coords.iter().cloned().fold(f64::INFINITY, f64::min);
-                let y_max = cp.y_coords.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+                let y_max = cp
+                    .y_coords
+                    .iter()
+                    .cloned()
+                    .fold(f64::NEG_INFINITY, f64::max);
                 Some(((x_min, x_max), (y_min, y_max)))
             }
             Plot::Chord(_) => {
@@ -620,14 +956,20 @@ impl Plot {
             Plot::Density(dp) => {
                 // Use precomputed curve if available
                 if let Some((xs, ys)) = &dp.precomputed {
-                    if xs.is_empty() { return None; }
+                    if xs.is_empty() {
+                        return None;
+                    }
                     let x_min = xs.iter().cloned().fold(f64::INFINITY, f64::min);
                     let x_max = xs.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                     let y_max = ys.iter().cloned().fold(0.0_f64, f64::max);
                     return Some(((x_min, x_max), (0.0, y_max * 1.1)));
                 }
-                if dp.data.len() < 2 { return None; }
-                let bw = dp.bandwidth.unwrap_or_else(|| render_utils::silverman_bandwidth(&dp.data));
+                if dp.data.len() < 2 {
+                    return None;
+                }
+                let bw = dp
+                    .bandwidth
+                    .unwrap_or_else(|| render_utils::silverman_bandwidth(&dp.data));
                 let data_min = dp.data.iter().cloned().fold(f64::INFINITY, f64::min);
                 let data_max = dp.data.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 let x_min = dp.x_lo.unwrap_or(data_min - 3.0 * bw);
@@ -637,30 +979,43 @@ impl Plot {
                 let n = dp.data.len() as f64;
                 let norm = 1.0 / (n * bw * (2.0 * std::f64::consts::PI).sqrt());
                 let curve = if dp.x_lo.is_some() || dp.x_hi.is_some() {
-                    render_utils::simple_kde_reflect(&dp.data, bw, dp.kde_samples,
-                        x_min, x_max, dp.x_lo.is_some(), dp.x_hi.is_some())
+                    render_utils::simple_kde_reflect(
+                        &dp.data,
+                        bw,
+                        dp.kde_samples,
+                        x_min,
+                        x_max,
+                        dp.x_lo.is_some(),
+                        dp.x_hi.is_some(),
+                    )
                 } else {
                     render_utils::simple_kde(&dp.data, bw, dp.kde_samples)
                 };
-                let y_max_pdf = curve.iter()
-                    .map(|(_, y)| y * norm)
-                    .fold(0.0_f64, f64::max);
+                let y_max_pdf = curve.iter().map(|(_, y)| y * norm).fold(0.0_f64, f64::max);
                 Some(((x_min, x_max), (0.0, y_max_pdf * 1.1)))
             }
             Plot::Ridgeline(rp) => {
-                if rp.groups.is_empty() { return None; }
+                if rp.groups.is_empty() {
+                    return None;
+                }
                 let n = rp.groups.len() as f64;
                 let mut x_min = f64::INFINITY;
                 let mut x_max = f64::NEG_INFINITY;
                 for g in &rp.groups {
-                    if g.values.is_empty() { continue; }
-                    let bw = rp.bandwidth.unwrap_or_else(|| render_utils::silverman_bandwidth(&g.values));
+                    if g.values.is_empty() {
+                        continue;
+                    }
+                    let bw = rp
+                        .bandwidth
+                        .unwrap_or_else(|| render_utils::silverman_bandwidth(&g.values));
                     let gmin = g.values.iter().cloned().fold(f64::INFINITY, f64::min);
                     let gmax = g.values.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                     x_min = x_min.min(gmin - 3.0 * bw);
                     x_max = x_max.max(gmax + 3.0 * bw);
                 }
-                if !x_min.is_finite() { return None; }
+                if !x_min.is_finite() {
+                    return None;
+                }
                 // y_max must leave room for the top ridge to extend (1+overlap)
                 // data units above group 0's center (at y = n).  Half a unit of
                 // additional padding keeps it off the very top of the plot area.
@@ -687,9 +1042,13 @@ impl Plot {
                 let str_width = |i: usize| -> f64 {
                     if let Some(ref exp) = bp.strigar_exp {
                         if let Some(ref ml) = bp.motif_lengths {
-                            exp.get(i).map(|s| {
-                                s.chars().map(|c| *ml.get(&c).unwrap_or(&1) as f64).sum::<f64>()
-                            }).unwrap_or(0.0)
+                            exp.get(i)
+                                .map(|s| {
+                                    s.chars()
+                                        .map(|c| *ml.get(&c).unwrap_or(&1) as f64)
+                                        .sum::<f64>()
+                                })
+                                .unwrap_or(0.0)
                         } else {
                             exp.get(i).map(|s| s.len() as f64).unwrap_or(0.0)
                         }
@@ -698,13 +1057,15 @@ impl Plot {
                     }
                 };
                 let left_len = |i: usize| -> f64 {
-                    bp.left_flanks.as_ref()
+                    bp.left_flanks
+                        .as_ref()
                         .and_then(|f| f.get(i))
                         .map(|s| s.chars().count() as f64)
                         .unwrap_or(0.0)
                 };
                 let right_len = |i: usize| -> f64 {
-                    bp.right_flanks.as_ref()
+                    bp.right_flanks
+                        .as_ref()
                         .and_then(|f| f.get(i))
                         .map(|s| s.chars().count() as f64)
                         .unwrap_or(0.0)
@@ -714,10 +1075,15 @@ impl Plot {
                 // The right-align shift per row is max_right - row_right, which moves shorter
                 // rows rightward. x_lo / x_hi must account for this shift.
                 use crate::plot::BrickAnchor;
-                let right_edges: Vec<f64> = (0..n_rows).map(|i| str_width(i) + right_len(i)).collect();
+                let right_edges: Vec<f64> =
+                    (0..n_rows).map(|i| str_width(i) + right_len(i)).collect();
                 let max_right = right_edges.iter().cloned().fold(0.0_f64, f64::max);
                 let ra_shift = |i: usize| -> f64 {
-                    if bp.anchor == BrickAnchor::Right { max_right - right_edges[i] } else { 0.0 }
+                    if bp.anchor == BrickAnchor::Right {
+                        max_right - right_edges[i]
+                    } else {
+                        0.0
+                    }
                 };
 
                 let row_base_off = |i: usize| -> f64 {
@@ -737,13 +1103,19 @@ impl Plot {
                     lo = lo.min(-left_len(i) - eff_off);
                     hi = hi.max(str_width(i) + right_len(i) - eff_off);
                 }
-                if !lo.is_finite() { lo = 0.0; }
-                if !hi.is_finite() { hi = 1.0; }
+                if !lo.is_finite() {
+                    lo = 0.0;
+                }
+                if !hi.is_finite() {
+                    hi = 1.0;
+                }
 
                 Some(((lo, hi), (0.0, rows as f64)))
             }
             Plot::Forest(fp) => {
-                if fp.rows.is_empty() { return None; }
+                if fp.rows.is_empty() {
+                    return None;
+                }
                 let n = fp.rows.len();
                 let y_min = 0.5;
                 let y_max = n as f64 + 0.5;
@@ -758,39 +1130,53 @@ impl Plot {
                     x_min = x_min.min(nv);
                     x_max = x_max.max(nv);
                 }
-                if !x_min.is_finite() { return None; }
+                if !x_min.is_finite() {
+                    return None;
+                }
                 Some(((x_min, x_max), (y_min, y_max)))
             }
-            Plot::Scatter3D(_) | Plot::Surface3D(_) => {
-                Some(((-1.0, 1.0), (-1.0, 1.0)))
-            }
+            Plot::Scatter3D(_) | Plot::Surface3D(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
             // Pixel-space plot — returns dummy bounds so Layout gets a valid range.
             Plot::Clustermap(_) => Some(((0.0, 1.0), (0.0, 1.0))),
             // Pixel-space composite plot; layout supplied internally via render_multiple.
             Plot::Joint(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
             Plot::Raincloud(r) => {
                 let n = r.groups.len();
-                if n == 0 { return None; }
-                let all_vals: Vec<f64> = r.groups.iter()
+                if n == 0 {
+                    return None;
+                }
+                let all_vals: Vec<f64> = r
+                    .groups
+                    .iter()
                     .flat_map(|g| g.values.iter().copied())
                     .collect();
-                if all_vals.is_empty() { return None; }
+                if all_vals.is_empty() {
+                    return None;
+                }
                 let y_min = all_vals.iter().cloned().fold(f64::INFINITY, f64::min);
                 let y_max = all_vals.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 let pad = (y_max - y_min) * 0.05 + 0.5;
                 Some(((0.5, n as f64 + 0.5), (y_min - pad, y_max + pad)))
             }
             Plot::Survival(sp) => {
-                if sp.groups.is_empty() { return None; }
-                let t_max = sp.groups.iter()
+                if sp.groups.is_empty() {
+                    return None;
+                }
+                let t_max = sp
+                    .groups
+                    .iter()
                     .flat_map(|g| g.times.iter().copied())
                     .fold(0.0_f64, f64::max);
-                if t_max <= 0.0 { return None; }
+                if t_max <= 0.0 {
+                    return None;
+                }
                 // y from 0 to 1 with small padding; x from 0 to t_max with padding
                 Some(((0.0, t_max), (0.0, 1.0)))
             }
             Plot::Lollipop(lp) => {
-                if lp.points.is_empty() { return None; }
+                if lp.points.is_empty() {
+                    return None;
+                }
                 let mut x_min = f64::INFINITY;
                 let mut x_max = f64::NEG_INFINITY;
                 let mut y_min = lp.baseline;
@@ -808,7 +1194,9 @@ impl Plot {
                 if !lp.domains.is_empty() {
                     y_min = y_min.min(lp.baseline - lp.domain_height);
                 }
-                if !x_min.is_finite() { return None; }
+                if !x_min.is_finite() {
+                    return None;
+                }
                 // Pad x so dots at x=0 aren't clipped by the left axis border.
                 let x_span = (x_max - x_min).max(1.0);
                 x_min -= x_span * 0.04;
@@ -819,14 +1207,18 @@ impl Plot {
             Plot::Pr(_) => Some(((0.0, 1.0), (0.0, 1.0))),
             Plot::Slope(s) => {
                 let n = s.points.len();
-                if n == 0 { return None; }
+                if n == 0 {
+                    return None;
+                }
                 let mut x_min = f64::INFINITY;
                 let mut x_max = f64::NEG_INFINITY;
                 for p in &s.points {
                     x_min = x_min.min(p.before).min(p.after);
                     x_max = x_max.max(p.before).max(p.after);
                 }
-                if !x_min.is_finite() { return None; }
+                if !x_min.is_finite() {
+                    return None;
+                }
                 let pad = (x_max - x_min) * 0.08 + 1e-9;
                 Some(((x_min - pad, x_max + pad), (0.5, n as f64 + 0.5)))
             }
@@ -837,7 +1229,9 @@ impl Plot {
             // Pixel-space plot — no axis bounds needed
             Plot::Mosaic(_) => None,
             Plot::Ecdf(ep) => {
-                if ep.groups.is_empty() { return None; }
+                if ep.groups.is_empty() {
+                    return None;
+                }
                 let mut x_min = f64::INFINITY;
                 let mut x_max = f64::NEG_INFINITY;
                 for group in &ep.groups {
@@ -846,17 +1240,23 @@ impl Plot {
                         x_max = x_max.max(v);
                     }
                 }
-                if !x_min.is_finite() { return None; }
+                if !x_min.is_finite() {
+                    return None;
+                }
                 Some(((x_min, x_max), (0.0, 1.0)))
             }
             Plot::QQ(qp) => {
                 use crate::plot::qq::QQMode;
                 use crate::render::render_utils::probit;
-                if qp.groups.is_empty() { return None; }
+                if qp.groups.is_empty() {
+                    return None;
+                }
                 match qp.mode {
                     QQMode::Normal => {
                         let n_max = qp.groups.iter().map(|g| g.data.len()).max().unwrap_or(0);
-                        if n_max == 0 { return None; }
+                        if n_max == 0 {
+                            return None;
+                        }
                         let th_min = probit(0.5 / n_max as f64);
                         let th_max = probit(1.0 - 0.5 / n_max as f64);
                         let mut y_min = f64::INFINITY;
@@ -867,12 +1267,16 @@ impl Plot {
                                 y_max = y_max.max(v);
                             }
                         }
-                        if !y_min.is_finite() { return None; }
+                        if !y_min.is_finite() {
+                            return None;
+                        }
                         Some(((th_min, th_max), (y_min, y_max)))
                     }
                     QQMode::Genomic => {
                         let n_max = qp.groups.iter().map(|g| g.data.len()).max().unwrap_or(0);
-                        if n_max == 0 { return None; }
+                        if n_max == 0 {
+                            return None;
+                        }
                         let x_max = (2.0 * n_max as f64).log10();
                         let mut y_max: f64 = 0.0;
                         for g in &qp.groups {
@@ -887,18 +1291,32 @@ impl Plot {
                 }
             }
             Plot::Hexbin(hb) => {
-                if hb.x.is_empty() { return None; }
-                let x0 = hb.x_range.map(|(lo, _)| lo).unwrap_or_else(|| hb.x.iter().cloned().fold(f64::INFINITY, f64::min));
-                let x1 = hb.x_range.map(|(_, hi)| hi).unwrap_or_else(|| hb.x.iter().cloned().fold(f64::NEG_INFINITY, f64::max));
-                let y0 = hb.y_range.map(|(lo, _)| lo).unwrap_or_else(|| hb.y.iter().cloned().fold(f64::INFINITY, f64::min));
-                let y1 = hb.y_range.map(|(_, hi)| hi).unwrap_or_else(|| hb.y.iter().cloned().fold(f64::NEG_INFINITY, f64::max));
+                if hb.x.is_empty() {
+                    return None;
+                }
+                let x0 = hb
+                    .x_range
+                    .map(|(lo, _)| lo)
+                    .unwrap_or_else(|| hb.x.iter().cloned().fold(f64::INFINITY, f64::min));
+                let x1 = hb
+                    .x_range
+                    .map(|(_, hi)| hi)
+                    .unwrap_or_else(|| hb.x.iter().cloned().fold(f64::NEG_INFINITY, f64::max));
+                let y0 = hb
+                    .y_range
+                    .map(|(lo, _)| lo)
+                    .unwrap_or_else(|| hb.y.iter().cloned().fold(f64::INFINITY, f64::min));
+                let y1 = hb
+                    .y_range
+                    .map(|(_, hi)| hi)
+                    .unwrap_or_else(|| hb.y.iter().cloned().fold(f64::NEG_INFINITY, f64::max));
                 Some(((x0, x1), (y0, y1)))
             }
             // Pixel-space plots — dummy bounds so auto_from_plots sees them
-            Plot::Treemap(_)  => Some(((-1.0, 1.0), (-1.0, 1.0))),
+            Plot::Treemap(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
             Plot::Sunburst(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
-            Plot::Funnel(_)   => Some(((-1.0, 1.0), (-1.0, 1.0))),
-            Plot::Rose(_)     => Some(((-1.0, 1.0), (-1.0, 1.0))),
+            Plot::Funnel(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
+            Plot::Rose(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
             Plot::Calendar(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
             Plot::Bump(bp) => {
                 let n = bp.total_series_count();
@@ -911,22 +1329,30 @@ impl Plot {
             }
             Plot::Pyramid(pp) => {
                 let n = pp.n_groups();
-                if n == 0 { return None; }
+                if n == 0 {
+                    return None;
+                }
                 let max_val = pp.max_value();
-                if max_val <= 0.0 { return None; }
+                if max_val <= 0.0 {
+                    return None;
+                }
                 Some(((-max_val, max_val), (0.5, n as f64 + 0.5)))
             }
             Plot::Waffle(_) => Some(((-1.0, 1.0), (-1.0, 1.0))),
             Plot::Horizon(hp) => {
                 let n = hp.series.len();
-                if n == 0 { return None; }
+                if n == 0 {
+                    return None;
+                }
                 let (x_min, x_max) = hp.x_range()?;
                 Some(((x_min, x_max), (0.5, n as f64 + 0.5)))
             }
             Plot::Gantt(gp) => {
                 let rows = gp.ordered_display_rows();
                 let n = rows.len();
-                if n == 0 { return None; }
+                if n == 0 {
+                    return None;
+                }
                 let (x_min, x_max) = gp.x_bounds()?;
                 Some(((x_min, x_max), (0.5, n as f64 + 0.5)))
             }
@@ -941,7 +1367,9 @@ impl Plot {
                 let x_min = sg.x.iter().cloned().fold(f64::INFINITY, f64::min);
                 let x_max = sg.x.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 let y_min = geom.baseline.iter().cloned().fold(f64::INFINITY, f64::min);
-                let y_max = geom.uppers.last()
+                let y_max = geom
+                    .uppers
+                    .last()
                     .map(|u| u.iter().cloned().fold(f64::NEG_INFINITY, f64::max))
                     .unwrap_or(0.0);
                 Some(((x_min, x_max), (y_min, y_max)))
@@ -955,7 +1383,15 @@ impl Plot {
         match self {
             Plot::Scatter(s) => {
                 let n = s.data.len();
-                let err = if s.data.iter().any(|p| p.x_err.is_some() || p.y_err.is_some()) { n * 3 } else { 0 };
+                let err = if s
+                    .data
+                    .iter()
+                    .any(|p| p.x_err.is_some() || p.y_err.is_some())
+                {
+                    n * 3
+                } else {
+                    0
+                };
                 n + err + 10
             }
             Plot::Line(l) => l.data.len() / 10 + 10,
@@ -970,7 +1406,11 @@ impl Plot {
             Plot::Bar(b) => b.groups.iter().map(|g| g.bars.len()).sum::<usize>() * 2 + 10,
             Plot::Histogram(h) => h.bins * 2 + 10,
             Plot::Brick(b) => {
-                let rows = if b.strigar_exp.is_some() { b.strigar_exp.as_ref().map_or(0, |e| e.len()) } else { b.sequences.len() };
+                let rows = if b.strigar_exp.is_some() {
+                    b.strigar_exp.as_ref().map_or(0, |e| e.len())
+                } else {
+                    b.sequences.len()
+                };
                 let avg_cols = b.sequences.first().map_or(10, |s| s.len());
                 rows * avg_cols + 10
             }
@@ -985,7 +1425,11 @@ impl Plot {
                 cells + 500
             }
             Plot::Joint(jp) => {
-                jp.groups.iter().map(|g| g.scatter.data.len() * 3 + 200).sum::<usize>() + 100
+                jp.groups
+                    .iter()
+                    .map(|g| g.scatter.data.len() * 3 + 200)
+                    .sum::<usize>()
+                    + 100
             }
             Plot::Raincloud(r) => {
                 let total_pts: usize = r.groups.iter().map(|g| g.values.len()).sum();
@@ -993,12 +1437,20 @@ impl Plot {
             }
             Plot::Survival(sp) => sp.groups.iter().map(|g| g.times.len() * 3 + 20).sum(),
             Plot::Lollipop(lp) => lp.points.len() * 2 + lp.domains.len() * 2 + 5,
-            Plot::Roc(r) => r.groups.iter().map(|g| {
-                g.raw_predictions.as_ref().map(|p| p.len()).unwrap_or(100) * 2 + 50
-            }).sum::<usize>() + 10,
-            Plot::Pr(r) => r.groups.iter().map(|g| {
-                g.raw_predictions.as_ref().map(|p| p.len()).unwrap_or(100) * 2 + 50
-            }).sum::<usize>() + 10,
+            Plot::Roc(r) => {
+                r.groups
+                    .iter()
+                    .map(|g| g.raw_predictions.as_ref().map(|p| p.len()).unwrap_or(100) * 2 + 50)
+                    .sum::<usize>()
+                    + 10
+            }
+            Plot::Pr(r) => {
+                r.groups
+                    .iter()
+                    .map(|g| g.raw_predictions.as_ref().map(|p| p.len()).unwrap_or(100) * 2 + 50)
+                    .sum::<usize>()
+                    + 10
+            }
             Plot::Slope(s) => s.points.len() * 5 + 10,
             Plot::Venn(v) => v.sets.len() * 10 + 50,
             Plot::Parallel(p) => p.rows.len() + p.axis_names.len() * 10 + 50,
@@ -1019,16 +1471,21 @@ impl Plot {
                 qp.groups.len() * 2 + n + band + 20
             }
             Plot::Network(n) => n.nodes.len() * 2 + n.edges.len() * 3 + 20,
-            Plot::Radar(r) => r.series.len() * (r.axes.len() + 2) + r.grid_lines * r.axes.len() + 30,
-            Plot::Streamgraph(sg) => {
-                sg.series.len() * (sg.x.len() * 3 + 2) + 20
+            Plot::Radar(r) => {
+                r.series.len() * (r.axes.len() + 2) + r.grid_lines * r.axes.len() + 30
             }
+            Plot::Streamgraph(sg) => sg.series.len() * (sg.x.len() * 3 + 2) + 20,
             Plot::Hexbin(hb) => hb.n_bins * hb.n_bins / 2,
             Plot::Treemap(tm) => tm.node_count() * 3 + 10,
             Plot::Sunburst(sb) => sb.node_count() * 2 + 10,
             Plot::Bump(bp) => bp.total_series_count() * bp.n_time_points() * 3 + 20,
             Plot::Funnel(fp) => fp.stage_count() * 6 + 20,
-            Plot::Rose(rp) => rp.n_sectors() * rp.series.len().max(1) * 2 + rp.grid_lines * 2 + rp.n_sectors() + 20,
+            Plot::Rose(rp) => {
+                rp.n_sectors() * rp.series.len().max(1) * 2
+                    + rp.grid_lines * 2
+                    + rp.n_sectors()
+                    + 20
+            }
             Plot::Calendar(cp) => cp.data.len() + 100,
             Plot::Pyramid(pp) => pp.series.len() * pp.n_groups() * 4 + 20,
             Plot::Waffle(wp) => wp.rows * wp.cols + 10,
@@ -1074,7 +1531,9 @@ impl Plot {
                         let mut k = 0u32;
                         loop {
                             let count = 10_f64.powi(k as i32);
-                            if count > max_count { break; }
+                            if count > max_count {
+                                break;
+                            }
                             let pos = (count + 1.0).log10();
                             v.push((pos, format!("{}", count as u64)));
                             k += 1;
@@ -1096,9 +1555,7 @@ impl Plot {
                     })
                 } else {
                     Some(ColorBarInfo {
-                        map_fn: Arc::new(move |t| {
-                            cmap.map((t / max_count).clamp(0.0, 1.0))
-                        }),
+                        map_fn: Arc::new(move |t| cmap.map((t / max_count).clamp(0.0, 1.0))),
                         min_value: 0.0,
                         max_value: max_count,
                         label: Some("Count".to_string()),
@@ -1137,9 +1594,13 @@ impl Plot {
                 })
             }
             Plot::Contour(cp) => {
-                if !cp.filled { return None; }
+                if !cp.filled {
+                    return None;
+                }
                 let (z_min, z_max) = cp.z_range();
-                if !z_min.is_finite() || !z_max.is_finite() { return None; }
+                if !z_min.is_finite() || !z_max.is_finite() {
+                    return None;
+                }
                 let cmap = cp.color_map.clone();
                 let label = cp.legend_label.clone();
                 Some(ColorBarInfo {
@@ -1155,7 +1616,9 @@ impl Plot {
             }
             Plot::Clustermap(cm) => {
                 let flat: Vec<f64> = cm.data.iter().flatten().cloned().collect();
-                if flat.is_empty() { return None; }
+                if flat.is_empty() {
+                    return None;
+                }
                 let min = flat.iter().cloned().fold(f64::INFINITY, f64::min);
                 let max = flat.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
                 let cmap = cm.color_map.clone();
@@ -1170,8 +1633,16 @@ impl Plot {
                     tick_labels: None,
                 })
             }
-            Plot::Surface3D(s) => colorbar_from_z(s.z_colormap.as_ref()?, s.data_ranges()?, s.box3d.z_label.clone()),
-            Plot::Scatter3D(s) => colorbar_from_z(s.z_colormap.as_ref()?, s.data_ranges()?, s.box3d.z_label.clone()),
+            Plot::Surface3D(s) => colorbar_from_z(
+                s.z_colormap.as_ref()?,
+                s.data_ranges()?,
+                s.box3d.z_label.clone(),
+            ),
+            Plot::Scatter3D(s) => colorbar_from_z(
+                s.z_colormap.as_ref()?,
+                s.data_ranges()?,
+                s.box3d.z_label.clone(),
+            ),
             // Hexbin draws its own colorbar inside add_hexbin (values are only known
             // after binning).  Return None here so the generic colorbar loop in
             // render_multiple does not attempt to draw a second, placeholder bar.

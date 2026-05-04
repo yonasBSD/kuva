@@ -1,8 +1,8 @@
-use kuva::plot::{UpSetPlot, UpSetSort};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{UpSetPlot, UpSetSort};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_upset_basic() {
@@ -28,7 +28,7 @@ fn test_upset_basic() {
 fn test_upset_four_sets() {
     let up = UpSetPlot::new().with_sets(vec![
         ("Alpha", vec![1u32, 2, 3, 4, 5, 6]),
-        ("Beta",  vec![3, 4, 5, 6, 7, 8]),
+        ("Beta", vec![3, 4, 5, 6, 7, 8]),
         ("Gamma", vec![5, 6, 7, 8, 9, 10]),
         ("Delta", vec![1, 5, 9, 11, 12]),
     ]);
@@ -125,9 +125,9 @@ fn test_upset_max_visible() {
 fn test_upset_no_set_sizes() {
     let up = UpSetPlot::new()
         .with_sets(vec![
-            ("Genes up",   vec!["BRCA1", "TP53", "EGFR", "MYC"]),
+            ("Genes up", vec!["BRCA1", "TP53", "EGFR", "MYC"]),
             ("Genes down", vec!["BRCA1", "CDKN2A", "RB1"]),
-            ("Mutated",    vec!["TP53", "EGFR", "RB1", "PTEN"]),
+            ("Mutated", vec!["TP53", "EGFR", "RB1", "PTEN"]),
         ])
         .without_set_sizes();
 
@@ -150,7 +150,7 @@ fn test_upset_custom_colors() {
         .with_sets(vec![
             ("Treatment A", vec![1u32, 2, 3, 4, 5]),
             ("Treatment B", vec![3, 4, 5, 6, 7]),
-            ("Control",     vec![5, 6, 7, 8]),
+            ("Control", vec![5, 6, 7, 8]),
         ])
         .with_bar_color("#2563eb")
         .with_dot_color("#1e3a8a");
@@ -195,7 +195,13 @@ fn test_upset_natural_sort() {
         .with_data(
             vec!["P", "Q", "R"],
             vec![30usize, 25, 20],
-            vec![(0b001u64, 5), (0b010, 8), (0b100, 3), (0b011, 12), (0b111, 7)],
+            vec![
+                (0b001u64, 5),
+                (0b010, 8),
+                (0b100, 3),
+                (0b011, 12),
+                (0b111, 7),
+            ],
         )
         .with_sort(UpSetSort::Natural);
 
@@ -215,7 +221,7 @@ fn test_upset_large() {
     // 5 sets constructed so every non-empty bitmask has exactly one representative element.
     // Element i (1..=31) belongs to set j iff bit j is set in i.
     // This guarantees all 31 non-empty intersections are populated.
-    let set_a: Vec<u32> = (1u32..32).filter(|i| i & 1 != 0).collect();  // 16 elements
+    let set_a: Vec<u32> = (1u32..32).filter(|i| i & 1 != 0).collect(); // 16 elements
     let set_b: Vec<u32> = (1u32..32).filter(|i| i & 2 != 0).collect();
     let set_c: Vec<u32> = (1u32..32).filter(|i| i & 4 != 0).collect();
     let set_d: Vec<u32> = (1u32..32).filter(|i| i & 8 != 0).collect();
@@ -250,14 +256,10 @@ fn test_upset_large() {
 
 #[test]
 fn test_upset_title_and_labels() {
-    let up = UpSetPlot::new().with_sets(vec![
-        ("A", vec![1u32, 2, 3]),
-        ("B", vec![2u32, 3, 4]),
-    ]);
+    let up = UpSetPlot::new().with_sets(vec![("A", vec![1u32, 2, 3]), ("B", vec![2u32, 3, 4])]);
 
     let plots = vec![Plot::UpSet(up)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("UpSet With Title");
+    let layout = Layout::auto_from_plots(&plots).with_title("UpSet With Title");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);

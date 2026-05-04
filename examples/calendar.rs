@@ -1,9 +1,9 @@
 //! Calendar heatmap documentation examples.
-use kuva::plot::calendar::{CalendarPlot, CalendarAgg, WeekStart};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_calendar;
+use kuva::plot::calendar::{CalendarAgg, CalendarPlot, WeekStart};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_calendar;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/calendar";
@@ -62,7 +62,9 @@ fn main() {
     for (mi, &days) in days_per_month.iter().enumerate() {
         let m = mi as u32 + 1;
         for d in 1..=days {
-            if (m + d) % 5 == 0 { continue; }
+            if (m + d) % 5 == 0 {
+                continue;
+            }
             let val = ((m * 7 + d * 3) % 15 + 1) as f64;
             data2.push((format!("2024-{m:02}-{d:02}"), val));
         }
@@ -77,10 +79,28 @@ fn main() {
 
     // financial_year — Australian FY Jul 2023 – Jun 2024
     let mut fy_data_vec = Vec::new();
-    for m in 7u32..=9  { for d in [5, 12, 19, 26] { fy_data_vec.push((format!("2023-{m:02}-{d:02}"), (m * d) as f64 % 8.0 + 1.0)); } }
-    for m in 10u32..=12 { for d in [3, 10, 17, 24] { fy_data_vec.push((format!("2023-{m:02}-{d:02}"), (m + d) as f64 % 6.0 + 2.0)); } }
-    for m in 1u32..=3  { for d in [8, 15, 22, 29] { fy_data_vec.push((format!("2024-{m:02}-{d:02}"), (m * d) as f64 % 9.0 + 1.0)); } }
-    for m in 4u32..=6  { for d in [1u32, 8, 15, 22, 29] { if d <= 30 { fy_data_vec.push((format!("2024-{m:02}-{d:02}"), (m + d) as f64 % 7.0 + 1.0)); } } }
+    for m in 7u32..=9 {
+        for d in [5, 12, 19, 26] {
+            fy_data_vec.push((format!("2023-{m:02}-{d:02}"), (m * d) as f64 % 8.0 + 1.0));
+        }
+    }
+    for m in 10u32..=12 {
+        for d in [3, 10, 17, 24] {
+            fy_data_vec.push((format!("2023-{m:02}-{d:02}"), (m + d) as f64 % 6.0 + 2.0));
+        }
+    }
+    for m in 1u32..=3 {
+        for d in [8, 15, 22, 29] {
+            fy_data_vec.push((format!("2024-{m:02}-{d:02}"), (m * d) as f64 % 9.0 + 1.0));
+        }
+    }
+    for m in 4u32..=6 {
+        for d in [1u32, 8, 15, 22, 29] {
+            if d <= 30 {
+                fy_data_vec.push((format!("2024-{m:02}-{d:02}"), (m + d) as f64 % 7.0 + 1.0));
+            }
+        }
+    }
 
     let plot = CalendarPlot::new()
         .with_data(fy_data_vec)
@@ -94,12 +114,18 @@ fn main() {
         let mut v = Vec::new();
         for m in 7u32..=12 {
             for d in (1u32..=28).step_by(4) {
-                v.push((format!("{cal_year}-{m:02}-{d:02}"), (m + d) as f64 % 7.0 + 1.0));
+                v.push((
+                    format!("{cal_year}-{m:02}-{d:02}"),
+                    (m + d) as f64 % 7.0 + 1.0,
+                ));
             }
         }
         for m in 1u32..=6 {
             for d in (1u32..=28).step_by(4) {
-                v.push((format!("{next_cal_year}-{m:02}-{d:02}"), (m * d) as f64 % 8.0 + 1.0));
+                v.push((
+                    format!("{next_cal_year}-{m:02}-{d:02}"),
+                    (m * d) as f64 % 8.0 + 1.0,
+                ));
             }
         }
         v

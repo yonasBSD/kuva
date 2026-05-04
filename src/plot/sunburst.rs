@@ -78,7 +78,9 @@ pub struct SunburstPlot {
 }
 
 impl Default for SunburstPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SunburstPlot {
@@ -206,11 +208,21 @@ impl SunburstPlot {
     /// Maximum tree depth (root = 0).
     pub(crate) fn max_tree_depth(&self) -> usize {
         fn depth(nodes: &[TreemapNode], d: usize) -> usize {
-            nodes.iter().map(|n| {
-                if n.children.is_empty() { d } else { depth(&n.children, d + 1) }
-            }).max().unwrap_or(d)
+            nodes
+                .iter()
+                .map(|n| {
+                    if n.children.is_empty() {
+                        d
+                    } else {
+                        depth(&n.children, d + 1)
+                    }
+                })
+                .max()
+                .unwrap_or(d)
         }
-        if self.roots.is_empty() { return 0; }
+        if self.roots.is_empty() {
+            return 0;
+        }
         depth(&self.roots, 0)
     }
 }

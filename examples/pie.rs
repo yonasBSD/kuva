@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/pie/`.
 
-use kuva::plot::{PiePlot, PieLabelPosition};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::{render_pie, render_multiple};
+use kuva::plot::{PieLabelPosition, PiePlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::{render_multiple, render_pie};
 
 const OUT: &str = "docs/src/assets/pie";
 
@@ -32,10 +32,10 @@ fn main() {
 /// Simple pie chart — four slices, default Auto label positioning.
 fn basic() {
     let pie = PiePlot::new()
-        .with_slice("Rust",   40.0, "steelblue")
+        .with_slice("Rust", 40.0, "steelblue")
         .with_slice("Python", 30.0, "tomato")
-        .with_slice("R",      20.0, "seagreen")
-        .with_slice("Other",  10.0, "gold");
+        .with_slice("R", 20.0, "seagreen")
+        .with_slice("Other", 10.0, "gold");
 
     let plots = vec![Plot::Pie(pie.clone())];
     let layout = Layout::auto_from_plots(&plots).with_title("Pie Chart");
@@ -47,10 +47,10 @@ fn basic() {
 /// Donut chart — same slices with a hollow center.
 fn donut() {
     let pie = PiePlot::new()
-        .with_slice("Rust",   40.0, "steelblue")
+        .with_slice("Rust", 40.0, "steelblue")
         .with_slice("Python", 30.0, "tomato")
-        .with_slice("R",      20.0, "seagreen")
-        .with_slice("Other",  10.0, "gold")
+        .with_slice("R", 20.0, "seagreen")
+        .with_slice("Other", 10.0, "gold")
         .with_inner_radius(60.0);
 
     let plots = vec![Plot::Pie(pie.clone())];
@@ -63,10 +63,10 @@ fn donut() {
 /// Percentage labels — appends the percentage to each slice label.
 fn percent() {
     let pie = PiePlot::new()
-        .with_slice("Rust",   40.0, "steelblue")
+        .with_slice("Rust", 40.0, "steelblue")
         .with_slice("Python", 30.0, "tomato")
-        .with_slice("R",      20.0, "seagreen")
-        .with_slice("Other",  10.0, "gold")
+        .with_slice("R", 20.0, "seagreen")
+        .with_slice("Other", 10.0, "gold")
         .with_percent();
 
     let plots = vec![Plot::Pie(pie.clone())];
@@ -79,12 +79,12 @@ fn percent() {
 /// Outside labels — explicit leader lines, useful when slices vary widely in size.
 fn outside_labels() {
     let pie = PiePlot::new()
-        .with_slice("Apples",  30.0, "seagreen")
+        .with_slice("Apples", 30.0, "seagreen")
         .with_slice("Oranges", 25.0, "darkorange")
         .with_slice("Bananas", 20.0, "gold")
-        .with_slice("Grapes",  12.0, "mediumpurple")
-        .with_slice("Mango",    8.0, "coral")
-        .with_slice("Kiwi",     5.0, "olivedrab")
+        .with_slice("Grapes", 12.0, "mediumpurple")
+        .with_slice("Mango", 8.0, "coral")
+        .with_slice("Kiwi", 5.0, "olivedrab")
         .with_label_position(PieLabelPosition::Outside);
 
     let plots = vec![Plot::Pie(pie.clone())];
@@ -97,9 +97,9 @@ fn outside_labels() {
 /// Legend instead of slice labels — use render_multiple so the legend renders.
 fn legend() {
     let pie = PiePlot::new()
-        .with_slice("Apples",  40.0, "seagreen")
+        .with_slice("Apples", 40.0, "seagreen")
         .with_slice("Oranges", 35.0, "darkorange")
-        .with_slice("Grapes",  25.0, "mediumpurple")
+        .with_slice("Grapes", 25.0, "mediumpurple")
         .with_legend("Fruit")
         .with_percent()
         .with_label_position(PieLabelPosition::None);

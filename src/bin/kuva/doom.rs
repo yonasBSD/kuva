@@ -2,8 +2,8 @@ use clap::Args;
 
 // Assets compiled in at build time by build.rs (only present with --features doom).
 const DOOM_WASM: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/doom.wasm"));
-const DOOM_WAD:  &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/doom1.wad"));
-const DOOM_JS:   &str  = include_str!(concat!(env!("OUT_DIR"), "/doom.js"));
+const DOOM_WAD: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/doom1.wad"));
+const DOOM_JS: &str = include_str!(concat!(env!("OUT_DIR"), "/doom.js"));
 
 /// Generate a self-contained DOOM SVG playable in any browser.
 #[derive(Args, Debug)]
@@ -17,8 +17,11 @@ pub fn run(args: DoomArgs) -> Result<(), String> {
     let svg = generate_svg(DOOM_WAD, DOOM_WASM, DOOM_JS);
     std::fs::write(&args.output, &svg)
         .map_err(|e| format!("failed to write {}: {e}", args.output))?;
-    eprintln!("wrote {} ({:.1} MB) — open in any browser to play",
-        args.output, svg.len() as f64 / 1_048_576.0);
+    eprintln!(
+        "wrote {} ({:.1} MB) — open in any browser to play",
+        args.output,
+        svg.len() as f64 / 1_048_576.0
+    );
     Ok(())
 }
 
@@ -27,25 +30,41 @@ fn base64_encode(bytes: &[u8]) -> String {
     let mut out = String::with_capacity((bytes.len() + 2) / 3 * 4);
     for chunk in bytes.chunks(3) {
         let b0 = chunk[0] as usize;
-        let b1 = if chunk.len() > 1 { chunk[1] as usize } else { 0 };
-        let b2 = if chunk.len() > 2 { chunk[2] as usize } else { 0 };
+        let b1 = if chunk.len() > 1 {
+            chunk[1] as usize
+        } else {
+            0
+        };
+        let b2 = if chunk.len() > 2 {
+            chunk[2] as usize
+        } else {
+            0
+        };
         out.push(CHARS[b0 >> 2] as char);
         out.push(CHARS[((b0 & 3) << 4) | (b1 >> 4)] as char);
-        out.push(if chunk.len() > 1 { CHARS[((b1 & 0xf) << 2) | (b2 >> 6)] as char } else { '=' });
-        out.push(if chunk.len() > 2 { CHARS[b2 & 0x3f] as char } else { '=' });
+        out.push(if chunk.len() > 1 {
+            CHARS[((b1 & 0xf) << 2) | (b2 >> 6)] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            CHARS[b2 & 0x3f] as char
+        } else {
+            '='
+        });
     }
     out
 }
 
 fn generate_svg(wad: &[u8], wasm: &[u8], doom_js: &str) -> String {
-    let wad_b64  = base64_encode(wad);
+    let wad_b64 = base64_encode(wad);
     let wasm_b64 = base64_encode(wasm);
 
     // Escape any </script> occurrences in the Emscripten glue so they don't
     // terminate the enclosing <script> tag prematurely.
     let doom_js_safe = doom_js
         .replace("</script", "<\\/script")
-        .replace("]]>", "]] >");  // prevent premature CDATA close
+        .replace("]]>", "]] >"); // prevent premature CDATA close
 
     // Capacity estimate: base64 + JS + ~2 KB template.
     let cap = wad_b64.len() + wasm_b64.len() + doom_js_safe.len() + 2048;

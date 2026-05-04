@@ -1,12 +1,12 @@
 use clap::Args;
 
-use kuva::plot::network::{NetworkPlot, NetworkLayout};
+use kuva::plot::network::{NetworkLayout, NetworkPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Network / graph diagram from an edge list or adjacency matrix.
@@ -77,20 +77,40 @@ pub fn run(args: NetworkArgs) -> Result<(), String> {
 
     let mut plot = NetworkPlot::new();
 
-    if args.directed { plot = plot.with_directed(); }
-    if args.labels { plot = plot.with_labels(); }
-    if args.repel_labels { plot = plot.with_repel_labels(); }
+    if args.directed {
+        plot = plot.with_directed();
+    }
+    if args.labels {
+        plot = plot.with_labels();
+    }
+    if args.repel_labels {
+        plot = plot.with_repel_labels();
+    }
 
     match args.layout.as_str() {
         "force" => {}
-        "kk" | "kamada-kawai" => { plot = plot.with_layout(NetworkLayout::KamadaKawai); }
-        "circle" => { plot = plot.with_layout(NetworkLayout::Circle); }
-        other => return Err(format!("unknown layout '{other}'; expected 'force', 'kk', or 'circle'")),
+        "kk" | "kamada-kawai" => {
+            plot = plot.with_layout(NetworkLayout::KamadaKawai);
+        }
+        "circle" => {
+            plot = plot.with_layout(NetworkLayout::Circle);
+        }
+        other => {
+            return Err(format!(
+                "unknown layout '{other}'; expected 'force', 'kk', or 'circle'"
+            ))
+        }
     }
 
-    if let Some(r) = args.node_radius { plot = plot.with_node_radius(r); }
-    if let Some(op) = args.opacity { plot = plot.with_edge_opacity(op); }
-    if let Some(ref l) = args.legend { plot = plot.with_legend(l.clone()); }
+    if let Some(r) = args.node_radius {
+        plot = plot.with_node_radius(r);
+    }
+    if let Some(op) = args.opacity {
+        plot = plot.with_edge_opacity(op);
+    }
+    if let Some(ref l) = args.legend {
+        plot = plot.with_legend(l.clone());
+    }
 
     if args.matrix {
         // ── Adjacency matrix mode ─────────────────────────────────────
@@ -103,13 +123,22 @@ pub fn run(args: NetworkArgs) -> Result<(), String> {
             table.rows.iter().map(|r| r[0].clone()).collect()
         };
 
-        let matrix: Vec<Vec<f64>> = table.rows.iter().enumerate().map(|(r, row)| {
-            row[1..].iter().enumerate().map(|(c, cell)| {
-                cell.trim().parse::<f64>().map_err(|_| {
-                    format!("row {r}, col {}: '{}' is not a number", c + 1, cell)
-                })
-            }).collect::<Result<Vec<f64>, String>>()
-        }).collect::<Result<Vec<_>, _>>()?;
+        let matrix: Vec<Vec<f64>> = table
+            .rows
+            .iter()
+            .enumerate()
+            .map(|(r, row)| {
+                row[1..]
+                    .iter()
+                    .enumerate()
+                    .map(|(c, cell)| {
+                        cell.trim().parse::<f64>().map_err(|_| {
+                            format!("row {r}, col {}: '{}' is not a number", c + 1, cell)
+                        })
+                    })
+                    .collect::<Result<Vec<f64>, String>>()
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
         plot = plot.with_matrix(matrix, labels);
     } else {

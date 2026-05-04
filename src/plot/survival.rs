@@ -56,7 +56,9 @@ pub struct SurvivalPlot {
 }
 
 impl Default for SurvivalPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SurvivalPlot {
@@ -85,7 +87,12 @@ impl SurvivalPlot {
         times: Vec<f64>,
         events: Vec<bool>,
     ) -> Self {
-        self.groups.push(KMGroup { label: label.into(), times, events, color: None });
+        self.groups.push(KMGroup {
+            label: label.into(),
+            times,
+            events,
+            color: None,
+        });
         self
     }
 
@@ -97,7 +104,12 @@ impl SurvivalPlot {
         events: Vec<bool>,
         color: impl Into<String>,
     ) -> Self {
-        self.groups.push(KMGroup { label: label.into(), times, events, color: Some(color.into()) });
+        self.groups.push(KMGroup {
+            label: label.into(),
+            times,
+            events,
+            color: Some(color.into()),
+        });
         self
     }
 
@@ -108,7 +120,10 @@ impl SurvivalPlot {
     }
 
     /// Set per-group colors (indexed by group order). Falls back to category10.
-    pub fn with_group_colors(mut self, colors: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_group_colors(
+        mut self,
+        colors: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.group_colors = Some(colors.into_iter().map(|c| c.into()).collect());
         self
     }
@@ -172,8 +187,15 @@ pub(crate) struct KMPoint {
 ///
 /// Returns a sorted list of `KMPoint` starting at `(0, 1, 1, 1)`.
 pub(crate) fn km_curve(times: &[f64], events: &[bool]) -> Vec<KMPoint> {
-    let mut result = vec![KMPoint { t: 0.0, s: 1.0, lo: 1.0, hi: 1.0 }];
-    if times.is_empty() { return result; }
+    let mut result = vec![KMPoint {
+        t: 0.0,
+        s: 1.0,
+        lo: 1.0,
+        hi: 1.0,
+    }];
+    if times.is_empty() {
+        return result;
+    }
 
     let mut pairs: Vec<(f64, bool)> = times.iter().zip(events).map(|(&t, &e)| (t, e)).collect();
     pairs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
@@ -187,7 +209,9 @@ pub(crate) fn km_curve(times: &[f64], events: &[bool]) -> Vec<KMPoint> {
     while i < n_total {
         let t = pairs[i].0;
         let mut j = i;
-        while j < n_total && pairs[j].0 == t { j += 1; }
+        while j < n_total && pairs[j].0 == t {
+            j += 1;
+        }
 
         let n_events = pairs[i..j].iter().filter(|&&(_, e)| e).count();
 
@@ -216,14 +240,12 @@ pub(crate) fn km_curve(times: &[f64], events: &[bool]) -> Vec<KMPoint> {
 
 /// Return (time, survival_at_t) for each censored observation, using the
 /// last KM step at or before `t_censor`.
-pub(crate) fn censoring_levels(
-    times: &[f64],
-    events: &[bool],
-    km: &[KMPoint],
-) -> Vec<(f64, f64)> {
+pub(crate) fn censoring_levels(times: &[f64], events: &[bool], km: &[KMPoint]) -> Vec<(f64, f64)> {
     let mut out = Vec::new();
     for (&t, &ev) in times.iter().zip(events) {
-        if ev { continue; }
+        if ev {
+            continue;
+        }
         // Find survival at t: last KM point with km.t <= t
         let s = km.iter().rev().find(|p| p.t <= t).map_or(1.0, |p| p.s);
         out.push((t, s));

@@ -9,12 +9,12 @@
 //!
 //! SVGs are written to `docs/src/assets/surface3d/`.
 
-use kuva::plot::surface3d::Surface3DPlot;
-use kuva::plot::heatmap::ColorMap;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::heatmap::ColorMap;
+use kuva::plot::surface3d::Surface3DPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/surface3d";
@@ -28,13 +28,17 @@ fn write(name: &str, plots: Vec<Plot>, layout: Layout) {
 fn main() {
     // ── Paraboloid ─────────────────────────────────────────────────────────
     let n = 25;
-    let z_data: Vec<Vec<f64>> = (0..n).map(|i| {
-        (0..n).map(|j| {
-            let x = (i as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
-            let y = (j as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
-            x * x + y * y
-        }).collect()
-    }).collect();
+    let z_data: Vec<Vec<f64>> = (0..n)
+        .map(|i| {
+            (0..n)
+                .map(|j| {
+                    let x = (i as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
+                    let y = (j as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
+                    x * x + y * y
+                })
+                .collect()
+        })
+        .collect();
 
     let surface = Surface3DPlot::new(z_data)
         .with_z_colormap(ColorMap::Viridis)
@@ -48,13 +52,17 @@ fn main() {
 
     // ── Wave ───────────────────────────────────────────────────────────────
     let n = 30;
-    let z_data: Vec<Vec<f64>> = (0..n).map(|i| {
-        (0..n).map(|j| {
-            let x = i as f64 * 0.3;
-            let y = j as f64 * 0.3;
-            (x.sin() + y.cos()) * 2.0
-        }).collect()
-    }).collect();
+    let z_data: Vec<Vec<f64>> = (0..n)
+        .map(|i| {
+            (0..n)
+                .map(|j| {
+                    let x = i as f64 * 0.3;
+                    let y = j as f64 * 0.3;
+                    (x.sin() + y.cos()) * 2.0
+                })
+                .collect()
+        })
+        .collect();
 
     let surface = Surface3DPlot::new(z_data)
         .with_z_colormap(ColorMap::Inferno)

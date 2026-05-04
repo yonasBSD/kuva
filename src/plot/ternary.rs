@@ -82,12 +82,23 @@ impl TernaryPlot {
 
     /// Add a single ungrouped point.
     pub fn with_point(mut self, a: impl Into<f64>, b: impl Into<f64>, c: impl Into<f64>) -> Self {
-        self.points.push(TernaryPoint { a: a.into(), b: b.into(), c: c.into(), group: None });
+        self.points.push(TernaryPoint {
+            a: a.into(),
+            b: b.into(),
+            c: c.into(),
+            group: None,
+        });
         self
     }
 
     /// Add a single point with a group label.
-    pub fn with_point_group<S: Into<String>>(mut self, a: impl Into<f64>, b: impl Into<f64>, c: impl Into<f64>, group: S) -> Self {
+    pub fn with_point_group<S: Into<String>>(
+        mut self,
+        a: impl Into<f64>,
+        b: impl Into<f64>,
+        c: impl Into<f64>,
+        group: S,
+    ) -> Self {
         self.points.push(TernaryPoint {
             a: a.into(),
             b: b.into(),
@@ -106,7 +117,12 @@ impl TernaryPlot {
         I: IntoIterator<Item = (A, B, C)>,
     {
         for (a, b, c) in pts {
-            self.points.push(TernaryPoint { a: a.into(), b: b.into(), c: c.into(), group: None });
+            self.points.push(TernaryPoint {
+                a: a.into(),
+                b: b.into(),
+                c: c.into(),
+                group: None,
+            });
         }
         self
     }
@@ -181,7 +197,10 @@ impl TernaryPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

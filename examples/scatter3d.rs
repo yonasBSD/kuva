@@ -9,12 +9,12 @@
 //!
 //! SVGs are written to `docs/src/assets/scatter3d/`.
 
-use kuva::plot::scatter3d::Scatter3DPlot;
-use kuva::plot::heatmap::ColorMap;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::heatmap::ColorMap;
+use kuva::plot::scatter3d::Scatter3DPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/scatter3d";

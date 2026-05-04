@@ -1,9 +1,9 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::clustermap::{AnnotationTrack, Clustermap, ClustermapNorm};
 use kuva::plot::{ColorMap, PhyloTree};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use std::fs;
 
 fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) {
@@ -138,9 +138,9 @@ fn test_clustermap_with_both_annotations() {
 fn test_clustermap_zscore_row() {
     let data = vec![
         vec![100.0, 0.5, 0.3, 0.1, 90.0],
-        vec![0.2,  50.0, 0.1, 0.4, 0.3],
-        vec![0.1,  45.0, 0.2, 0.5, 0.1],
-        vec![0.3,  0.1, 80.0, 0.2, 0.2],
+        vec![0.2, 50.0, 0.1, 0.4, 0.3],
+        vec![0.1, 45.0, 0.2, 0.5, 0.1],
+        vec![0.3, 0.1, 80.0, 0.2, 0.2],
         vec![95.0, 0.2, 0.1, 0.3, 88.0],
     ];
     let cm = Clustermap::new()
@@ -158,9 +158,9 @@ fn test_clustermap_zscore_row() {
 fn test_clustermap_zscore_col() {
     let data = vec![
         vec![100.0, 0.5, 0.3, 0.1, 90.0],
-        vec![0.2,  50.0, 0.1, 0.4, 0.3],
-        vec![0.1,  45.0, 0.2, 0.5, 0.1],
-        vec![0.3,  0.1, 80.0, 0.2, 0.2],
+        vec![0.2, 50.0, 0.1, 0.4, 0.3],
+        vec![0.1, 45.0, 0.2, 0.5, 0.1],
+        vec![0.3, 0.1, 80.0, 0.2, 0.2],
         vec![95.0, 0.2, 0.1, 0.3, 88.0],
     ];
     let cm = Clustermap::new()
@@ -196,18 +196,28 @@ fn test_clustermap_pretrained_tree() {
 fn test_clustermap_gene_expression() {
     // 20 genes × 6 samples — biologically realistic layout
     let genes = [
-        "GAPDH", "ACTB", "TP53", "BRCA1", "MYC", "EGFR",
-        "VEGF", "IL6", "TNF", "IFNG", "CD3D", "CD8A",
-        "CD4", "FOXP3", "GZMB", "PRF1", "IL2", "IL10",
-        "TGFB1", "CTLA4",
+        "GAPDH", "ACTB", "TP53", "BRCA1", "MYC", "EGFR", "VEGF", "IL6", "TNF", "IFNG", "CD3D",
+        "CD8A", "CD4", "FOXP3", "GZMB", "PRF1", "IL2", "IL10", "TGFB1", "CTLA4",
     ];
     let samples = ["S1", "S2", "S3", "S4", "S5", "S6"];
 
     // Structured block pattern: genes 0-5 high in S1-S3, genes 6-12 high in S4-S6
     let mut data = vec![vec![0.1f64; 6]; 20];
-    for i in 0..6  { for j in 0..3 { data[i][j] = 8.0 + (i + j) as f64 * 0.2; } }
-    for i in 6..13 { for j in 3..6 { data[i][j] = 7.0 + (i + j) as f64 * 0.1; } }
-    for i in 13..20 { for j in 0..6 { data[i][j] = 3.0 + (i * j) as f64 * 0.05; } }
+    for i in 0..6 {
+        for j in 0..3 {
+            data[i][j] = 8.0 + (i + j) as f64 * 0.2;
+        }
+    }
+    for i in 6..13 {
+        for j in 3..6 {
+            data[i][j] = 7.0 + (i + j) as f64 * 0.1;
+        }
+    }
+    for i in 13..20 {
+        for j in 0..6 {
+            data[i][j] = 3.0 + (i * j) as f64 * 0.05;
+        }
+    }
 
     let cm = Clustermap::new()
         .with_data(data)
@@ -225,8 +235,8 @@ fn test_clustermap_gene_expression() {
 
 #[test]
 fn test_clustermap_large() {
-    use rand::{Rng, SeedableRng};
     use rand::rngs::StdRng;
+    use rand::{Rng, SeedableRng};
     let mut rng = StdRng::seed_from_u64(42);
     let n = 30;
     // Block-structured so clustering produces visible groups
@@ -274,9 +284,7 @@ fn test_clustermap_inferno() {
 #[test]
 fn test_clustermap_no_labels() {
     let data = make_data_5x5();
-    let cm = Clustermap::new()
-        .with_data(data)
-        .with_legend("Value");
+    let cm = Clustermap::new().with_data(data).with_legend("Value");
     let plots = vec![Plot::Clustermap(cm)];
     let layout = Layout::auto_from_plots(&plots).with_title("Clustermap No Labels");
     write_svg("clustermap_no_labels", plots, layout);
@@ -328,7 +336,7 @@ fn test_clustermap_equal_distance_dendrogram() {
         .with_col_labels(["c1", "c2", "c3", "c4", "c5"])
         .with_legend("Value");
     let plots = vec![Plot::Clustermap(cm)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Equal-distance dendrogram (issue #59)");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("Equal-distance dendrogram (issue #59)");
     write_svg("clustermap_equal_distance", plots, layout);
 }

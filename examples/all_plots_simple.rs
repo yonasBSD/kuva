@@ -7,27 +7,22 @@
 //!
 //! Output: docs/src/assets/overview/all_plots_simple.svg
 
-use kuva::plot::{
-    ScatterPlot, LinePlot, BarPlot, Histogram, Histogram2D,
-    BoxPlot, ViolinPlot, StripPlot, WaterfallPlot, StackedAreaPlot,
-    PiePlot, PieLabelPosition, SeriesPlot, Heatmap,
-    DotPlot, VolcanoPlot, ManhattanPlot, CandlestickPlot, ContourPlot,
-    UpSetPlot, ChordPlot, SankeyPlot, PhyloTree, SyntenyPlot, BrickPlot,
-    DensityPlot, RidgelinePlot, PolarPlot, PolarMode, TernaryPlot, ForestPlot,
-    RocPlot, RocGroup,
-    DicePlot, RaincloudPlot, LollipopPlot, SurvivalPlot, Clustermap,
-    JointPlot,
-    HexbinPlot, StreamgraphPlot, NetworkPlot, TreemapPlot, TreemapNode,
-    EcdfPlot, PrPlot, PrGroup, WafflePlot, HorizonPlot, PopulationPyramid,
-    MosaicPlot, SlopePlot, VennPlot, ParallelPlot, RadarPlot, RosePlot,
-    SunburstPlot, BumpPlot, QQPlot, Scatter3DPlot, Surface3DPlot,
-    CalendarPlot, FunnelPlot, GanttPlot,
-};
-use kuva::plot::brick::BrickTemplate;
-use kuva::render::plots::Plot;
-use kuva::render::layout::Layout;
-use kuva::render::figure::Figure;
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::brick::BrickTemplate;
+use kuva::plot::{
+    BarPlot, BoxPlot, BrickPlot, BumpPlot, CalendarPlot, CandlestickPlot, ChordPlot, Clustermap,
+    ContourPlot, DensityPlot, DicePlot, DotPlot, EcdfPlot, ForestPlot, FunnelPlot, GanttPlot,
+    Heatmap, HexbinPlot, Histogram, Histogram2D, HorizonPlot, JointPlot, LinePlot, LollipopPlot,
+    ManhattanPlot, MosaicPlot, NetworkPlot, ParallelPlot, PhyloTree, PieLabelPosition, PiePlot,
+    PolarMode, PolarPlot, PopulationPyramid, PrGroup, PrPlot, QQPlot, RadarPlot, RaincloudPlot,
+    RidgelinePlot, RocGroup, RocPlot, RosePlot, SankeyPlot, Scatter3DPlot, ScatterPlot, SeriesPlot,
+    SlopePlot, StackedAreaPlot, StreamgraphPlot, StripPlot, SunburstPlot, Surface3DPlot,
+    SurvivalPlot, SyntenyPlot, TernaryPlot, TreemapNode, TreemapPlot, UpSetPlot, VennPlot,
+    ViolinPlot, VolcanoPlot, WafflePlot, WaterfallPlot,
+};
+use kuva::render::figure::Figure;
+use kuva::render::layout::Layout;
+use kuva::render::plots::Plot;
 
 fn main() {
     // ── Row 0: Scatter, Line, Bar, Histogram, Histogram2D, Hexbin ────────────
@@ -36,17 +31,13 @@ fn main() {
     let pts: Vec<(f64, f64)> = (0..30)
         .map(|i| (i as f64, (i as f64 * 0.3).sin()))
         .collect();
-    let scatter = ScatterPlot::new()
-        .with_data(pts)
-        .with_color("steelblue");
+    let scatter = ScatterPlot::new().with_data(pts).with_color("steelblue");
 
     // 1: Line
     let pts: Vec<(f64, f64)> = (0..30)
         .map(|i| (i as f64, (i as f64 * 0.3).cos()))
         .collect();
-    let line = LinePlot::new()
-        .with_data(pts)
-        .with_color("firebrick");
+    let line = LinePlot::new().with_data(pts).with_color("firebrick");
 
     // 2: Bar (5 categories)
     let bar = BarPlot::new()
@@ -58,15 +49,12 @@ fn main() {
 
     // 3: Histogram — bell-shaped
     let hist_data: Vec<f64> = [
-        5.0, 5.0,
-        10.0, 10.0, 10.0, 10.0,
-        15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0,
-        20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0,
-        25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0,
-        30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0,
-        35.0, 35.0, 35.0, 35.0, 35.0,
-        40.0, 40.0,
-    ].to_vec();
+        5.0, 5.0, 10.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 20.0, 20.0,
+        20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0, 25.0,
+        25.0, 25.0, 25.0, 25.0, 25.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 30.0, 35.0, 35.0,
+        35.0, 35.0, 35.0, 40.0, 40.0,
+    ]
+    .to_vec();
     let histogram = Histogram::new()
         .with_data(hist_data)
         .with_range((0.0, 45.0))
@@ -76,15 +64,12 @@ fn main() {
     let h2d_data: Vec<(f64, f64)> = (0..40)
         .map(|i| (i as f64 * 0.5, i as f64 * 0.4 + 1.0))
         .collect();
-    let hist2d = Histogram2D::new()
-        .with_data(h2d_data, (0.0, 20.0), (0.0, 20.0), 8, 8);
+    let hist2d = Histogram2D::new().with_data(h2d_data, (0.0, 20.0), (0.0, 20.0), 8, 8);
 
     // 5: Hexbin
     let hx: Vec<f64> = (0..60).map(|i| i as f64 * 0.1).collect();
     let hy: Vec<f64> = hx.iter().map(|&x| x.sin() + x * 0.2).collect();
-    let hexbin = HexbinPlot::new()
-        .with_data(hx, hy)
-        .with_n_bins(8);
+    let hexbin = HexbinPlot::new().with_data(hx, hy).with_n_bins(8);
 
     // ── Row 1: Box, Violin, Strip, Waterfall, StackedArea, Streamgraph ───────
 
@@ -113,26 +98,32 @@ fn main() {
 
     // 9: Waterfall
     let waterfall = WaterfallPlot::new()
-        .with_delta("Start",  100.0)
-        .with_delta("Q1",      30.0)
-        .with_delta("Q2",     -20.0)
-        .with_delta("Q3",      15.0)
-        .with_delta("Q4",     -10.0)
+        .with_delta("Start", 100.0)
+        .with_delta("Q1", 30.0)
+        .with_delta("Q2", -20.0)
+        .with_delta("Q3", 15.0)
+        .with_delta("Q4", -10.0)
         .with_total("Total");
 
     // 10: StackedArea
     let stacked_area = StackedAreaPlot::new()
         .with_x([0.0_f64, 1.0, 2.0, 3.0])
-        .with_series([10.0_f64, 15.0, 12.0, 18.0]).with_color("steelblue")
-        .with_series([8.0_f64, 12.0, 9.0, 14.0]).with_color("firebrick")
-        .with_series([5.0_f64, 8.0, 6.0, 10.0]).with_color("forestgreen");
+        .with_series([10.0_f64, 15.0, 12.0, 18.0])
+        .with_color("steelblue")
+        .with_series([8.0_f64, 12.0, 9.0, 14.0])
+        .with_color("firebrick")
+        .with_series([5.0_f64, 8.0, 6.0, 10.0])
+        .with_color("forestgreen");
 
     // 11: Streamgraph
     let streamgraph = StreamgraphPlot::new()
         .with_x([0.0_f64, 1.0, 2.0, 3.0, 4.0])
-        .with_series([5.0_f64, 8.0, 6.0, 9.0, 7.0]).with_color("#4e79a7")
-        .with_series([3.0_f64, 5.0, 8.0, 4.0, 6.0]).with_color("#f28e2b")
-        .with_series([7.0_f64, 4.0, 5.0, 6.0, 8.0]).with_color("#59a14f");
+        .with_series([5.0_f64, 8.0, 6.0, 9.0, 7.0])
+        .with_color("#4e79a7")
+        .with_series([3.0_f64, 5.0, 8.0, 4.0, 6.0])
+        .with_color("#f28e2b")
+        .with_series([7.0_f64, 4.0, 5.0, 6.0, 8.0])
+        .with_color("#59a14f");
 
     // ── Row 2: Pie, Series, Band, Heatmap, DotPlot, Clustermap ───────────────
 
@@ -147,17 +138,23 @@ fn main() {
     // 13: Series — three overlaid
     let series1 = SeriesPlot::new()
         .with_data([1.0_f64, 3.0, 2.0, 4.0, 3.0])
-        .with_color("steelblue").with_line_style();
+        .with_color("steelblue")
+        .with_line_style();
     let series2 = SeriesPlot::new()
         .with_data([2.0_f64, 1.0, 3.0, 2.0, 4.0])
-        .with_color("firebrick").with_line_style();
+        .with_color("firebrick")
+        .with_line_style();
     let series3 = SeriesPlot::new()
         .with_data([3.0_f64, 2.0, 1.0, 3.0, 2.0])
-        .with_color("forestgreen").with_line_style();
+        .with_color("forestgreen")
+        .with_line_style();
 
     // 14: Band
     let bx: Vec<(f64, f64)> = (0..10)
-        .map(|i| { let x = i as f64; (x, x * 0.6 + 1.0) })
+        .map(|i| {
+            let x = i as f64;
+            (x, x * 0.6 + 1.0)
+        })
         .collect();
     let lo: Vec<f64> = bx.iter().map(|(_, y)| y - 1.0).collect();
     let hi: Vec<f64> = bx.iter().map(|(_, y)| y + 1.0).collect();
@@ -176,9 +173,15 @@ fn main() {
 
     // 16: DotPlot (3×3)
     let dot = DotPlot::new().with_data([
-        ("X", "A", 10.0_f64, 1.0_f64), ("X", "B", 15.0_f64, 2.0_f64), ("X", "C",  8.0_f64, 0.5_f64),
-        ("Y", "A", 12.0_f64, 1.5_f64), ("Y", "B", 20.0_f64, 3.0_f64), ("Y", "C",  5.0_f64, 0.2_f64),
-        ("Z", "A",  7.0_f64, 0.8_f64), ("Z", "B", 11.0_f64, 1.2_f64), ("Z", "C", 18.0_f64, 2.5_f64),
+        ("X", "A", 10.0_f64, 1.0_f64),
+        ("X", "B", 15.0_f64, 2.0_f64),
+        ("X", "C", 8.0_f64, 0.5_f64),
+        ("Y", "A", 12.0_f64, 1.5_f64),
+        ("Y", "B", 20.0_f64, 3.0_f64),
+        ("Y", "C", 5.0_f64, 0.2_f64),
+        ("Z", "A", 7.0_f64, 0.8_f64),
+        ("Z", "B", 11.0_f64, 1.2_f64),
+        ("Z", "C", 18.0_f64, 2.5_f64),
     ]);
 
     // 17: Clustermap (4×4 two-block)
@@ -196,28 +199,54 @@ fn main() {
 
     // 18: Volcano
     let volcano = VolcanoPlot::new()
-        .with_point("GeneA",  2.5,  0.001).with_point("GeneB", -2.1,  0.005)
-        .with_point("GeneC",  3.0,  0.0001).with_point("GeneD",  0.5,  0.3)
-        .with_point("GeneE", -0.3,  0.5).with_point("GeneF",  1.8,  0.02)
-        .with_point("GeneG", -1.5,  0.04).with_point("GeneH",  0.1,  0.8)
-        .with_point("GeneI", -3.2,  0.0005).with_point("GeneJ",  2.0,  0.01);
+        .with_point("GeneA", 2.5, 0.001)
+        .with_point("GeneB", -2.1, 0.005)
+        .with_point("GeneC", 3.0, 0.0001)
+        .with_point("GeneD", 0.5, 0.3)
+        .with_point("GeneE", -0.3, 0.5)
+        .with_point("GeneF", 1.8, 0.02)
+        .with_point("GeneG", -1.5, 0.04)
+        .with_point("GeneH", 0.1, 0.8)
+        .with_point("GeneI", -3.2, 0.0005)
+        .with_point("GeneJ", 2.0, 0.01);
 
     // 19: Manhattan
     let manhattan = ManhattanPlot::new().with_data([
-        ("chr1", 0.12_f64), ("chr1", 0.34), ("chr1", 0.07), ("chr1", 0.22),
-        ("chr1", 0.51),     ("chr1", 0.09), ("chr1", 0.41), ("chr1", 0.19),
-        ("chr1", 0.63),     ("chr1", 0.003),
-        ("chr2", 0.28_f64), ("chr2", 0.46), ("chr2", 0.17), ("chr2", 0.38),
-        ("chr2", 0.55),     ("chr2", 0.24), ("chr2", 0.67), ("chr2", 0.11),
-        ("chr2", 0.43),     ("chr2", 0.31),
-        ("chr3", 0.47_f64), ("chr3", 0.26), ("chr3", 0.59), ("chr3", 0.15),
-        ("chr3", 0.33),     ("chr3", 0.1e-6), ("chr3", 0.48), ("chr3", 0.21),
-        ("chr3", 0.37),     ("chr3", 0.44),
+        ("chr1", 0.12_f64),
+        ("chr1", 0.34),
+        ("chr1", 0.07),
+        ("chr1", 0.22),
+        ("chr1", 0.51),
+        ("chr1", 0.09),
+        ("chr1", 0.41),
+        ("chr1", 0.19),
+        ("chr1", 0.63),
+        ("chr1", 0.003),
+        ("chr2", 0.28_f64),
+        ("chr2", 0.46),
+        ("chr2", 0.17),
+        ("chr2", 0.38),
+        ("chr2", 0.55),
+        ("chr2", 0.24),
+        ("chr2", 0.67),
+        ("chr2", 0.11),
+        ("chr2", 0.43),
+        ("chr2", 0.31),
+        ("chr3", 0.47_f64),
+        ("chr3", 0.26),
+        ("chr3", 0.59),
+        ("chr3", 0.15),
+        ("chr3", 0.33),
+        ("chr3", 0.1e-6),
+        ("chr3", 0.48),
+        ("chr3", 0.21),
+        ("chr3", 0.37),
+        ("chr3", 0.44),
     ]);
 
     // 20: Candlestick
     let candle = CandlestickPlot::new()
-        .with_candle("Mon", 100.0, 110.0,  98.0, 107.0)
+        .with_candle("Mon", 100.0, 110.0, 98.0, 107.0)
         .with_candle("Tue", 107.0, 115.0, 105.0, 112.0)
         .with_candle("Wed", 112.0, 113.0, 104.0, 106.0)
         .with_candle("Thu", 106.0, 108.0, 100.0, 102.0)
@@ -255,22 +284,22 @@ fn main() {
     // 24: Chord
     let chord = ChordPlot::new()
         .with_matrix(vec![
-            vec![ 0.0, 80.0, 60.0],
-            vec![80.0,  0.0, 40.0],
-            vec![60.0, 40.0,  0.0],
+            vec![0.0, 80.0, 60.0],
+            vec![80.0, 0.0, 40.0],
+            vec![60.0, 40.0, 0.0],
         ])
         .with_labels(["X", "Y", "Z"]);
 
     // 25: Sankey
     let sankey = SankeyPlot::new()
         .with_node_color("Source", "steelblue")
-        .with_node_color("Mid A",  "forestgreen")
-        .with_node_color("Mid B",  "firebrick")
-        .with_node_color("Sink",   "orange")
+        .with_node_color("Mid A", "forestgreen")
+        .with_node_color("Mid B", "firebrick")
+        .with_node_color("Sink", "orange")
         .with_link("Source", "Mid A", 40.0)
         .with_link("Source", "Mid B", 30.0)
-        .with_link("Mid A",  "Sink",  40.0)
-        .with_link("Mid B",  "Sink",  30.0);
+        .with_link("Mid A", "Sink", 40.0)
+        .with_link("Mid B", "Sink", 30.0);
 
     // 26: PhyloTree
     let phylo = PhyloTree::from_newick("((A:1,B:1):1,(C:1,D:1):1);");
@@ -290,27 +319,36 @@ fn main() {
 
     // 29: Treemap
     let treemap = TreemapPlot::new()
-        .with_children("Group A", vec![
-            TreemapNode::leaf("X1", 10.0),
-            TreemapNode::leaf("X2", 8.0),
-            TreemapNode::leaf("X3", 6.0),
-        ])
-        .with_children("Group B", vec![
-            TreemapNode::leaf("Y1", 14.0),
-            TreemapNode::leaf("Y2", 9.0),
-        ]);
+        .with_children(
+            "Group A",
+            vec![
+                TreemapNode::leaf("X1", 10.0),
+                TreemapNode::leaf("X2", 8.0),
+                TreemapNode::leaf("X3", 6.0),
+            ],
+        )
+        .with_children(
+            "Group B",
+            vec![TreemapNode::leaf("Y1", 14.0), TreemapNode::leaf("Y2", 9.0)],
+        );
 
     // ── Row 5: Density, Ridgeline, Polar, Ternary, Forest, ECDF ─────────────
 
     // 30: Density (two overlapping groups)
     let density_a = DensityPlot::new()
-        .with_data([2.0_f64, 3.0, 3.5, 4.0, 4.0, 4.5, 5.0, 5.0, 5.5, 6.0,
-                    6.0, 6.5, 7.0, 7.5, 8.0])
-        .with_color("steelblue").with_filled(true).with_opacity(0.6);
+        .with_data([
+            2.0_f64, 3.0, 3.5, 4.0, 4.0, 4.5, 5.0, 5.0, 5.5, 6.0, 6.0, 6.5, 7.0, 7.5, 8.0,
+        ])
+        .with_color("steelblue")
+        .with_filled(true)
+        .with_opacity(0.6);
     let density_b = DensityPlot::new()
-        .with_data([4.0_f64, 5.0, 5.5, 6.0, 6.0, 6.5, 7.0, 7.0, 7.5, 8.0,
-                    8.0, 8.5, 9.0, 9.5, 10.0])
-        .with_color("firebrick").with_filled(true).with_opacity(0.6);
+        .with_data([
+            4.0_f64, 5.0, 5.5, 6.0, 6.0, 6.5, 7.0, 7.0, 7.5, 8.0, 8.0, 8.5, 9.0, 9.5, 10.0,
+        ])
+        .with_color("firebrick")
+        .with_filled(true)
+        .with_opacity(0.6);
 
     // 31: Ridgeline
     let ridgeline = RidgelinePlot::new()
@@ -322,8 +360,7 @@ fn main() {
     let n = 36usize;
     let theta: Vec<f64> = (0..n).map(|i| i as f64 * 360.0 / n as f64).collect();
     let r: Vec<f64> = theta.iter().map(|&t| 1.0 + t.to_radians().cos()).collect();
-    let polar = PolarPlot::new()
-        .with_series_labeled(r, theta, "Cardioid", PolarMode::Line);
+    let polar = PolarPlot::new().with_series_labeled(r, theta, "Cardioid", PolarMode::Line);
 
     // 33: Ternary
     let ternary = TernaryPlot::new()
@@ -336,16 +373,19 @@ fn main() {
 
     // 34: Forest
     let forest = ForestPlot::new()
-        .with_row("Study A",  0.82, 0.55, 1.21)
-        .with_row("Study B",  1.15, 0.73, 1.62)
-        .with_row("Study C",  0.63, 0.31, 0.94)
-        .with_row("Study D",  1.28, 0.90, 1.75)
-        .with_row("Meta",     0.94, 0.74, 1.14);
+        .with_row("Study A", 0.82, 0.55, 1.21)
+        .with_row("Study B", 1.15, 0.73, 1.62)
+        .with_row("Study C", 0.63, 0.31, 0.94)
+        .with_row("Study D", 1.28, 0.90, 1.75)
+        .with_row("Meta", 0.94, 0.74, 1.14);
 
     // 35: ECDF (2 groups)
     let ecdf = EcdfPlot::new()
         .with_data("A", [1.0_f64, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
-        .with_data("B", [2.5_f64, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5]);
+        .with_data(
+            "B",
+            [2.5_f64, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5],
+        );
 
     // ── Row 6: ROC, PR, Survival, DicePlot, Raincloud, Lollipop ──────────────
 
@@ -367,26 +407,33 @@ fn main() {
         .with_group(RocGroup::new("Classifier").with_raw(logistic_dataset(60, 1.0, 0.5)));
 
     // 37: PR
-    let pr = PrPlot::new()
-        .with_group(PrGroup::new("Model").with_raw(logistic_dataset(60, 1.0, 0.5)));
+    let pr =
+        PrPlot::new().with_group(PrGroup::new("Model").with_raw(logistic_dataset(60, 1.0, 0.5)));
 
     // 38: Survival (2 groups)
     let survival = SurvivalPlot::new()
-        .with_group("Control",
+        .with_group(
+            "Control",
             vec![1.0, 2.0, 3.0, 4.0, 5.0, 7.0, 9.0, 11.0, 14.0, 18.0],
-            vec![true, true, false, true, false, true, false, true, false, false])
-        .with_group("Treatment",
+            vec![
+                true, true, false, true, false, true, false, true, false, false,
+            ],
+        )
+        .with_group(
+            "Treatment",
             vec![2.0, 4.0, 6.0, 8.0, 12.0, 16.0, 20.0, 24.0, 28.0, 32.0],
-            vec![false, true, false, true, false, false, true, false, false, false]);
+            vec![
+                false, true, false, true, false, false, true, false, false, false,
+            ],
+        );
 
     // 39: DicePlot
-    let dice = DicePlot::new(4)
-        .with_points([
-            ("X1", "G1", vec![0, 2], None, None),
-            ("X2", "G1", vec![1, 3], None, None),
-            ("X1", "G2", vec![0, 1], None, None),
-            ("X2", "G2", vec![2, 3], None, None),
-        ]);
+    let dice = DicePlot::new(4).with_points([
+        ("X1", "G1", vec![0, 2], None, None),
+        ("X2", "G1", vec![1, 3], None, None),
+        ("X1", "G2", vec![0, 1], None, None),
+        ("X2", "G2", vec![2, 3], None, None),
+    ]);
 
     // 40: Raincloud
     let raincloud = RaincloudPlot::new()
@@ -395,53 +442,64 @@ fn main() {
 
     // 41: Lollipop
     let lollipop = LollipopPlot::new()
-        .with_point(1.0,  3.5).with_point(2.0, -1.2)
-        .with_point(3.0,  4.1).with_point(4.0, -2.3)
-        .with_point(5.0,  1.8).with_point(6.0,  3.0);
+        .with_point(1.0, 3.5)
+        .with_point(2.0, -1.2)
+        .with_point(3.0, 4.1)
+        .with_point(4.0, -2.3)
+        .with_point(5.0, 1.8)
+        .with_point(6.0, 3.0);
 
     // ── Row 7: JointPlot, Waffle, Horizon, Pyramid, Mosaic, Slope ────────────
 
     // 42: JointPlot
-    let joint = JointPlot::new()
-        .with_xy(
-            (0..20).map(|i| i as f64 * 0.3),
-            (0..20).map(|i| (i as f64 * 0.3).sin() + i as f64 * 0.1),
-        );
+    let joint = JointPlot::new().with_xy(
+        (0..20).map(|i| i as f64 * 0.3),
+        (0..20).map(|i| (i as f64 * 0.3).sin() + i as f64 * 0.1),
+    );
 
     // 43: Waffle (4 categories)
     let waffle = WafflePlot::new()
         .with_category("Alpha", 40.0, "steelblue")
-        .with_category("Beta",  30.0, "firebrick")
+        .with_category("Beta", 30.0, "firebrick")
         .with_category("Gamma", 20.0, "forestgreen")
         .with_category("Delta", 10.0, "orange");
 
     // 44: Horizon (2 series)
     let horizon = HorizonPlot::new()
-        .with_series("A", (0..10).map(|i| i as f64),
-            [ 2.0_f64, 4.0, -1.0, 3.0, 5.0, -2.0, 1.0, 4.0, -3.0, 2.0])
-        .with_series("B", (0..10).map(|i| i as f64),
-            [-1.0_f64, 2.0, 4.0, -2.0, 3.0,  1.0, -3.0, 2.0,  4.0, -1.0]);
+        .with_series(
+            "A",
+            (0..10).map(|i| i as f64),
+            [2.0_f64, 4.0, -1.0, 3.0, 5.0, -2.0, 1.0, 4.0, -3.0, 2.0],
+        )
+        .with_series(
+            "B",
+            (0..10).map(|i| i as f64),
+            [-1.0_f64, 2.0, 4.0, -2.0, 3.0, 1.0, -3.0, 2.0, 4.0, -1.0],
+        );
 
     // 45: Population Pyramid
     let pyramid = PopulationPyramid::new()
-        .with_group("0–20",  12.0, 11.0)
+        .with_group("0–20", 12.0, 11.0)
         .with_group("21–40", 18.0, 17.0)
         .with_group("41–60", 15.0, 16.0)
         .with_group("61–80", 10.0, 12.0)
-        .with_group("81+",    4.0,  6.0);
+        .with_group("81+", 4.0, 6.0);
 
     // 46: Mosaic (3 columns × 2 rows)
     let mosaic = MosaicPlot::new()
-        .with_cell("X", "a", 30.0).with_cell("X", "b", 20.0)
-        .with_cell("Y", "a", 15.0).with_cell("Y", "b", 35.0)
-        .with_cell("Z", "a", 25.0).with_cell("Z", "b", 25.0);
+        .with_cell("X", "a", 30.0)
+        .with_cell("X", "b", 20.0)
+        .with_cell("Y", "a", 15.0)
+        .with_cell("Y", "b", 35.0)
+        .with_cell("Z", "a", 25.0)
+        .with_cell("Z", "b", 25.0);
 
     // 47: Slope (5 items)
     let slope = SlopePlot::new()
-        .with_point("Alpha",   3.5, 5.2)
-        .with_point("Beta",    6.1, 4.8)
-        .with_point("Gamma",   2.0, 3.9)
-        .with_point("Delta",   4.4, 6.0)
+        .with_point("Alpha", 3.5, 5.2)
+        .with_point("Beta", 6.1, 4.8)
+        .with_point("Gamma", 2.0, 3.9)
+        .with_point("Delta", 4.4, 6.0)
         .with_point("Epsilon", 1.8, 2.5);
 
     // ── Row 8: Venn, Parallel, Radar, Rose, Sunburst, Bump ───────────────────
@@ -470,31 +528,40 @@ fn main() {
 
     // 51: Rose (12 sectors, 2 stacked wind-speed bands)
     let rose = RosePlot::new()
-        .with_stack("Calm (0–5)", [
-             6.0_f64, 14.0, 10.0, 5.0,  4.0,  3.0,  8.0, 12.0,  7.0,  4.0,  3.0,  5.0,
-        ])
-        .with_stack("Strong (>5)", [
-             3.0_f64,  8.0,  5.0, 2.0,  1.0,  2.0,  5.0,  7.0,  3.0,  2.0,  1.0,  3.0,
-        ])
+        .with_stack(
+            "Calm (0–5)",
+            [
+                6.0_f64, 14.0, 10.0, 5.0, 4.0, 3.0, 8.0, 12.0, 7.0, 4.0, 3.0, 5.0,
+            ],
+        )
+        .with_stack(
+            "Strong (>5)",
+            [
+                3.0_f64, 8.0, 5.0, 2.0, 1.0, 2.0, 5.0, 7.0, 3.0, 2.0, 1.0, 3.0,
+            ],
+        )
         .with_compass_labels()
         .with_legend("Wind speed");
 
     // 52: Sunburst (2-level hierarchy)
     let sunburst = SunburstPlot::new()
-        .with_children("Group A", vec![
-            TreemapNode::leaf("A1", 10.0),
-            TreemapNode::leaf("A2",  8.0),
-        ])
-        .with_children("Group B", vec![
-            TreemapNode::leaf("B1",  6.0),
-            TreemapNode::leaf("B2",  9.0),
-            TreemapNode::leaf("B3",  5.0),
-        ]);
+        .with_children(
+            "Group A",
+            vec![TreemapNode::leaf("A1", 10.0), TreemapNode::leaf("A2", 8.0)],
+        )
+        .with_children(
+            "Group B",
+            vec![
+                TreemapNode::leaf("B1", 6.0),
+                TreemapNode::leaf("B2", 9.0),
+                TreemapNode::leaf("B3", 5.0),
+            ],
+        );
 
     // 53: Bump (4 series, 5 time steps)
     let bump = BumpPlot::new()
         .with_series("Alpha", [1.0_f64, 2.0, 1.0, 3.0, 2.0])
-        .with_series("Beta",  [2.0_f64, 1.0, 3.0, 1.0, 1.0])
+        .with_series("Beta", [2.0_f64, 1.0, 3.0, 1.0, 1.0])
         .with_series("Gamma", [3.0_f64, 3.0, 2.0, 2.0, 3.0])
         .with_series("Delta", [4.0_f64, 4.0, 4.0, 4.0, 4.0])
         .with_x_labels(["T1", "T2", "T3", "T4", "T5"]);
@@ -503,8 +570,10 @@ fn main() {
 
     // 54: Q-Q plot
     let qq = QQPlot::new()
-        .with_data("Sample",
-            [2.0_f64, 4.0, 5.0, 7.0, 8.0, 9.0, 11.0, 12.0, 14.0, 16.0])
+        .with_data(
+            "Sample",
+            [2.0_f64, 4.0, 5.0, 7.0, 8.0, 9.0, 11.0, 12.0, 14.0, 16.0],
+        )
         .with_ci_band();
 
     // 55: Scatter3D (helix)
@@ -516,37 +585,49 @@ fn main() {
         .with_color("steelblue");
 
     // 56: Surface3D (Gaussian bump, 4×4 grid)
-    let z_grid: Vec<Vec<f64>> = (0..4).map(|r| {
-        (0..4).map(|c| {
-            let x = c as f64 - 1.5;
-            let y = r as f64 - 1.5;
-            (-(x * x + y * y)).exp()
-        }).collect()
-    }).collect();
+    let z_grid: Vec<Vec<f64>> = (0..4)
+        .map(|r| {
+            (0..4)
+                .map(|c| {
+                    let x = c as f64 - 1.5;
+                    let y = r as f64 - 1.5;
+                    (-(x * x + y * y)).exp()
+                })
+                .collect()
+        })
+        .collect();
     let surface3d = Surface3DPlot::new(z_grid);
 
     // 57: Calendar (Jan–Apr 2025 — ~18 cols fits the figure cell at default cell_size)
     let calendar = CalendarPlot::new()
         .with_date_range("2025-01-01", "2025-04-30")
         .with_data([
-            ("2025-01-05", 3.0_f64), ("2025-01-12", 5.0), ("2025-01-19", 2.0),
-            ("2025-02-02", 7.0), ("2025-02-09", 4.0), ("2025-02-16", 6.0),
-            ("2025-03-02", 8.0), ("2025-03-09", 3.0), ("2025-03-16", 5.0),
-            ("2025-04-06", 4.0), ("2025-04-13", 6.0), ("2025-04-20", 9.0),
+            ("2025-01-05", 3.0_f64),
+            ("2025-01-12", 5.0),
+            ("2025-01-19", 2.0),
+            ("2025-02-02", 7.0),
+            ("2025-02-09", 4.0),
+            ("2025-02-16", 6.0),
+            ("2025-03-02", 8.0),
+            ("2025-03-09", 3.0),
+            ("2025-03-16", 5.0),
+            ("2025-04-06", 4.0),
+            ("2025-04-13", 6.0),
+            ("2025-04-20", 9.0),
         ]);
 
     // 58: Funnel (4 stages)
     let funnel = FunnelPlot::new()
-        .with_stage("Visitors",  1000.0)
-        .with_stage("Signups",    400.0)
-        .with_stage("Trials",     150.0)
-        .with_stage("Customers",   60.0);
+        .with_stage("Visitors", 1000.0)
+        .with_stage("Signups", 400.0)
+        .with_stage("Trials", 150.0)
+        .with_stage("Customers", 60.0);
 
     // 59: Gantt (3 groups)
     let gantt = GanttPlot::new()
-        .with_task_group("Plan",  "Scope",   0.0, 2.0)
-        .with_task_group("Build", "Dev",     2.0, 6.0)
-        .with_task_group("Build", "Test",    5.0, 7.0)
+        .with_task_group("Plan", "Scope", 0.0, 2.0)
+        .with_task_group("Build", "Dev", 2.0, 6.0)
+        .with_task_group("Build", "Test", 5.0, 7.0)
         .with_milestone("Launch", 7.0)
         .with_now_line(4.0);
 
@@ -569,7 +650,11 @@ fn main() {
         vec![Plot::Streamgraph(streamgraph)],
         // Row 2: Pie, Series, Band, Heatmap, DotPlot, Clustermap
         vec![Plot::Pie(pie)],
-        vec![Plot::Series(series1), Plot::Series(series2), Plot::Series(series3)],
+        vec![
+            Plot::Series(series1),
+            Plot::Series(series2),
+            Plot::Series(series3),
+        ],
         vec![Plot::Line(band_line)],
         vec![Plot::Heatmap(hmap)],
         vec![Plot::DotPlot(dot)],
@@ -625,7 +710,8 @@ fn main() {
         vec![Plot::Gantt(gantt)],
     ];
 
-    let layouts: Vec<Layout> = all_plots.iter()
+    let layouts: Vec<Layout> = all_plots
+        .iter()
         .map(|cell| Layout::auto_from_plots(cell))
         .collect();
 

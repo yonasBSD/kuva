@@ -130,7 +130,9 @@ pub struct Clustermap {
 }
 
 impl Default for Clustermap {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Clustermap {

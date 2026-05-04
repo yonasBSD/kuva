@@ -259,13 +259,18 @@ impl PolarPlot {
     /// Compute the maximum r value across all series (for auto-scaling).
     pub fn r_max_auto(&self) -> f64 {
         let r_min = self.r_min.unwrap_or(0.0);
-        let data_max = self.series
+        let data_max = self
+            .series
             .iter()
             .flat_map(|s| s.r.iter())
             .cloned()
             .fold(r_min, f64::max);
         // Ensure r_max > r_min so the range is always positive.
-        if data_max <= r_min { r_min + 1.0 } else { data_max }
+        if data_max <= r_min {
+            r_min + 1.0
+        } else {
+            data_max
+        }
     }
 
     pub fn with_tooltips(mut self) -> Self {
@@ -273,7 +278,10 @@ impl PolarPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

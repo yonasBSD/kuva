@@ -2,12 +2,12 @@ use clap::Args;
 
 use kuva::plot::ParallelPlot;
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Parallel coordinates plot — multi-dimensional comparison.
@@ -69,7 +69,9 @@ pub fn run(args: ParallelArgs) -> Result<(), String> {
             .iter()
             .enumerate()
             .map(|(fallback_i, col)| match col {
-                ColSpec::Index(i) => header.get(*i).cloned()
+                ColSpec::Index(i) => header
+                    .get(*i)
+                    .cloned()
                     .unwrap_or_else(|| format!("Axis {fallback_i}")),
                 ColSpec::Name(n) => n.clone(),
             })

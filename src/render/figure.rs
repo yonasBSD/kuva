@@ -1,7 +1,10 @@
-use crate::render::layout::{Layout, ComputedLayout, DEFAULT_FONT_FAMILY};
-use crate::render::plots::Plot;
-use crate::render::render::{Primitive, Scene, TextAnchor, render_multiple, render_twin_y, collect_legend_entries, render_legend_at};
 use crate::plot::legend::{LegendEntry, LegendGroup};
+use crate::render::layout::{ComputedLayout, Layout, DEFAULT_FONT_FAMILY};
+use crate::render::plots::Plot;
+use crate::render::render::{
+    collect_legend_entries, render_legend_at, render_multiple, render_twin_y, Primitive, Scene,
+    TextAnchor,
+};
 
 #[derive(Debug, Clone)]
 pub enum FigureLegendPosition {
@@ -65,12 +68,8 @@ impl LabelConfig {
                 let c = (b'a' + index as u8) as char;
                 c.to_string()
             }
-            LabelStyle::Numeric => {
-                (index + 1).to_string()
-            }
-            LabelStyle::Custom(labels) => {
-                labels.get(index).cloned().unwrap_or_default()
-            }
+            LabelStyle::Numeric => (index + 1).to_string(),
+            LabelStyle::Custom(labels) => labels.get(index).cloned().unwrap_or_default(),
         }
     }
 }
@@ -81,8 +80,16 @@ pub enum SharedAxis {
     AllColumns,
     Row(usize),
     Column(usize),
-    RowSlice { row: usize, col_start: usize, col_end: usize },
-    ColumnSlice { col: usize, row_start: usize, row_end: usize },
+    RowSlice {
+        row: usize,
+        col_start: usize,
+        col_end: usize,
+    },
+    ColumnSlice {
+        col: usize,
+        row_start: usize,
+        row_end: usize,
+    },
 }
 
 pub struct Figure {
@@ -224,13 +231,21 @@ impl Figure {
 
     /// Share X axis within a column for a slice of rows.
     pub fn with_shared_x_slice(mut self, col: usize, row_start: usize, row_end: usize) -> Self {
-        self.shared_x.push(SharedAxis::ColumnSlice { col, row_start, row_end });
+        self.shared_x.push(SharedAxis::ColumnSlice {
+            col,
+            row_start,
+            row_end,
+        });
         self
     }
 
     /// Share Y axis within a row for a slice of columns.
     pub fn with_shared_y_slice(mut self, row: usize, col_start: usize, col_end: usize) -> Self {
-        self.shared_y.push(SharedAxis::RowSlice { row, col_start, col_end });
+        self.shared_y.push(SharedAxis::RowSlice {
+            row,
+            col_start,
+            col_end,
+        });
         self
     }
 
@@ -394,19 +409,35 @@ impl Figure {
 
     pub fn render(self) -> Scene {
         let Figure {
-            rows, cols, structure, mut plots, layouts: user_layouts,
-            title, title_size, labels, shared_x, shared_y,
-            spacing, padding, mut cell_width, mut cell_height,
-            figure_width, figure_height,
-            shared_legend, shared_legend_entries, keep_panel_legends,
+            rows,
+            cols,
+            structure,
+            mut plots,
+            layouts: user_layouts,
+            title,
+            title_size,
+            labels,
+            shared_x,
+            shared_y,
+            spacing,
+            padding,
+            mut cell_width,
+            mut cell_height,
+            figure_width,
+            figure_height,
+            shared_legend,
+            shared_legend_entries,
+            keep_panel_legends,
             twin_y_plots,
             row_heights: explicit_row_heights,
             col_widths: explicit_col_widths,
         } = self;
 
         // Build a lookup from cell_index → (primary, secondary) for twin-Y cells.
-        let mut twin_y_map: std::collections::HashMap<usize, (Vec<Plot>, Vec<Plot>)> =
-            twin_y_plots.into_iter().map(|(i, p, s)| (i, (p, s))).collect();
+        let mut twin_y_map: std::collections::HashMap<usize, (Vec<Plot>, Vec<Plot>)> = twin_y_plots
+            .into_iter()
+            .map(|(i, p, s)| (i, (p, s)))
+            .collect();
 
         validate_structure(&structure, rows, cols);
 
@@ -426,7 +457,8 @@ impl Figure {
                     }
                 }
                 for (primary, secondary) in twin_y_map.values() {
-                    for entry in collect_legend_entries(primary).into_iter()
+                    for entry in collect_legend_entries(primary)
+                        .into_iter()
                         .chain(collect_legend_entries(secondary))
                     {
                         if seen_labels.insert(entry.label.clone()) {
@@ -457,25 +489,59 @@ impl Figure {
 
         // Helpers: which side does the legend land on?
         let has_entries = legend_entries.as_ref().is_some_and(|e| !e.is_empty());
-        let legend_on_right = has_entries && matches!(shared_legend.as_ref(),
-            Some(FigureLegendPosition::Right | FigureLegendPosition::RightTop
-               | FigureLegendPosition::RightMiddle | FigureLegendPosition::RightBottom));
-        let legend_on_left  = has_entries && matches!(shared_legend.as_ref(),
-            Some(FigureLegendPosition::LeftTop | FigureLegendPosition::LeftMiddle
-               | FigureLegendPosition::LeftBottom));
-        let legend_on_top    = has_entries && matches!(shared_legend.as_ref(),
-            Some(FigureLegendPosition::TopLeft | FigureLegendPosition::TopCenter
-               | FigureLegendPosition::TopRight));
-        let legend_on_bottom = has_entries && matches!(shared_legend.as_ref(),
-            Some(FigureLegendPosition::Bottom | FigureLegendPosition::BottomLeft
-               | FigureLegendPosition::BottomCenter | FigureLegendPosition::BottomRight));
+        let legend_on_right = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::Right
+                        | FigureLegendPosition::RightTop
+                        | FigureLegendPosition::RightMiddle
+                        | FigureLegendPosition::RightBottom
+                )
+            );
+        let legend_on_left = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::LeftTop
+                        | FigureLegendPosition::LeftMiddle
+                        | FigureLegendPosition::LeftBottom
+                )
+            );
+        let legend_on_top = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::TopLeft
+                        | FigureLegendPosition::TopCenter
+                        | FigureLegendPosition::TopRight
+                )
+            );
+        let legend_on_bottom = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::Bottom
+                        | FigureLegendPosition::BottomLeft
+                        | FigureLegendPosition::BottomCenter
+                        | FigureLegendPosition::BottomRight
+                )
+            );
 
         // If total figure size is specified, back-compute cell dimensions to fit.
         // Explicit per-row/col sizes are subtracted first; remaining space is shared
         // equally among unconstrained rows/cols.
         if let (Some(fw), Some(fh)) = (figure_width, figure_height) {
-            let legend_w_used = if legend_on_right || legend_on_left { legend_width + legend_spacing } else { 0.0 };
-            let legend_h_used = if legend_on_top || legend_on_bottom { legend_height + legend_spacing } else { 0.0 };
+            let legend_w_used = if legend_on_right || legend_on_left {
+                legend_width + legend_spacing
+            } else {
+                0.0
+            };
+            let legend_h_used = if legend_on_top || legend_on_bottom {
+                legend_height + legend_spacing
+            } else {
+                0.0
+            };
             let title_h = if title.is_some() { 30.0 } else { 0.0 };
 
             let explicit_col_total: f64 = (0..cols)
@@ -485,7 +551,11 @@ impl Figure {
                 .filter(|&c| explicit_col_widths.get(c).copied().flatten().is_none())
                 .count();
             if free_cols > 0 {
-                cell_width = ((fw - legend_w_used - 2.0 * padding - (cols as f64 - 1.0) * spacing - explicit_col_total)
+                cell_width = ((fw
+                    - legend_w_used
+                    - 2.0 * padding
+                    - (cols as f64 - 1.0) * spacing
+                    - explicit_col_total)
                     / free_cols as f64)
                     .max(1.0);
             }
@@ -497,7 +567,12 @@ impl Figure {
                 .filter(|&r| explicit_row_heights.get(r).copied().flatten().is_none())
                 .count();
             if free_rows > 0 {
-                cell_height = ((fh - legend_h_used - 2.0 * padding - (rows as f64 - 1.0) * spacing - title_h - explicit_row_total)
+                cell_height = ((fh
+                    - legend_h_used
+                    - 2.0 * padding
+                    - (rows as f64 - 1.0) * spacing
+                    - title_h
+                    - explicit_row_total)
                     / free_rows as f64)
                     .max(1.0);
             }
@@ -600,9 +675,8 @@ impl Figure {
             starts
         };
 
-        let grid_width = per_col_widths.iter().sum::<f64>()
-            + (cols as f64 - 1.0) * spacing
-            + 2.0 * padding;
+        let grid_width =
+            per_col_widths.iter().sum::<f64>() + (cols as f64 - 1.0) * spacing + 2.0 * padding;
         let grid_height = per_row_heights.iter().sum::<f64>()
             + (rows as f64 - 1.0) * spacing
             + 2.0 * padding
@@ -610,18 +684,39 @@ impl Figure {
 
         // When the legend is on the left or top, shift all grid cells so the
         // legend occupies the vacated margin.
-        let cell_x_offset = if legend_on_left  { legend_width + legend_spacing } else { 0.0 };
-        let cell_y_offset = if legend_on_top   { legend_height + legend_spacing } else { 0.0 };
+        let cell_x_offset = if legend_on_left {
+            legend_width + legend_spacing
+        } else {
+            0.0
+        };
+        let cell_y_offset = if legend_on_top {
+            legend_height + legend_spacing
+        } else {
+            0.0
+        };
 
         let total_width = grid_width
-            + if legend_on_right || legend_on_left { legend_width + legend_spacing } else { 0.0 };
+            + if legend_on_right || legend_on_left {
+                legend_width + legend_spacing
+            } else {
+                0.0
+            };
         let total_height = grid_height
-            + if legend_on_top || legend_on_bottom { legend_height + legend_spacing } else { 0.0 };
+            + if legend_on_top || legend_on_bottom {
+                legend_height + legend_spacing
+            } else {
+                0.0
+            };
 
         let mut master = Scene::new(total_width, total_height);
         // Inherit font_family and theme from first user layout if set
-        let figure_theme = user_layouts.first().map(|l| l.theme.clone()).unwrap_or_default();
-        master.font_family = user_layouts.first().and_then(|l| l.font_family.clone())
+        let figure_theme = user_layouts
+            .first()
+            .map(|l| l.theme.clone())
+            .unwrap_or_default();
+        master.font_family = user_layouts
+            .first()
+            .and_then(|l| l.font_family.clone())
             .or(figure_theme.font_family.clone())
             .or(Some(DEFAULT_FONT_FAMILY.to_string()));
         master.background_color = Some(figure_theme.background.clone());
@@ -712,69 +807,79 @@ impl Figure {
         if let (Some(ref pos), Some(ref entries)) = (&shared_legend, &legend_entries) {
             if !entries.is_empty() {
                 // Pixel extents of just the grid content (cells + padding, no legend margin).
-                let inner_right  = cell_x_offset + grid_width;
+                let inner_right = cell_x_offset + grid_width;
                 let inner_bottom = cell_y_offset + grid_height;
                 // Vertical centre of the grid content area (below the figure title).
-                let grid_mid_y = cell_y_offset + figure_title_height + padding
+                let grid_mid_y = cell_y_offset
+                    + figure_title_height
+                    + padding
                     + (grid_height - figure_title_height - 2.0 * padding) / 2.0;
 
                 let (lx, ly) = match pos {
                     // ── Right side ──────────────────────────────────────────────
-                    FigureLegendPosition::Right | FigureLegendPosition::RightMiddle => {
-                        (inner_right + legend_spacing / 2.0,
-                         grid_mid_y - legend_height / 2.0)
-                    }
-                    FigureLegendPosition::RightTop => {
-                        (inner_right + legend_spacing / 2.0,
-                         cell_y_offset + figure_title_height + padding)
-                    }
-                    FigureLegendPosition::RightBottom => {
-                        (inner_right + legend_spacing / 2.0,
-                         inner_bottom - padding - legend_height)
-                    }
+                    FigureLegendPosition::Right | FigureLegendPosition::RightMiddle => (
+                        inner_right + legend_spacing / 2.0,
+                        grid_mid_y - legend_height / 2.0,
+                    ),
+                    FigureLegendPosition::RightTop => (
+                        inner_right + legend_spacing / 2.0,
+                        cell_y_offset + figure_title_height + padding,
+                    ),
+                    FigureLegendPosition::RightBottom => (
+                        inner_right + legend_spacing / 2.0,
+                        inner_bottom - padding - legend_height,
+                    ),
                     // ── Left side ────────────────────────────────────────────────
                     FigureLegendPosition::LeftMiddle => {
-                        (legend_spacing / 2.0,
-                         grid_mid_y - legend_height / 2.0)
+                        (legend_spacing / 2.0, grid_mid_y - legend_height / 2.0)
                     }
-                    FigureLegendPosition::LeftTop => {
-                        (legend_spacing / 2.0,
-                         cell_y_offset + figure_title_height + padding)
-                    }
+                    FigureLegendPosition::LeftTop => (
+                        legend_spacing / 2.0,
+                        cell_y_offset + figure_title_height + padding,
+                    ),
                     FigureLegendPosition::LeftBottom => {
-                        (legend_spacing / 2.0,
-                         inner_bottom - padding - legend_height)
+                        (legend_spacing / 2.0, inner_bottom - padding - legend_height)
                     }
                     // ── Top edge ─────────────────────────────────────────────────
-                    FigureLegendPosition::TopLeft => {
-                        (cell_x_offset + padding,
-                         figure_title_height + legend_spacing / 2.0)
-                    }
-                    FigureLegendPosition::TopCenter => {
-                        (cell_x_offset + grid_width / 2.0 - legend_width / 2.0,
-                         figure_title_height + legend_spacing / 2.0)
-                    }
-                    FigureLegendPosition::TopRight => {
-                        (cell_x_offset + grid_width - padding - legend_width,
-                         figure_title_height + legend_spacing / 2.0)
-                    }
+                    FigureLegendPosition::TopLeft => (
+                        cell_x_offset + padding,
+                        figure_title_height + legend_spacing / 2.0,
+                    ),
+                    FigureLegendPosition::TopCenter => (
+                        cell_x_offset + grid_width / 2.0 - legend_width / 2.0,
+                        figure_title_height + legend_spacing / 2.0,
+                    ),
+                    FigureLegendPosition::TopRight => (
+                        cell_x_offset + grid_width - padding - legend_width,
+                        figure_title_height + legend_spacing / 2.0,
+                    ),
                     // ── Bottom edge ───────────────────────────────────────────────
-                    FigureLegendPosition::Bottom | FigureLegendPosition::BottomCenter => {
-                        (cell_x_offset + grid_width / 2.0 - legend_width / 2.0,
-                         inner_bottom + legend_spacing / 2.0)
-                    }
+                    FigureLegendPosition::Bottom | FigureLegendPosition::BottomCenter => (
+                        cell_x_offset + grid_width / 2.0 - legend_width / 2.0,
+                        inner_bottom + legend_spacing / 2.0,
+                    ),
                     FigureLegendPosition::BottomLeft => {
-                        (cell_x_offset + padding,
-                         inner_bottom + legend_spacing / 2.0)
+                        (cell_x_offset + padding, inner_bottom + legend_spacing / 2.0)
                     }
-                    FigureLegendPosition::BottomRight => {
-                        (cell_x_offset + grid_width - padding - legend_width,
-                         inner_bottom + legend_spacing / 2.0)
-                    }
+                    FigureLegendPosition::BottomRight => (
+                        cell_x_offset + grid_width - padding - legend_width,
+                        inner_bottom + legend_spacing / 2.0,
+                    ),
                     FigureLegendPosition::Custom(x, y) => (*x, *y),
                 };
                 let body_size = user_layouts.first().map_or(12, |l| l.body_size);
-                render_legend_at(entries, None::<&[LegendGroup]>, None, true, &mut master, lx, ly, legend_width, body_size, &figure_theme);
+                render_legend_at(
+                    entries,
+                    None::<&[LegendGroup]>,
+                    None,
+                    true,
+                    &mut master,
+                    lx,
+                    ly,
+                    legend_width,
+                    body_size,
+                    &figure_theme,
+                );
             }
         }
 
@@ -891,7 +996,10 @@ fn validate_structure(structure: &[Vec<usize>], rows: usize, cols: usize) {
     let mut seen = vec![false; total_cells];
 
     for (group_idx, group) in structure.iter().enumerate() {
-        assert!(!group.is_empty(), "Figure structure: group {group_idx} is empty");
+        assert!(
+            !group.is_empty(),
+            "Figure structure: group {group_idx} is empty"
+        );
 
         for &idx in group {
             assert!(
@@ -928,10 +1036,18 @@ fn validate_structure(structure: &[Vec<usize>], rows: usize, cols: usize) {
     }
 }
 
-fn subplot_grid_pos(structure: &[Vec<usize>], subplot_idx: usize, cols: usize) -> Option<(usize, usize)> {
-    if subplot_idx >= structure.len() { return None; }
+fn subplot_grid_pos(
+    structure: &[Vec<usize>],
+    subplot_idx: usize,
+    cols: usize,
+) -> Option<(usize, usize)> {
+    if subplot_idx >= structure.len() {
+        return None;
+    }
     let group = &structure[subplot_idx];
-    if group.is_empty() { return None; }
+    if group.is_empty() {
+        return None;
+    }
     let (min_row, min_col, _, _) = cell_rect(group, cols);
     Some((min_row, min_col))
 }
@@ -946,7 +1062,9 @@ fn apply_shared_axes(
 ) {
     for rule in shared_y_rules {
         let groups = matching_groups_for_shared_y(structure, rule, cols);
-        if groups.len() < 2 { continue; }
+        if groups.len() < 2 {
+            continue;
+        }
 
         let mut y_min = f64::INFINITY;
         let mut y_max = f64::NEG_INFINITY;
@@ -957,7 +1075,8 @@ fn apply_shared_axes(
             }
         }
 
-        let leftmost_col = groups.iter()
+        let leftmost_col = groups
+            .iter()
             .filter_map(|&idx| subplot_grid_pos(structure, idx, cols))
             .map(|(_, col)| col)
             .min()
@@ -978,7 +1097,9 @@ fn apply_shared_axes(
 
     for rule in shared_x_rules {
         let groups = matching_groups_for_shared_x(structure, rule, cols);
-        if groups.len() < 2 { continue; }
+        if groups.len() < 2 {
+            continue;
+        }
 
         let mut x_min = f64::INFINITY;
         let mut x_max = f64::NEG_INFINITY;
@@ -989,7 +1110,8 @@ fn apply_shared_axes(
             }
         }
 
-        let bottommost_row = groups.iter()
+        let bottommost_row = groups
+            .iter()
             .filter_map(|&idx| subplot_grid_pos(structure, idx, cols))
             .map(|(row, _)| row)
             .max()
@@ -1009,37 +1131,53 @@ fn apply_shared_axes(
     }
 }
 
-fn matching_groups_for_shared_y(structure: &[Vec<usize>], rule: &SharedAxis, cols: usize) -> Vec<usize> {
+fn matching_groups_for_shared_y(
+    structure: &[Vec<usize>],
+    rule: &SharedAxis,
+    cols: usize,
+) -> Vec<usize> {
     let mut result = Vec::new();
     for (idx, _) in structure.iter().enumerate() {
         if let Some((row, col)) = subplot_grid_pos(structure, idx, cols) {
             let matches = match rule {
                 SharedAxis::AllRows => true,
                 SharedAxis::Row(r) => row == *r,
-                SharedAxis::RowSlice { row: r, col_start, col_end } => {
-                    row == *r && col >= *col_start && col <= *col_end
-                }
+                SharedAxis::RowSlice {
+                    row: r,
+                    col_start,
+                    col_end,
+                } => row == *r && col >= *col_start && col <= *col_end,
                 _ => false,
             };
-            if matches { result.push(idx); }
+            if matches {
+                result.push(idx);
+            }
         }
     }
     result
 }
 
-fn matching_groups_for_shared_x(structure: &[Vec<usize>], rule: &SharedAxis, cols: usize) -> Vec<usize> {
+fn matching_groups_for_shared_x(
+    structure: &[Vec<usize>],
+    rule: &SharedAxis,
+    cols: usize,
+) -> Vec<usize> {
     let mut result = Vec::new();
     for (idx, _) in structure.iter().enumerate() {
         if let Some((row, col)) = subplot_grid_pos(structure, idx, cols) {
             let matches = match rule {
                 SharedAxis::AllColumns => true,
                 SharedAxis::Column(c) => col == *c,
-                SharedAxis::ColumnSlice { col: c, row_start, row_end } => {
-                    col == *c && row >= *row_start && row <= *row_end
-                }
+                SharedAxis::ColumnSlice {
+                    col: c,
+                    row_start,
+                    row_end,
+                } => col == *c && row >= *row_start && row <= *row_end,
                 _ => false,
             };
-            if matches { result.push(idx); }
+            if matches {
+                result.push(idx);
+            }
         }
     }
     result

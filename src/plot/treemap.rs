@@ -71,7 +71,11 @@ impl TreemapNode {
     }
 
     /// Create an inner node with an explicit value **and** children.
-    pub fn with_value(label: impl Into<String>, value: impl Into<f64>, children: Vec<TreemapNode>) -> Self {
+    pub fn with_value(
+        label: impl Into<String>,
+        value: impl Into<f64>,
+        children: Vec<TreemapNode>,
+    ) -> Self {
         TreemapNode {
             label: label.into(),
             value: value.into(),
@@ -81,7 +85,11 @@ impl TreemapNode {
     }
 
     /// Create a leaf node with an explicit CSS fill color (used in [`TreemapColorMode::Explicit`]).
-    pub fn leaf_colored(label: impl Into<String>, value: impl Into<f64>, color: impl Into<String>) -> Self {
+    pub fn leaf_colored(
+        label: impl Into<String>,
+        value: impl Into<f64>,
+        color: impl Into<String>,
+    ) -> Self {
         TreemapNode {
             label: label.into(),
             value: value.into(),
@@ -101,7 +109,6 @@ impl TreemapNode {
             self.value.max(0.0)
         }
     }
-
 }
 
 /// Builder for a treemap plot.
@@ -174,7 +181,9 @@ pub struct TreemapPlot {
 }
 
 impl Default for TreemapPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TreemapPlot {
@@ -314,7 +323,14 @@ impl TreemapPlot {
     /// Call `.with_colorbar_label("p-value")` after this to label the colorbar.
     pub fn with_go_terms(
         mut self,
-        terms: impl IntoIterator<Item = (impl Into<String>, impl Into<String>, impl Into<f64>, impl Into<f64>)>,
+        terms: impl IntoIterator<
+            Item = (
+                impl Into<String>,
+                impl Into<String>,
+                impl Into<f64>,
+                impl Into<f64>,
+            ),
+        >,
     ) -> Self {
         let mut leaves = Vec::new();
         let mut pvalues = Vec::new();

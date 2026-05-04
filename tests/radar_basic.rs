@@ -1,8 +1,8 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::radar::RadarPlot;
 #[allow(unused_imports)]
 use kuva::plot::radar::RadarReference;
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
-use kuva::backend::svg::SvgBackend;
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 
 fn render_svg(plots: Vec<Plot>, layout: Layout) -> String {
     SvgBackend.render_scene(&render_multiple(plots, layout))
@@ -120,11 +120,24 @@ fn test_radar_no_grid() {
 
 #[test]
 fn test_radar_six_axes() {
-    let plot = RadarPlot::new(vec!["Sensitivity", "Specificity", "PPV", "NPV", "F1", "MCC"])
-        .with_series_labeled(vec![0.91_f64, 0.87, 0.84, 0.93, 0.875, 0.78], "Classifier A")
-        .with_series_labeled(vec![0.85_f64, 0.92, 0.90, 0.88, 0.875, 0.77], "Classifier B")
-        .with_filled(true)
-        .with_legend(true);
+    let plot = RadarPlot::new(vec![
+        "Sensitivity",
+        "Specificity",
+        "PPV",
+        "NPV",
+        "F1",
+        "MCC",
+    ])
+    .with_series_labeled(
+        vec![0.91_f64, 0.87, 0.84, 0.93, 0.875, 0.78],
+        "Classifier A",
+    )
+    .with_series_labeled(
+        vec![0.85_f64, 0.92, 0.90, 0.88, 0.875, 0.77],
+        "Classifier B",
+    )
+    .with_filled(true)
+    .with_legend(true);
     let plots = vec![Plot::Radar(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Radar Six Axes");
     let svg = render_svg(plots, layout);
@@ -136,8 +149,7 @@ fn test_radar_six_axes() {
 
 #[test]
 fn test_radar_three_axes_minimum() {
-    let plot = RadarPlot::new(vec!["X", "Y", "Z"])
-        .with_series(vec![1.0_f64, 0.5, 0.8]);
+    let plot = RadarPlot::new(vec!["X", "Y", "Z"]).with_series(vec![1.0_f64, 0.5, 0.8]);
     let plots = vec![Plot::Radar(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Radar Three Axes");
     let svg = render_svg(plots, layout);
@@ -168,14 +180,20 @@ fn test_radar_into_plot() {
 
 #[test]
 fn test_radar_benchmarking_use_case() {
-    let plot = RadarPlot::new(vec!["Precision", "Recall", "Speed", "Memory", "Scalability"])
-        .with_series_color(vec![0.94_f64, 0.91, 0.78, 0.85, 0.72], "Tool A", "#e41a1c")
-        .with_series_color(vec![0.88_f64, 0.95, 0.92, 0.70, 0.88], "Tool B", "#377eb8")
-        .with_series_color(vec![0.81_f64, 0.83, 0.96, 0.92, 0.95], "Tool C", "#4daf4a")
-        .with_filled(true)
-        .with_opacity(0.2)
-        .with_legend(true)
-        .with_range(0.0, 1.0);
+    let plot = RadarPlot::new(vec![
+        "Precision",
+        "Recall",
+        "Speed",
+        "Memory",
+        "Scalability",
+    ])
+    .with_series_color(vec![0.94_f64, 0.91, 0.78, 0.85, 0.72], "Tool A", "#e41a1c")
+    .with_series_color(vec![0.88_f64, 0.95, 0.92, 0.70, 0.88], "Tool B", "#377eb8")
+    .with_series_color(vec![0.81_f64, 0.83, 0.96, 0.92, 0.95], "Tool C", "#4daf4a")
+    .with_filled(true)
+    .with_opacity(0.2)
+    .with_legend(true)
+    .with_range(0.0, 1.0);
     let plots = vec![Plot::Radar(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Tool Comparison");
     let svg = render_svg(plots, layout);
@@ -206,7 +224,7 @@ fn test_radar_inverted_axis() {
 fn test_radar_inverted_multiple_axes() {
     let plot = RadarPlot::new(vec!["Error Rate", "Latency", "Recall", "F1"])
         .with_series(vec![0.02_f64, 10.0, 0.88, 0.85])
-        .with_inverted_axes([0, 1])  // lower error and latency = better
+        .with_inverted_axes([0, 1]) // lower error and latency = better
         .with_range(0.0, 1.0);
     let plots = vec![Plot::Radar(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Inverted Axes");
@@ -260,7 +278,10 @@ fn test_radar_vertex_labels() {
     let layout = Layout::auto_from_plots(&plots).with_title("Vertex Labels");
     let svg = render_svg(plots, layout);
     std::fs::write("test_outputs/radar_vertex_labels.svg", &svg).unwrap();
-    assert!(svg.contains("0.80") || svg.contains("0.8"), "vertex value label present");
+    assert!(
+        svg.contains("0.80") || svg.contains("0.8"),
+        "vertex value label present"
+    );
 }
 
 #[test]

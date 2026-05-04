@@ -11,7 +11,10 @@ pub struct View3D {
 
 impl Default for View3D {
     fn default() -> Self {
-        Self { azimuth: -60.0, elevation: 30.0 }
+        Self {
+            azimuth: -60.0,
+            elevation: 30.0,
+        }
     }
 }
 
@@ -100,18 +103,51 @@ impl Default for Box3DConfig {
 }
 
 impl Box3DConfig {
-    pub fn with_azimuth(mut self, deg: f64) -> Self { self.view.azimuth = deg; self }
-    pub fn with_elevation(mut self, deg: f64) -> Self { self.view.elevation = deg; self }
-    pub fn with_view(mut self, v: View3D) -> Self { self.view = v; self }
-    pub fn with_x_label<S: Into<String>>(mut self, l: S) -> Self { self.x_label = Some(l.into()); self }
-    pub fn with_y_label<S: Into<String>>(mut self, l: S) -> Self { self.y_label = Some(l.into()); self }
-    pub fn with_z_label<S: Into<String>>(mut self, l: S) -> Self { self.z_label = Some(l.into()); self }
-    pub fn with_no_grid(mut self) -> Self { self.show_grid = false; self }
-    pub fn with_no_box(mut self) -> Self { self.show_box = false; self }
-    pub fn with_grid_lines(mut self, n: usize) -> Self { self.grid_lines = n; self }
+    pub fn with_azimuth(mut self, deg: f64) -> Self {
+        self.view.azimuth = deg;
+        self
+    }
+    pub fn with_elevation(mut self, deg: f64) -> Self {
+        self.view.elevation = deg;
+        self
+    }
+    pub fn with_view(mut self, v: View3D) -> Self {
+        self.view = v;
+        self
+    }
+    pub fn with_x_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.x_label = Some(l.into());
+        self
+    }
+    pub fn with_y_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.y_label = Some(l.into());
+        self
+    }
+    pub fn with_z_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.z_label = Some(l.into());
+        self
+    }
+    pub fn with_no_grid(mut self) -> Self {
+        self.show_grid = false;
+        self
+    }
+    pub fn with_no_box(mut self) -> Self {
+        self.show_box = false;
+        self
+    }
+    pub fn with_grid_lines(mut self, n: usize) -> Self {
+        self.grid_lines = n;
+        self
+    }
     /// Force the Z axis to a specific side. Pass `true` for right, `false` for left.
     /// Call `.with_z_axis_auto()` to restore automatic placement.
-    pub fn with_z_axis_right(mut self, r: bool) -> Self { self.z_axis_right = Some(r); self }
+    pub fn with_z_axis_right(mut self, r: bool) -> Self {
+        self.z_axis_right = Some(r);
+        self
+    }
     /// Use automatic Z-axis placement based on the view angles (default).
-    pub fn with_z_axis_auto(mut self) -> Self { self.z_axis_right = None; self }
+    pub fn with_z_axis_auto(mut self) -> Self {
+        self.z_axis_right = None;
+        self
+    }
 }

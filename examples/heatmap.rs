@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/heatmap/`.
 
-use kuva::plot::{Heatmap, ColorMap};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{ColorMap, Heatmap};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/heatmap";
 
@@ -57,9 +57,9 @@ fn labeled() {
     ];
 
     let row_labels = ["GeneA", "GeneB", "GeneC", "GeneD"]
-        .map(String::from).to_vec();
-    let col_labels = ["Ctrl", "T1", "T2", "T3", "T4"]
-        .map(String::from).to_vec();
+        .map(String::from)
+        .to_vec();
+    let col_labels = ["Ctrl", "T1", "T2", "T3", "T4"].map(String::from).to_vec();
 
     let heatmap = Heatmap::new().with_data(data);
     let plots = vec![Plot::Heatmap(heatmap)];
@@ -81,9 +81,7 @@ fn values() {
         vec![50.0, 90.0, 65.0, 20.0],
     ];
 
-    let heatmap = Heatmap::new()
-        .with_data(data)
-        .with_values();
+    let heatmap = Heatmap::new().with_data(data).with_values();
 
     let plots = vec![Plot::Heatmap(heatmap)];
     let layout = Layout::auto_from_plots(&plots).with_title("Value Overlay");
@@ -139,13 +137,11 @@ fn colormaps() {
     ];
 
     for (cmap, name, title) in [
-        (ColorMap::Viridis,   "viridis",   "Viridis"),
-        (ColorMap::Inferno,   "inferno",   "Inferno"),
+        (ColorMap::Viridis, "viridis", "Viridis"),
+        (ColorMap::Inferno, "inferno", "Inferno"),
         (ColorMap::Grayscale, "greyscale", "Greyscale"),
     ] {
-        let heatmap = Heatmap::new()
-            .with_data(data.clone())
-            .with_color_map(cmap);
+        let heatmap = Heatmap::new().with_data(data.clone()).with_color_map(cmap);
 
         let plots = vec![Plot::Heatmap(heatmap)];
         let layout = Layout::auto_from_plots(&plots).with_title(title);

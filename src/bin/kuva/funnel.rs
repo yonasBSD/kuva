@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Funnel chart — show attrition / conversion through ordered stages.
@@ -125,8 +125,10 @@ pub fn run(args: FunnelArgs) -> Result<(), String> {
     if let Some(ref mcol) = args.mirror_col {
         let mirror_values = table.col_f64(mcol)?;
         plot = plot.with_mirror_stages(
-            labels.iter().zip(mirror_values.iter())
-                .map(|(l, v)| (l.clone(), *v))
+            labels
+                .iter()
+                .zip(mirror_values.iter())
+                .map(|(l, v)| (l.clone(), *v)),
         );
         if let Some(ref ll) = args.left_label {
             if let Some(ref rl) = args.right_label {

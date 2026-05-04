@@ -1,10 +1,10 @@
-use kuva::plot::scatter3d::Scatter3DPlot;
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::heatmap::ColorMap;
 use kuva::plot::scatter::MarkerShape;
-use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::scatter3d::Scatter3DPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_scatter3d_basic() {
@@ -16,13 +16,10 @@ fn test_scatter3d_basic() {
         (5.0, 3.0, 7.0),
     ];
 
-    let plot = Scatter3DPlot::new()
-        .with_data(data)
-        .with_color("steelblue");
+    let plot = Scatter3DPlot::new().with_data(data).with_color("steelblue");
 
     let plots = vec![Plot::Scatter3D(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("3D Scatter Basic");
+    let layout = Layout::auto_from_plots(&plots).with_title("3D Scatter Basic");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -35,8 +32,7 @@ fn test_scatter3d_basic() {
 #[test]
 fn test_scatter3d_wireframe() {
     let data = vec![(0.0, 0.0, 0.0), (1.0, 1.0, 1.0)];
-    let plot = Scatter3DPlot::new()
-        .with_data(data);
+    let plot = Scatter3DPlot::new().with_data(data);
 
     let plots = vec![Plot::Scatter3D(plot)];
     let layout = Layout::auto_from_plots(&plots);
@@ -45,7 +41,10 @@ fn test_scatter3d_wireframe() {
     std::fs::write("test_outputs/scatter3d_wireframe.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"));
     // Wireframe box produces line elements
-    assert!(svg.contains("<line"), "SVG should contain line elements for wireframe");
+    assert!(
+        svg.contains("<line"),
+        "SVG should contain line elements for wireframe"
+    );
 }
 
 #[test]
@@ -88,20 +87,17 @@ fn test_scatter3d_z_colormap() {
     // Z-colormap produces varied fill colors from viridis (rendered as hex)
     // With 20 points at different z values, there should be multiple distinct fill colors
     let circle_count = svg.matches("<circle").count();
-    assert!(circle_count >= 15, "SVG should contain many circle markers, got {circle_count}");
+    assert!(
+        circle_count >= 15,
+        "SVG should contain many circle markers, got {circle_count}"
+    );
 }
 
 #[test]
 fn test_scatter3d_depth_shade() {
-    let data = vec![
-        (0.0, 0.0, 0.0),
-        (5.0, 5.0, 5.0),
-        (10.0, 10.0, 10.0),
-    ];
+    let data = vec![(0.0, 0.0, 0.0), (5.0, 5.0, 5.0), (10.0, 10.0, 10.0)];
 
-    let plot = Scatter3DPlot::new()
-        .with_data(data)
-        .with_depth_shade();
+    let plot = Scatter3DPlot::new().with_data(data).with_depth_shade();
 
     let plots = vec![Plot::Scatter3D(plot)];
     let layout = Layout::auto_from_plots(&plots);
@@ -110,7 +106,10 @@ fn test_scatter3d_depth_shade() {
     std::fs::write("test_outputs/scatter3d_depth_shade.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"));
     // Depth shading produces opacity attributes
-    assert!(svg.contains("fill-opacity"), "SVG should contain fill-opacity for depth shading");
+    assert!(
+        svg.contains("fill-opacity"),
+        "SVG should contain fill-opacity for depth shading"
+    );
 }
 
 #[test]
@@ -175,7 +174,10 @@ fn test_scatter3d_marker_shapes() {
     std::fs::write("test_outputs/scatter3d_squares.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"));
     // Square markers produce rect elements
-    assert!(svg.contains("<rect"), "SVG should contain rect elements for square markers");
+    assert!(
+        svg.contains("<rect"),
+        "SVG should contain rect elements for square markers"
+    );
 }
 
 #[test]
@@ -204,23 +206,35 @@ fn test_scatter3d_auto_z_axis() {
     // Both should render without panicking and produce valid SVG.
     let default_plot = Scatter3DPlot::new()
         .with_data(data.clone())
-        .with_x_label("X").with_y_label("Y").with_z_label("Z");
+        .with_x_label("X")
+        .with_y_label("Y")
+        .with_z_label("Z");
 
     let plots = vec![Plot::Scatter3D(default_plot)];
     let layout = Layout::auto_from_plots(&plots);
     let svg_default = SvgBackend.render_scene(&render_multiple(plots, layout));
-    std::fs::write("test_outputs/scatter3d_auto_z_default.svg", svg_default.clone()).unwrap();
+    std::fs::write(
+        "test_outputs/scatter3d_auto_z_default.svg",
+        svg_default.clone(),
+    )
+    .unwrap();
     assert!(svg_default.contains("Z"), "Z axis label should be present");
 
     let mirrored_plot = Scatter3DPlot::new()
         .with_data(data.clone())
         .with_azimuth(60.0)
-        .with_x_label("X").with_y_label("Y").with_z_label("Z");
+        .with_x_label("X")
+        .with_y_label("Y")
+        .with_z_label("Z");
 
     let plots = vec![Plot::Scatter3D(mirrored_plot)];
     let layout = Layout::auto_from_plots(&plots);
     let svg_mirrored = SvgBackend.render_scene(&render_multiple(plots, layout));
-    std::fs::write("test_outputs/scatter3d_auto_z_mirrored.svg", svg_mirrored.clone()).unwrap();
+    std::fs::write(
+        "test_outputs/scatter3d_auto_z_mirrored.svg",
+        svg_mirrored.clone(),
+    )
+    .unwrap();
     assert!(svg_mirrored.contains("Z"), "Z axis label should be present");
 
     // Explicit override: force left even at default azimuth

@@ -171,7 +171,11 @@ pub fn compute_roc_points(predictions: &[(f64, bool)]) -> Vec<RocPoint> {
         return Vec::new();
     }
 
-    let mut points = vec![RocPoint { fpr: 0.0, tpr: 0.0, threshold: f64::INFINITY }];
+    let mut points = vec![RocPoint {
+        fpr: 0.0,
+        tpr: 0.0,
+        threshold: f64::INFINITY,
+    }];
     let mut tp = 0usize;
     let mut fp = 0usize;
     let mut i = 0usize;
@@ -179,7 +183,11 @@ pub fn compute_roc_points(predictions: &[(f64, bool)]) -> Vec<RocPoint> {
         let thresh = sorted[i].0;
         // Consume all items at this threshold
         while i < sorted.len() && (sorted[i].0 - thresh).abs() < f64::EPSILON * 100.0 {
-            if sorted[i].1 { tp += 1; } else { fp += 1; }
+            if sorted[i].1 {
+                tp += 1;
+            } else {
+                fp += 1;
+            }
             i += 1;
         }
         points.push(RocPoint {
@@ -191,7 +199,11 @@ pub fn compute_roc_points(predictions: &[(f64, bool)]) -> Vec<RocPoint> {
     // Ensure we end at (1,1)
     let last = points.last().unwrap();
     if (last.fpr - 1.0).abs() > 1e-9 || (last.tpr - 1.0).abs() > 1e-9 {
-        points.push(RocPoint { fpr: 1.0, tpr: 1.0, threshold: f64::NEG_INFINITY });
+        points.push(RocPoint {
+            fpr: 1.0,
+            tpr: 1.0,
+            threshold: f64::NEG_INFINITY,
+        });
     }
     points
 }
@@ -219,18 +231,30 @@ pub fn delong_auc(predictions: &[(f64, bool)]) -> (f64, f64) {
     }
 
     // V10[i] = fraction of negatives with score < pos[i]  (placement statistic)
-    let v10: Vec<f64> = pos.iter().map(|&s| {
-        let less = neg.iter().filter(|&&n| n < s).count();
-        let tied = neg.iter().filter(|&&n| (n - s).abs() < f64::EPSILON * 100.0).count();
-        (less as f64 + 0.5 * tied as f64) / n_neg as f64
-    }).collect();
+    let v10: Vec<f64> = pos
+        .iter()
+        .map(|&s| {
+            let less = neg.iter().filter(|&&n| n < s).count();
+            let tied = neg
+                .iter()
+                .filter(|&&n| (n - s).abs() < f64::EPSILON * 100.0)
+                .count();
+            (less as f64 + 0.5 * tied as f64) / n_neg as f64
+        })
+        .collect();
 
     // V01[j] = fraction of positives with score > neg[j]
-    let v01: Vec<f64> = neg.iter().map(|&s| {
-        let greater = pos.iter().filter(|&&p| p > s).count();
-        let tied = pos.iter().filter(|&&p| (p - s).abs() < f64::EPSILON * 100.0).count();
-        (greater as f64 + 0.5 * tied as f64) / n_pos as f64
-    }).collect();
+    let v01: Vec<f64> = neg
+        .iter()
+        .map(|&s| {
+            let greater = pos.iter().filter(|&&p| p > s).count();
+            let tied = pos
+                .iter()
+                .filter(|&&p| (p - s).abs() < f64::EPSILON * 100.0)
+                .count();
+            (greater as f64 + 0.5 * tied as f64) / n_pos as f64
+        })
+        .collect();
 
     let auc = v10.iter().sum::<f64>() / n_pos as f64;
     let var10 = variance(&v10);
@@ -259,23 +283,33 @@ pub fn partial_auc(points: &[RocPoint], fpr_lo: f64, fpr_hi: f64) -> f64 {
         let fa = f0.max(fpr_lo);
         let fb = f1.min(fpr_hi);
         let interp = |f: f64| -> f64 {
-            if (f1 - f0).abs() < 1e-12 { t0 }
-            else { t0 + (t1 - t0) * (f - f0) / (f1 - f0) }
+            if (f1 - f0).abs() < 1e-12 {
+                t0
+            } else {
+                t0 + (t1 - t0) * (f - f0) / (f1 - f0)
+            }
         };
         clipped.push((fa, interp(fa)));
         clipped.push((fb, interp(fb)));
     }
     clipped.dedup_by(|a, b| (a.0 - b.0).abs() < 1e-12);
-    let raw: f64 = clipped.windows(2).map(|w| {
-        (w[1].0 - w[0].0) * (w[0].1 + w[1].1) / 2.0
-    }).sum();
+    let raw: f64 = clipped
+        .windows(2)
+        .map(|w| (w[1].0 - w[0].0) * (w[0].1 + w[1].1) / 2.0)
+        .sum();
     let width = fpr_hi - fpr_lo;
-    if width > 0.0 { raw / width } else { 0.0 }
+    if width > 0.0 {
+        raw / width
+    } else {
+        0.0
+    }
 }
 
 /// Index of the optimal threshold point (maximises Youden J = TPR − FPR).
 pub(crate) fn optimal_threshold_idx(points: &[RocPoint]) -> usize {
-    points.iter().enumerate()
+    points
+        .iter()
+        .enumerate()
         .max_by(|(_, a), (_, b)| {
             let ja = a.tpr - a.fpr;
             let jb = b.tpr - b.fpr;
@@ -290,13 +324,26 @@ pub fn compute_group(group: &RocGroup) -> RocComputed {
     let points = if let Some(raw) = &group.raw_predictions {
         compute_roc_points(raw)
     } else if let Some(pts) = &group.precomputed_points {
-        pts.iter().map(|&(f, t)| RocPoint { fpr: f, tpr: t, threshold: f64::NAN }).collect()
+        pts.iter()
+            .map(|&(f, t)| RocPoint {
+                fpr: f,
+                tpr: t,
+                threshold: f64::NAN,
+            })
+            .collect()
     } else {
         Vec::new()
     };
 
     if points.is_empty() {
-        return RocComputed { points, auc: 0.0, pauc: None, ci_lo: 0.0, ci_hi: 0.0, optimal_idx: None };
+        return RocComputed {
+            points,
+            auc: 0.0,
+            pauc: None,
+            ci_lo: 0.0,
+            ci_hi: 0.0,
+            optimal_idx: None,
+        };
     }
 
     let (auc, ci_lo, ci_hi) = if let Some(raw) = &group.raw_predictions {
@@ -308,12 +355,21 @@ pub fn compute_group(group: &RocGroup) -> RocComputed {
         (a, f64::NAN, f64::NAN)
     };
 
-    let pauc = group.pauc_range.map(|(lo, hi)| partial_auc(&points, lo, hi));
+    let pauc = group
+        .pauc_range
+        .map(|(lo, hi)| partial_auc(&points, lo, hi));
     let optimal_idx = if group.show_optimal_point {
         Some(optimal_threshold_idx(&points))
     } else {
         None
     };
 
-    RocComputed { points, auc, pauc, ci_lo, ci_hi, optimal_idx }
+    RocComputed {
+        points,
+        auc,
+        pauc,
+        ci_lo,
+        ci_hi,
+        optimal_idx,
+    }
 }

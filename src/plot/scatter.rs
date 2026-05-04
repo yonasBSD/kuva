@@ -12,7 +12,6 @@ pub enum MarkerShape {
     Plus,
 }
 
-
 /// Trend line variant to overlay on a scatter plot.
 #[derive(Debug, Clone, Copy)]
 pub enum TrendLine {
@@ -39,7 +38,6 @@ impl From<&ScatterPoint> for (f64, f64) {
         (p.x, p.y)
     }
 }
-
 
 use crate::plot::band::BandPlot;
 
@@ -116,9 +114,10 @@ pub struct ScatterPlot {
     pub group_name: Option<String>,
 }
 
-
 impl Default for ScatterPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ScatterPlot {
@@ -204,9 +203,9 @@ impl ScatterPlot {
     /// called after [`with_data`](Self::with_data).
     pub fn with_x_err_asymmetric<T, U, I>(mut self, errors: I) -> Self
     where
-    I: IntoIterator<Item = (T, U)>,
-    T: Into<f64>,
-    U: Into<f64>,
+        I: IntoIterator<Item = (T, U)>,
+        T: Into<f64>,
+        U: Into<f64>,
     {
         for (i, (neg, pos)) in errors.into_iter().enumerate() {
             if i < self.data.len() {
@@ -342,8 +341,7 @@ impl ScatterPlot {
         U: Into<f64>,
     {
         let x: Vec<f64> = self.data.iter().map(|p| p.x).collect();
-        let band = BandPlot::new(x, y_lower, y_upper)
-            .with_color(self.color.clone());
+        let band = BandPlot::new(x, y_lower, y_upper).with_color(self.color.clone());
         self.band = Some(band);
         self
     }
@@ -430,7 +428,10 @@ impl ScatterPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

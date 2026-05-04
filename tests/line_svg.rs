@@ -1,16 +1,18 @@
-use kuva::plot::LinePlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::{render_line, render_multiple};
+use kuva::plot::LinePlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::{render_line, render_multiple};
 
 #[test]
 fn test_line_svg_output_builder() {
     let plot = LinePlot::new()
-                        .with_data((0..100)
-                        .map(|x| (x as f64 / 10.0, (x as f64 / 10.0).sin()))
-                        .collect::<Vec<_>>())
-                        .with_color("green");
+        .with_data(
+            (0..100)
+                .map(|x| (x as f64 / 10.0, (x as f64 / 10.0).sin()))
+                .collect::<Vec<_>>(),
+        )
+        .with_color("green");
 
     let layout = Layout::new((0.0, 10.0), (-1.5, 1.5))
         .with_x_label("Time (s)")
@@ -86,8 +88,7 @@ fn test_line_step() {
         .with_step();
 
     let plots = vec![Plot::Line(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Step Plot");
+    let layout = Layout::auto_from_plots(&plots).with_title("Step Plot");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -96,7 +97,10 @@ fn test_line_step() {
     assert!(svg.contains("<svg"));
     // Step path should have more L segments than data points (2 per step after the first)
     let l_count = svg.matches(" L ").count();
-    assert!(l_count > n, "step path should have more L segments than data points");
+    assert!(
+        l_count > n,
+        "step path should have more L segments than data points"
+    );
 }
 
 #[test]
@@ -107,8 +111,7 @@ fn test_line_area() {
         .with_fill();
 
     let plots = vec![Plot::Line(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Area Plot");
+    let layout = Layout::auto_from_plots(&plots).with_title("Area Plot");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -129,8 +132,7 @@ fn test_line_step_area() {
         .with_fill_opacity(0.4);
 
     let plots = vec![Plot::Line(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Step Area Plot");
+    let layout = Layout::auto_from_plots(&plots).with_title("Step Area Plot");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -194,9 +196,7 @@ fn test_line_log_y() {
         .map(|i| (i as f64, 10f64.powf(i as f64 * 0.5)))
         .collect();
 
-    let line = LinePlot::new()
-        .with_data(data)
-        .with_color("steelblue");
+    let line = LinePlot::new().with_data(data).with_color("steelblue");
 
     let plots = vec![Plot::Line(line)];
     let layout = Layout::auto_from_plots(&plots)
@@ -222,9 +222,14 @@ fn test_line_log_y() {
 fn test_line_log_xy_wide_range() {
     // Data spanning many decades on both axes
     let data: Vec<(f64, f64)> = vec![
-        (0.001, 0.01), (0.01, 0.1), (0.1, 1.0),
-        (1.0, 10.0), (10.0, 100.0), (100.0, 1000.0),
-        (1000.0, 10000.0), (10000.0, 100000.0),
+        (0.001, 0.01),
+        (0.01, 0.1),
+        (0.1, 1.0),
+        (1.0, 10.0),
+        (10.0, 100.0),
+        (100.0, 1000.0),
+        (1000.0, 10000.0),
+        (10000.0, 100000.0),
     ];
 
     let line = LinePlot::new()

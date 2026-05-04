@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, NaiveDateTime, DateTime, Utc, Datelike, Timelike, TimeDelta, Months};
+use chrono::{DateTime, Datelike, Months, NaiveDate, NaiveDateTime, TimeDelta, Timelike, Utc};
 
 #[derive(Clone, Debug)]
 pub enum DateUnit {
@@ -20,27 +20,51 @@ pub struct DateTimeAxis {
 
 impl DateTimeAxis {
     pub fn years(fmt: &str) -> Self {
-        Self { unit: DateUnit::Year, step: 1, format: fmt.to_string() }
+        Self {
+            unit: DateUnit::Year,
+            step: 1,
+            format: fmt.to_string(),
+        }
     }
 
     pub fn months(fmt: &str) -> Self {
-        Self { unit: DateUnit::Month, step: 1, format: fmt.to_string() }
+        Self {
+            unit: DateUnit::Month,
+            step: 1,
+            format: fmt.to_string(),
+        }
     }
 
     pub fn weeks(fmt: &str) -> Self {
-        Self { unit: DateUnit::Week, step: 1, format: fmt.to_string() }
+        Self {
+            unit: DateUnit::Week,
+            step: 1,
+            format: fmt.to_string(),
+        }
     }
 
     pub fn days(fmt: &str) -> Self {
-        Self { unit: DateUnit::Day, step: 1, format: fmt.to_string() }
+        Self {
+            unit: DateUnit::Day,
+            step: 1,
+            format: fmt.to_string(),
+        }
     }
 
     pub fn hours(fmt: &str) -> Self {
-        Self { unit: DateUnit::Hour, step: 1, format: fmt.to_string() }
+        Self {
+            unit: DateUnit::Hour,
+            step: 1,
+            format: fmt.to_string(),
+        }
     }
 
     pub fn minutes(fmt: &str) -> Self {
-        Self { unit: DateUnit::Minute, step: 1, format: fmt.to_string() }
+        Self {
+            unit: DateUnit::Minute,
+            step: 1,
+            format: fmt.to_string(),
+        }
     }
 
     pub fn with_step(mut self, step: usize) -> Self {
@@ -52,17 +76,41 @@ impl DateTimeAxis {
     pub fn auto(min: f64, max: f64) -> Self {
         let range = max - min;
         if range < 120.0 {
-            Self { unit: DateUnit::Second, step: 1, format: "%H:%M:%S".to_string() }
+            Self {
+                unit: DateUnit::Second,
+                step: 1,
+                format: "%H:%M:%S".to_string(),
+            }
         } else if range < 7200.0 {
-            Self { unit: DateUnit::Minute, step: 1, format: "%H:%M".to_string() }
+            Self {
+                unit: DateUnit::Minute,
+                step: 1,
+                format: "%H:%M".to_string(),
+            }
         } else if range < 259200.0 {
-            Self { unit: DateUnit::Hour, step: 1, format: "%m-%d %H:00".to_string() }
+            Self {
+                unit: DateUnit::Hour,
+                step: 1,
+                format: "%m-%d %H:00".to_string(),
+            }
         } else if range < 7776000.0 {
-            Self { unit: DateUnit::Day, step: 1, format: "%Y-%m-%d".to_string() }
+            Self {
+                unit: DateUnit::Day,
+                step: 1,
+                format: "%Y-%m-%d".to_string(),
+            }
         } else if range < 94608000.0 {
-            Self { unit: DateUnit::Month, step: 1, format: "%b %Y".to_string() }
+            Self {
+                unit: DateUnit::Month,
+                step: 1,
+                format: "%b %Y".to_string(),
+            }
         } else {
-            Self { unit: DateUnit::Year, step: 1, format: "%Y".to_string() }
+            Self {
+                unit: DateUnit::Year,
+                step: 1,
+                format: "%Y".to_string(),
+            }
         }
     }
 
@@ -81,13 +129,17 @@ impl DateTimeAxis {
         let mut iters = 0;
         loop {
             let ts = current.and_utc().timestamp();
-            if ts > max_ts { break; }
+            if ts > max_ts {
+                break;
+            }
             if ts >= min as i64 {
                 ticks.push(ts as f64);
             }
             current = advance(&current, &self.unit, step);
             iters += 1;
-            if iters > 10000 { break; }
+            if iters > 10000 {
+                break;
+            }
         }
 
         ticks
@@ -109,52 +161,92 @@ fn snap_to_boundary(dt: &NaiveDateTime, unit: &DateUnit, step: usize) -> NaiveDa
             // Round up to nearest step
             let s = dt.second() as usize;
             let snapped = (s / step) * step;
-            let base = dt.with_second(snapped as u32).unwrap_or(*dt)
-                .with_nanosecond(0).unwrap_or(*dt);
-            if base < *dt { advance(&base, unit, step) } else { base }
+            let base = dt
+                .with_second(snapped as u32)
+                .unwrap_or(*dt)
+                .with_nanosecond(0)
+                .unwrap_or(*dt);
+            if base < *dt {
+                advance(&base, unit, step)
+            } else {
+                base
+            }
         }
         DateUnit::Minute => {
             let m = dt.minute() as usize;
             let snapped = (m / step) * step;
-            let base = dt.with_minute(snapped as u32).unwrap_or(*dt)
-                .with_second(0).unwrap_or(*dt)
-                .with_nanosecond(0).unwrap_or(*dt);
-            if base < *dt { advance(&base, unit, step) } else { base }
+            let base = dt
+                .with_minute(snapped as u32)
+                .unwrap_or(*dt)
+                .with_second(0)
+                .unwrap_or(*dt)
+                .with_nanosecond(0)
+                .unwrap_or(*dt);
+            if base < *dt {
+                advance(&base, unit, step)
+            } else {
+                base
+            }
         }
         DateUnit::Hour => {
             let h = dt.hour() as usize;
             let snapped = (h / step) * step;
-            let base = dt.with_hour(snapped as u32).unwrap_or(*dt)
-                .with_minute(0).unwrap_or(*dt)
-                .with_second(0).unwrap_or(*dt)
-                .with_nanosecond(0).unwrap_or(*dt);
-            if base < *dt { advance(&base, unit, step) } else { base }
+            let base = dt
+                .with_hour(snapped as u32)
+                .unwrap_or(*dt)
+                .with_minute(0)
+                .unwrap_or(*dt)
+                .with_second(0)
+                .unwrap_or(*dt)
+                .with_nanosecond(0)
+                .unwrap_or(*dt);
+            if base < *dt {
+                advance(&base, unit, step)
+            } else {
+                base
+            }
         }
         DateUnit::Day => {
             // Snap to midnight
             let base = dt.date().and_hms_opt(0, 0, 0).unwrap_or(*dt);
-            if base < *dt { advance(&base, unit, step) } else { base }
+            if base < *dt {
+                advance(&base, unit, step)
+            } else {
+                base
+            }
         }
         DateUnit::Week => {
             // Snap to the nearest preceding Monday midnight
             let days_since_monday = dt.weekday().num_days_from_monday() as i64;
             let monday = dt.date() - TimeDelta::days(days_since_monday);
             let base = monday.and_hms_opt(0, 0, 0).unwrap_or(*dt);
-            if base < *dt { advance(&base, unit, step) } else { base }
+            if base < *dt {
+                advance(&base, unit, step)
+            } else {
+                base
+            }
         }
         DateUnit::Month => {
             // Snap to first of the month
             let base = NaiveDate::from_ymd_opt(dt.year(), dt.month(), 1)
                 .and_then(|d| d.and_hms_opt(0, 0, 0))
                 .unwrap_or(*dt);
-            if base < *dt { advance(&base, unit, step) } else { base }
+            if base < *dt {
+                advance(&base, unit, step)
+            } else {
+                base
+            }
         }
         DateUnit::Year => {
             // Snap to Jan 1
             let base = NaiveDate::from_ymd_opt(dt.year(), 1, 1)
                 .and_then(|d| d.and_hms_opt(0, 0, 0))
                 .unwrap_or(*dt);
-            if base < *dt { advance(&base, unit, step) } else { base }
+            if base < *dt {
+                advance(&base, unit, step)
+            } else {
+                base
+            }
         }
     }
 }
@@ -165,11 +257,11 @@ fn advance(dt: &NaiveDateTime, unit: &DateUnit, step: usize) -> NaiveDateTime {
     match unit {
         DateUnit::Second => *dt + TimeDelta::seconds(step),
         DateUnit::Minute => *dt + TimeDelta::minutes(step),
-        DateUnit::Hour   => *dt + TimeDelta::hours(step),
-        DateUnit::Day    => *dt + TimeDelta::days(step),
-        DateUnit::Week   => *dt + TimeDelta::weeks(step),
-        DateUnit::Month  => *dt + Months::new(step as u32),
-        DateUnit::Year   => *dt + Months::new(step as u32 * 12),
+        DateUnit::Hour => *dt + TimeDelta::hours(step),
+        DateUnit::Day => *dt + TimeDelta::days(step),
+        DateUnit::Week => *dt + TimeDelta::weeks(step),
+        DateUnit::Month => *dt + Months::new(step as u32),
+        DateUnit::Year => *dt + Months::new(step as u32 * 12),
     }
 }
 

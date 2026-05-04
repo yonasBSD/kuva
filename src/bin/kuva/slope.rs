@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Slope plot — compare paired before/after values per labeled entity.
@@ -85,7 +85,9 @@ pub fn run(args: SlopeArgs) -> Result<(), String> {
     if befores.len() != n || afters.len() != n {
         return Err(format!(
             "column length mismatch: labels={}, before={}, after={}",
-            n, befores.len(), afters.len()
+            n,
+            befores.len(),
+            afters.len()
         ));
     }
 

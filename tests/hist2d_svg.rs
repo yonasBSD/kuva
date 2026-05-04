@@ -1,11 +1,11 @@
-use kuva::plot::Histogram2D;
-use kuva::plot::histogram2d::ColorMap;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::histogram2d::ColorMap;
+use kuva::plot::Histogram2D;
 use kuva::render::layout::{Layout, TickFormat};
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
-use rand_distr::{Normal, Distribution};
+use rand_distr::{Distribution, Normal};
 
 fn outdir() {
     std::fs::create_dir_all("test_outputs").ok();
@@ -49,10 +49,16 @@ fn test_hist2d_max_boundary_point_in_last_bin() {
     let hist = Histogram2D::new().with_data(data, (0.0, 10.0), (0.0, 10.0), 10, 10);
 
     let total: usize = hist.bins.iter().flatten().sum();
-    assert_eq!(total, 3, "all 3 points should be binned, including the one at x_range.1");
+    assert_eq!(
+        total, 3,
+        "all 3 points should be binned, including the one at x_range.1"
+    );
 
     // The point (10, 10) should end up in the last cell [9][9].
-    assert_eq!(hist.bins[9][9], 1, "point at (10,10) should be in the last bin [9][9]");
+    assert_eq!(
+        hist.bins[9][9], 1,
+        "point at (10,10) should be in the last bin [9][9]"
+    );
 }
 
 /// All data points within the stated range (inclusive) must appear exactly once
@@ -60,14 +66,17 @@ fn test_hist2d_max_boundary_point_in_last_bin() {
 #[test]
 fn test_hist2d_bin_total_equals_in_range_count() {
     // 25 points on a 5×5 grid within [0, 4] × [0, 4] — all within range.
-    let data: Vec<(f64, f64)> = (0..5).flat_map(|i| {
-        (0..5).map(move |j| (i as f64, j as f64))
-    }).collect();
+    let data: Vec<(f64, f64)> = (0..5)
+        .flat_map(|i| (0..5).map(move |j| (i as f64, j as f64)))
+        .collect();
 
     let hist = Histogram2D::new().with_data(data, (0.0, 4.0), (0.0, 4.0), 4, 4);
     let total: usize = hist.bins.iter().flatten().sum();
     // All 25 points are within [0,4]×[0,4]; expect all to be counted.
-    assert_eq!(total, 25, "sum of all bins should equal the number of in-range points");
+    assert_eq!(
+        total, 25,
+        "sum of all bins should equal the number of in-range points"
+    );
 }
 
 /// When data has outliers far outside the stated range, they are excluded from
@@ -82,22 +91,29 @@ fn test_hist2d_outlier_excluded_by_explicit_range() {
     // With explicit range [0, 10]: outlier is outside the range and excluded.
     let hist_ranged = Histogram2D::new().with_data(data.clone(), (0.0, 10.0), (0.0, 10.0), 10, 10);
     let total_ranged: usize = hist_ranged.bins.iter().flatten().sum();
-    assert_eq!(total_ranged, 100, "outlier at 1000 should be excluded by the [0,10] range");
+    assert_eq!(
+        total_ranged, 100,
+        "outlier at 1000 should be excluded by the [0,10] range"
+    );
 
     // The 100 in-range points form a diagonal; bins should be spread across the
     // grid, not piled into the first column (which is what happens when the
     // outlier forces a [0,1000] range with width-100 bins).
     let first_col_total: usize = hist_ranged.bins.iter().map(|row| row[0]).sum();
-    assert!(first_col_total <= 10,
-        "with explicit range, data should spread across bins; first col={first_col_total}");
+    assert!(
+        first_col_total <= 10,
+        "with explicit range, data should spread across bins; first col={first_col_total}"
+    );
 
     // Without explicit range (use full data range 0..1000): all 100 main-cluster
     // points collapse into the first bin because bin_width = 100.
     let hist_wide = Histogram2D::new().with_data(data, (0.0, 1000.0), (0.0, 1000.0), 10, 10);
     let total_wide: usize = hist_wide.bins.iter().flatten().sum();
     assert_eq!(total_wide, 101, "full range should include all 101 points");
-    assert_eq!(hist_wide.bins[0][0], 100,
-        "with [0,1000] range and 10 bins (width=100), all main points pile into bin [0][0]");
+    assert_eq!(
+        hist_wide.bins[0][0], 100,
+        "with [0,1000] range and 10 bins (width=100), all main points pile into bin [0][0]"
+    );
 }
 
 /// Explicit range affects the binning, not just the display: the rendered SVG
@@ -123,18 +139,22 @@ fn test_hist2d_explicit_range_renders_filled_bins() {
     assert!(!svg.contains("NaN"), "SVG should contain no NaN values");
     // Multiple coloured rects expected (one per non-empty bin).
     let rect_count = svg.matches("<rect").count();
-    assert!(rect_count >= 5, "expected multiple coloured bins; got {rect_count} rects");
+    assert!(
+        rect_count >= 5,
+        "expected multiple coloured bins; got {rect_count} rects"
+    );
 }
 
 #[test]
 fn test_hist2d_log_count() {
     outdir();
     // Skewed data: many points near origin, a few scattered — classic case for log scaling.
-    let mut data: Vec<(f64, f64)> = (0..5000).map(|i| ((i % 10) as f64 * 0.5, (i % 10) as f64 * 0.5)).collect();
+    let mut data: Vec<(f64, f64)> = (0..5000)
+        .map(|i| ((i % 10) as f64 * 0.5, (i % 10) as f64 * 0.5))
+        .collect();
     data.extend((0..50).map(|i| (i as f64 * 0.2, (50 - i) as f64 * 0.2)));
 
-    let hist_linear = Histogram2D::new()
-        .with_data(data.clone(), (0.0, 10.0), (0.0, 10.0), 10, 10);
+    let hist_linear = Histogram2D::new().with_data(data.clone(), (0.0, 10.0), (0.0, 10.0), 10, 10);
     let hist_log = Histogram2D::new()
         .with_data(data, (0.0, 10.0), (0.0, 10.0), 10, 10)
         .with_log_count();
@@ -152,16 +172,26 @@ fn test_hist2d_log_count() {
     std::fs::write("test_outputs/hist2d_log_count.svg", &svg_log).unwrap();
 
     assert!(svg_log.contains("<svg"));
-    assert!(!svg_log.contains("NaN"), "log SVG should contain no NaN values");
+    assert!(
+        !svg_log.contains("NaN"),
+        "log SVG should contain no NaN values"
+    );
     // Colorbar label should reference log and Count
-    assert!(svg_log.contains("log") && svg_log.contains("Count"),
-        "colorbar label should reference log and Count");
+    assert!(
+        svg_log.contains("log") && svg_log.contains("Count"),
+        "colorbar label should reference log and Count"
+    );
     // Linear colorbar should still say Count
-    assert!(svg_linear.contains(">Count<") || svg_linear.contains("\"Count\""),
-        "linear colorbar label should be 'Count'");
+    assert!(
+        svg_linear.contains(">Count<") || svg_linear.contains("\"Count\""),
+        "linear colorbar label should be 'Count'"
+    );
     // Both should render rects
     let rect_count = svg_log.matches("<rect").count();
-    assert!(rect_count >= 3, "expected coloured bins in log plot, got {rect_count}");
+    assert!(
+        rect_count >= 3,
+        "expected coloured bins in log plot, got {rect_count}"
+    );
     // The two SVGs should differ in color values (log compression changes fills)
     assert_ne!(svg_linear, svg_log, "log and linear renders should differ");
 }
@@ -173,7 +203,9 @@ fn test_hist2d_log_count() {
 #[test]
 fn test_hist2d_colorbar_auto_format_integers() {
     outdir();
-    let data: Vec<(f64, f64)> = (0..500).map(|i| ((i % 20) as f64, (i % 20) as f64)).collect();
+    let data: Vec<(f64, f64)> = (0..500)
+        .map(|i| ((i % 20) as f64, (i % 20) as f64))
+        .collect();
     let hist = Histogram2D::new().with_data(data, (0.0, 20.0), (0.0, 20.0), 20, 20);
     let plots = vec![Plot::Histogram2d(hist)];
     let layout = Layout::auto_from_plots(&plots).with_title("hist2d auto tick format");
@@ -182,14 +214,19 @@ fn test_hist2d_colorbar_auto_format_integers() {
     assert!(svg.contains("<svg"));
     assert!(!svg.contains("NaN"));
     // Auto format should not produce ".0" suffixes on integer counts
-    assert!(!svg.contains("25.0"), "integer tick labels should not have a trailing .0");
+    assert!(
+        !svg.contains("25.0"),
+        "integer tick labels should not have a trailing .0"
+    );
 }
 
 /// Sci format: all colorbar tick labels use scientific notation regardless of magnitude.
 #[test]
 fn test_hist2d_colorbar_sci_format() {
     outdir();
-    let data: Vec<(f64, f64)> = (0..300).map(|i| ((i % 10) as f64, (i % 10) as f64)).collect();
+    let data: Vec<(f64, f64)> = (0..300)
+        .map(|i| ((i % 10) as f64, (i % 10) as f64))
+        .collect();
     let hist = Histogram2D::new().with_data(data, (0.0, 10.0), (0.0, 10.0), 10, 10);
     let plots = vec![Plot::Histogram2d(hist)];
     let layout = Layout::auto_from_plots(&plots)
@@ -200,14 +237,19 @@ fn test_hist2d_colorbar_sci_format() {
     assert!(svg.contains("<svg"));
     assert!(!svg.contains("NaN"));
     // Sci format produces "e" notation
-    assert!(svg.contains('e'), "sci format should produce scientific notation labels");
+    assert!(
+        svg.contains('e'),
+        "sci format should produce scientific notation labels"
+    );
 }
 
 /// Fixed format: colorbar ticks render with a fixed number of decimal places.
 #[test]
 fn test_hist2d_colorbar_fixed_format() {
     outdir();
-    let data: Vec<(f64, f64)> = (0..200).map(|i| ((i % 10) as f64, (i % 10) as f64)).collect();
+    let data: Vec<(f64, f64)> = (0..200)
+        .map(|i| ((i % 10) as f64, (i % 10) as f64))
+        .collect();
     let hist = Histogram2D::new().with_data(data, (0.0, 10.0), (0.0, 10.0), 10, 10);
     let plots = vec![Plot::Histogram2d(hist)];
     let layout = Layout::auto_from_plots(&plots)
@@ -218,7 +260,10 @@ fn test_hist2d_colorbar_fixed_format() {
     assert!(svg.contains("<svg"));
     assert!(!svg.contains("NaN"));
     // Fixed(2) produces ".00" on integers
-    assert!(svg.contains(".00"), "fixed(2) format should produce labels ending in .00 for integer counts");
+    assert!(
+        svg.contains(".00"),
+        "fixed(2) format should produce labels ending in .00 for integer counts"
+    );
 }
 
 /// Large count data: Auto format should switch to sci notation so the colorbar
@@ -236,5 +281,8 @@ fn test_hist2d_colorbar_auto_large_counts() {
     assert!(svg.contains("<svg"));
     assert!(!svg.contains("NaN"));
     // Max count is 50 000 (≥ 10 000), so Auto should produce at least one sci-notation label
-    assert!(svg.contains('e'), "auto format should use sci notation for counts ≥ 10 000");
+    assert!(
+        svg.contains('e'),
+        "auto format should use sci notation for counts ≥ 10 000"
+    );
 }

@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{apply_base_args, BaseArgs, AxisArgs};
+use crate::layout_args::{apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Bump chart — rank of named series across discrete time points or conditions.
@@ -113,12 +113,12 @@ pub fn run(args: BumpArgs) -> Result<(), String> {
     )?;
 
     let series_col = args.series.unwrap_or(ColSpec::Index(0));
-    let time_col   = args.time.unwrap_or(ColSpec::Index(1));
-    let rank_col   = args.rank.unwrap_or(ColSpec::Index(2));
+    let time_col = args.time.unwrap_or(ColSpec::Index(1));
+    let rank_col = args.rank.unwrap_or(ColSpec::Index(2));
 
     let series_vals = table.col_str(&series_col)?;
-    let time_vals   = table.col_str(&time_col)?;
-    let rank_vals   = table.col_f64(&rank_col)?;
+    let time_vals = table.col_str(&time_col)?;
+    let rank_vals = table.col_f64(&rank_col)?;
 
     if series_vals.is_empty() {
         return Err("bump: input has no data".into());
@@ -138,11 +138,13 @@ pub fn run(args: BumpArgs) -> Result<(), String> {
     let mut series_map: BTreeMap<String, Vec<Option<f64>>> = BTreeMap::new();
     let n_time = time_order.len();
 
-    for ((series_name, time_label), val) in series_vals.iter()
+    for ((series_name, time_label), val) in series_vals
+        .iter()
         .zip(time_vals.iter())
         .zip(rank_vals.iter())
     {
-        let entry = series_map.entry(series_name.clone())
+        let entry = series_map
+            .entry(series_name.clone())
             .or_insert_with(|| vec![None; n_time]);
         if let Some(pos) = time_order.iter().position(|t| t == time_label) {
             entry[pos] = Some(*val);
@@ -155,16 +157,16 @@ pub fn run(args: BumpArgs) -> Result<(), String> {
     bp = bp.with_x_labels(time_order);
 
     let curve = match args.curve {
-        CliCurveStyle::Sigmoid  => CurveStyle::Sigmoid,
+        CliCurveStyle::Sigmoid => CurveStyle::Sigmoid,
         CliCurveStyle::Straight => CurveStyle::Straight,
     };
     bp = bp.with_curve_style(curve);
 
     let tie_break = match args.tie_break {
         CliTieBreak::Average => BumpTieBreak::Average,
-        CliTieBreak::Min     => BumpTieBreak::Min,
-        CliTieBreak::Max     => BumpTieBreak::Max,
-        CliTieBreak::Stable  => BumpTieBreak::Stable,
+        CliTieBreak::Min => BumpTieBreak::Min,
+        CliTieBreak::Max => BumpTieBreak::Max,
+        CliTieBreak::Stable => BumpTieBreak::Stable,
     };
     bp = bp.with_tie_break(tie_break);
 
@@ -179,20 +181,38 @@ pub fn run(args: BumpArgs) -> Result<(), String> {
         }
     }
 
-    if args.rank_labels   { bp = bp.with_show_rank_labels(true); }
-    if args.no_series_labels { bp = bp.with_show_series_labels(false); }
-    if args.no_legend     { bp = bp.with_legend(false); }
-    if let Some(r) = args.dot_radius  { bp = bp.with_dot_radius(r); }
-    if let Some(w) = args.stroke_width { bp = bp.with_stroke_width(w); }
-    if let Some(hl) = args.highlight   { bp = bp.with_highlight(hl); }
+    if args.rank_labels {
+        bp = bp.with_show_rank_labels(true);
+    }
+    if args.no_series_labels {
+        bp = bp.with_show_series_labels(false);
+    }
+    if args.no_legend {
+        bp = bp.with_legend(false);
+    }
+    if let Some(r) = args.dot_radius {
+        bp = bp.with_dot_radius(r);
+    }
+    if let Some(w) = args.stroke_width {
+        bp = bp.with_stroke_width(w);
+    }
+    if let Some(hl) = args.highlight {
+        bp = bp.with_highlight(hl);
+    }
 
     // ── Layout and render ─────────────────────────────────────────────────────
     let plots = vec![Plot::Bump(bp)];
     let mut layout = Layout::auto_from_plots(&plots);
     layout = apply_base_args(layout, &args.base);
-    if let Some(xl) = args.axis.x_label { layout = layout.with_x_label(xl); }
-    if let Some(yl) = args.axis.y_label { layout = layout.with_y_label(yl); }
-    if args.axis.no_grid { layout = layout.with_show_grid(false); }
+    if let Some(xl) = args.axis.x_label {
+        layout = layout.with_x_label(xl);
+    }
+    if let Some(yl) = args.axis.y_label {
+        layout = layout.with_y_label(yl);
+    }
+    if args.axis.no_grid {
+        layout = layout.with_show_grid(false);
+    }
 
     let scene = render_multiple(plots, layout);
     write_output(scene, &args.base)

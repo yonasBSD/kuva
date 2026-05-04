@@ -55,9 +55,9 @@ impl Projection3D {
         // Rz = [[cos_az, -sin_az, 0], [sin_az, cos_az, 0], [0, 0, 1]]
         // Rx = [[1, 0, 0], [0, cos_el, -sin_el], [0, sin_el, cos_el]]
         let rot = [
-            [cos_az,           -sin_az,            0.0    ],
-            [sin_az * cos_el,   cos_az * cos_el,  -sin_el ],
-            [sin_az * sin_el,   cos_az * sin_el,   cos_el ],
+            [cos_az, -sin_az, 0.0],
+            [sin_az * cos_el, cos_az * cos_el, -sin_el],
+            [sin_az * sin_el, cos_az * sin_el, cos_el],
         ];
 
         let norm_x = Self::norm_params(x_range);

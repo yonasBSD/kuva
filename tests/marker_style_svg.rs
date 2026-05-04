@@ -3,9 +3,9 @@
 /// visual inspection, and asserts that the relevant CSS attributes appear in
 /// the output when configured.
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::polar::{PolarMode, PolarPlot};
 use kuva::plot::scatter::ScatterPlot;
 use kuva::plot::strip::StripPlot;
-use kuva::plot::polar::{PolarPlot, PolarMode};
 use kuva::plot::ternary::TernaryPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
@@ -50,7 +50,9 @@ fn test_scatter_semi_transparent_stroke_busy() {
     let centers = [(2.0_f64, 3.0_f64), (6.0, 7.0), (4.0, 1.0)];
     let mut seed: u64 = 1234567890;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
     for &(cx, cy) in &centers {
@@ -70,12 +72,21 @@ fn test_scatter_semi_transparent_stroke_busy() {
         .with_marker_opacity(0.25)
         .with_marker_stroke_width(0.8);
 
-    let svg = render(vec![Plot::Scatter(plot)], "Scatter — semi-transparent + stroke (450 pts)");
+    let svg = render(
+        vec![Plot::Scatter(plot)],
+        "Scatter — semi-transparent + stroke (450 pts)",
+    );
     write("marker_scatter_busy_semi_transparent", &svg);
 
     assert!(svg.contains("<circle"), "should contain circle elements");
-    assert!(has_fill_opacity(&svg), "should contain fill-opacity attribute");
-    assert!(has_stroke(&svg), "should contain stroke attribute on circles");
+    assert!(
+        has_fill_opacity(&svg),
+        "should contain fill-opacity attribute"
+    );
+    assert!(
+        has_stroke(&svg),
+        "should contain stroke attribute on circles"
+    );
 }
 
 /// Hollow open circles — ideal for very dense areas where solid fills merge.
@@ -85,7 +96,9 @@ fn test_scatter_hollow_open_circles_busy() {
     let mut pts: Vec<(f64, f64)> = Vec::new();
     let mut seed: u64 = 987654321;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
     for i in 0..20 {
@@ -100,17 +113,26 @@ fn test_scatter_hollow_open_circles_busy() {
         .with_data(pts)
         .with_color("tomato")
         .with_size(6.0)
-        .with_marker_opacity(0.0)       // fully hollow
+        .with_marker_opacity(0.0) // fully hollow
         .with_marker_stroke_width(1.2);
 
-    let svg = render(vec![Plot::Scatter(plot)], "Scatter — hollow open circles (400 pts, grid)");
+    let svg = render(
+        vec![Plot::Scatter(plot)],
+        "Scatter — hollow open circles (400 pts, grid)",
+    );
     write("marker_scatter_hollow_grid", &svg);
 
     assert!(svg.contains("<circle"), "should contain circle elements");
     assert!(has_fill_opacity(&svg), "fill-opacity should be emitted");
     // opacity 0.0 → fill-opacity="0"
-    assert!(svg.contains(r#"fill-opacity="0""#), "fill-opacity should be 0");
-    assert!(has_stroke(&svg), "stroke should be present for hollow circles");
+    assert!(
+        svg.contains(r#"fill-opacity="0""#),
+        "fill-opacity should be 0"
+    );
+    assert!(
+        has_stroke(&svg),
+        "stroke should be present for hollow circles"
+    );
 }
 
 /// Three series, each with a different marker style, overlaid on one canvas —
@@ -119,18 +141,22 @@ fn test_scatter_hollow_open_circles_busy() {
 fn test_scatter_three_series_mixed_styles() {
     let mut seed: u64 = 111222333;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
     let gen_cluster = |cx: f64, cy: f64, n: usize, s: &mut u64| -> Vec<(f64, f64)> {
-        (0..n).map(|_| {
-            let u1 = lcg(s).max(1e-9);
-            let u2 = lcg(s);
-            let z0 = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
-            let z1 = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).sin();
-            (cx + z0 * 1.2, cy + z1 * 1.2)
-        }).collect()
+        (0..n)
+            .map(|_| {
+                let u1 = lcg(s).max(1e-9);
+                let u2 = lcg(s);
+                let z0 = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
+                let z1 = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).sin();
+                (cx + z0 * 1.2, cy + z1 * 1.2)
+            })
+            .collect()
     };
 
     // Series A: solid
@@ -159,10 +185,16 @@ fn test_scatter_three_series_mixed_styles() {
         .with_legend("Hollow");
 
     let plots = vec![Plot::Scatter(a), Plot::Scatter(b), Plot::Scatter(c)];
-    let svg = render(plots, "Scatter — 3 series: solid / semi-transparent / hollow");
+    let svg = render(
+        plots,
+        "Scatter — 3 series: solid / semi-transparent / hollow",
+    );
     write("marker_scatter_three_styles", &svg);
 
-    assert!(has_fill_opacity(&svg), "fill-opacity should appear (series B and C)");
+    assert!(
+        has_fill_opacity(&svg),
+        "fill-opacity should appear (series B and C)"
+    );
     assert!(has_stroke(&svg), "stroke should appear (series B and C)");
     assert!(svg.contains("Solid"), "legend label Solid should appear");
     assert!(svg.contains("Hollow"), "legend label Hollow should appear");
@@ -181,10 +213,18 @@ fn test_scatter_solid_no_opacity_attrs() {
 
     // Must NOT emit fill-opacity or stroke on circles when not configured
     // (the SVG circles for the data points should have neither)
-    let circle_segment = svg.find("<circle").and_then(|i| svg[i..].find("/>").map(|j| &svg[i..i+j]));
+    let circle_segment = svg
+        .find("<circle")
+        .and_then(|i| svg[i..].find("/>").map(|j| &svg[i..i + j]));
     if let Some(seg) = circle_segment {
-        assert!(!seg.contains("fill-opacity"), "solid circles must not emit fill-opacity");
-        assert!(!seg.contains(" stroke="), "solid circles must not emit stroke");
+        assert!(
+            !seg.contains("fill-opacity"),
+            "solid circles must not emit fill-opacity"
+        );
+        assert!(
+            !seg.contains(" stroke="),
+            "solid circles must not emit stroke"
+        );
     }
 }
 
@@ -196,16 +236,18 @@ fn test_scatter_solid_no_opacity_attrs() {
 fn test_strip_semi_transparent_busy() {
     let mut seed: u64 = 55667788;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
     let groups = [
-        ("Control",  5.0_f64, 0.5_f64),
-        ("Low",      6.0,     0.8),
-        ("Mid",      7.5,     1.2),
-        ("High",     9.0,     0.6),
-        ("Extreme",  11.0,    1.5),
+        ("Control", 5.0_f64, 0.5_f64),
+        ("Low", 6.0, 0.8),
+        ("Mid", 7.5, 1.2),
+        ("High", 9.0, 0.6),
+        ("Extreme", 11.0, 1.5),
     ];
 
     let mut plot = StripPlot::new()
@@ -216,12 +258,14 @@ fn test_strip_semi_transparent_busy() {
         .with_marker_stroke_width(0.8);
 
     for &(label, mean, sd) in &groups {
-        let vals: Vec<f64> = (0..120).map(|_| {
-            let u1 = lcg(&mut seed).max(1e-9);
-            let u2 = lcg(&mut seed);
-            let z = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
-            mean + z * sd
-        }).collect();
+        let vals: Vec<f64> = (0..120)
+            .map(|_| {
+                let u1 = lcg(&mut seed).max(1e-9);
+                let u2 = lcg(&mut seed);
+                let z = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
+                mean + z * sd
+            })
+            .collect();
         plot = plot.with_group(label, vals);
     }
 
@@ -242,7 +286,9 @@ fn test_strip_semi_transparent_busy() {
 fn test_strip_hollow_swarm() {
     let mut seed: u64 = 99887766;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
@@ -254,18 +300,20 @@ fn test_strip_hollow_swarm() {
         .with_marker_stroke_width(1.2);
 
     for &(label, mean, sd) in &[("A", 5.0_f64, 1.0_f64), ("B", 7.0, 1.5), ("C", 9.0, 0.8)] {
-        let vals: Vec<f64> = (0..60).map(|_| {
-            let u1 = lcg(&mut seed).max(1e-9);
-            let u2 = lcg(&mut seed);
-            let z = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
-            mean + z * sd
-        }).collect();
+        let vals: Vec<f64> = (0..60)
+            .map(|_| {
+                let u1 = lcg(&mut seed).max(1e-9);
+                let u2 = lcg(&mut seed);
+                let z = (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos();
+                mean + z * sd
+            })
+            .collect();
         plot = plot.with_group(label, vals);
     }
 
     let plots = vec![Plot::Strip(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Strip — hollow open circles, beeswarm layout");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("Strip — hollow open circles, beeswarm layout");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     write("marker_strip_hollow_swarm", &svg);
 
@@ -280,32 +328,43 @@ fn test_strip_hollow_swarm() {
 fn test_polar_marker_styles_multi_series() {
     let mut seed: u64 = 123456789;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
     // Series 1: dense cluster near r=0.5 around θ=30°—90°; semi-transparent
-    let (r1, t1): (Vec<f64>, Vec<f64>) = (0..120).map(|_| {
-        let u = lcg(&mut seed);
-        let v = lcg(&mut seed);
-        let r = 0.5 + (u - 0.5) * 0.3;
-        let t = 60.0 + (v - 0.5) * 60.0;
-        (r, t)
-    }).unzip();
+    let (r1, t1): (Vec<f64>, Vec<f64>) = (0..120)
+        .map(|_| {
+            let u = lcg(&mut seed);
+            let v = lcg(&mut seed);
+            let r = 0.5 + (u - 0.5) * 0.3;
+            let t = 60.0 + (v - 0.5) * 60.0;
+            (r, t)
+        })
+        .unzip();
 
     // Series 2: dense cluster near r=0.8 around θ=180°–240°; hollow
-    let (r2, t2): (Vec<f64>, Vec<f64>) = (0..120).map(|_| {
-        let u = lcg(&mut seed);
-        let v = lcg(&mut seed);
-        let r = 0.8 + (u - 0.5) * 0.2;
-        let t = 210.0 + (v - 0.5) * 60.0;
-        (r, t)
-    }).unzip();
+    let (r2, t2): (Vec<f64>, Vec<f64>) = (0..120)
+        .map(|_| {
+            let u = lcg(&mut seed);
+            let v = lcg(&mut seed);
+            let r = 0.8 + (u - 0.5) * 0.2;
+            let t = 210.0 + (v - 0.5) * 60.0;
+            (r, t)
+        })
+        .unzip();
 
     // Series 3: ring at r≈1 spread over all angles; solid small dots
-    let (r3, t3): (Vec<f64>, Vec<f64>) = (0..80).map(|i| {
-        (1.0 + (lcg(&mut seed) - 0.5) * 0.1, i as f64 * (360.0 / 80.0))
-    }).unzip();
+    let (r3, t3): (Vec<f64>, Vec<f64>) = (0..80)
+        .map(|i| {
+            (
+                1.0 + (lcg(&mut seed) - 0.5) * 0.1,
+                i as f64 * (360.0 / 80.0),
+            )
+        })
+        .unzip();
 
     let plot = PolarPlot::new()
         .with_series_labeled(r1, t1, "Cluster A", PolarMode::Scatter)
@@ -328,7 +387,10 @@ fn test_polar_marker_styles_multi_series() {
     write("marker_polar_mixed_styles", &svg);
 
     assert!(svg.contains("<circle"), "polar scatter should emit circles");
-    assert!(has_fill_opacity(&svg), "fill-opacity should appear (series A and B)");
+    assert!(
+        has_fill_opacity(&svg),
+        "fill-opacity should appear (series A and B)"
+    );
     assert!(has_stroke(&svg), "stroke should appear (series A and B)");
     assert!(svg.contains("Cluster A"), "legend label should appear");
     assert!(svg.contains("Ring"), "legend label should appear");
@@ -342,7 +404,9 @@ fn test_polar_dense_semi_transparent() {
 
     let mut seed: u64 = 444555666;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
@@ -389,7 +453,9 @@ fn test_polar_dense_semi_transparent() {
 fn test_ternary_semi_transparent_busy() {
     let mut seed: u64 = 7654321;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
@@ -418,7 +484,7 @@ fn test_ternary_semi_transparent_busy() {
         (0.8, 0.1, 0.1, "Sandy"),
         (0.1, 0.8, 0.1, "Silty"),
         (0.1, 0.1, 0.8, "Clayey"),
-        (1.0/3.0, 1.0/3.0, 1.0/3.0, "Loam"),
+        (1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0, "Loam"),
     ];
 
     for &(a0, b0, c0, label) in &clusters {
@@ -434,7 +500,10 @@ fn test_ternary_semi_transparent_busy() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     write("marker_ternary_soil_busy", &svg);
 
-    assert!(svg.contains("<circle"), "ternary data points should be circles");
+    assert!(
+        svg.contains("<circle"),
+        "ternary data points should be circles"
+    );
     assert!(has_fill_opacity(&svg), "fill-opacity should appear");
     assert!(has_stroke(&svg), "stroke should appear");
     assert!(svg.contains("Sandy"), "legend label should appear");
@@ -446,7 +515,9 @@ fn test_ternary_semi_transparent_busy() {
 fn test_ternary_hollow_circles_dense() {
     let mut seed: u64 = 314159265;
     let lcg = |s: &mut u64| -> f64 {
-        *s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *s = s
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*s >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
@@ -475,9 +546,18 @@ fn test_ternary_hollow_circles_dense() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     write("marker_ternary_hollow_dense", &svg);
 
-    assert!(svg.contains("<circle"), "ternary data points should be circles");
-    assert!(svg.contains(r#"fill-opacity="0""#), "fill-opacity should be 0 (hollow)");
-    assert!(has_stroke(&svg), "stroke should be present for hollow circles");
+    assert!(
+        svg.contains("<circle"),
+        "ternary data points should be circles"
+    );
+    assert!(
+        svg.contains(r#"fill-opacity="0""#),
+        "fill-opacity should be 0 (hollow)"
+    );
+    assert!(
+        has_stroke(&svg),
+        "stroke should be present for hollow circles"
+    );
 }
 
 /// Smoke-check: building with opacity/stroke but rendering without groups.
@@ -487,7 +567,7 @@ fn test_ternary_ungrouped_with_stroke() {
         .with_point(0.6, 0.2, 0.2)
         .with_point(0.2, 0.6, 0.2)
         .with_point(0.2, 0.2, 0.6)
-        .with_point(1.0/3.0, 1.0/3.0, 1.0/3.0)
+        .with_point(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0)
         .with_marker_opacity(0.5)
         .with_marker_stroke_width(1.5);
 
@@ -547,7 +627,10 @@ fn test_stroke_width_value_is_sane() {
         let circle_seg = &svg[ci..];
         let end = circle_seg.find("/>").unwrap_or(circle_seg.len());
         let seg = &circle_seg[..end];
-        assert!(seg.contains("stroke-width="), "stroke-width must be in the circle element");
+        assert!(
+            seg.contains("stroke-width="),
+            "stroke-width must be in the circle element"
+        );
         if let Some(i) = seg.find(r#"stroke-width=""#) {
             let rest = &seg[i + r#"stroke-width=""#.len()..];
             let val: &str = rest.split('"').next().unwrap_or("");

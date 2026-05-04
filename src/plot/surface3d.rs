@@ -1,5 +1,5 @@
 use crate::plot::colormap::ColorMap;
-use crate::plot::plot3d::{DataRanges3D, Box3DConfig, View3D};
+use crate::plot::plot3d::{Box3DConfig, DataRanges3D, View3D};
 
 /// A 3D surface plot rendered as a depth-sorted quadrilateral mesh.
 ///
@@ -55,7 +55,9 @@ pub struct Surface3DPlot {
 }
 
 impl Default for Surface3DPlot {
-    fn default() -> Self { Self::new(vec![]) }
+    fn default() -> Self {
+        Self::new(vec![])
+    }
 }
 
 impl Surface3DPlot {
@@ -75,23 +77,33 @@ impl Surface3DPlot {
         }
     }
 
-    pub fn nrows(&self) -> usize { self.z_data.len() }
-    pub fn ncols(&self) -> usize { self.z_data.first().map_or(0, |r| r.len()) }
+    pub fn nrows(&self) -> usize {
+        self.z_data.len()
+    }
+    pub fn ncols(&self) -> usize {
+        self.z_data.first().map_or(0, |r| r.len())
+    }
 
     pub fn data_ranges(&self) -> Option<DataRanges3D> {
         let nrows = self.nrows();
         let ncols = self.ncols();
-        if nrows < 2 || ncols < 2 { return None; }
+        if nrows < 2 || ncols < 2 {
+            return None;
+        }
 
         let (x_min, x_max) = if let Some(ref xc) = self.x_coords {
-            (xc.iter().cloned().fold(f64::INFINITY, f64::min),
-             xc.iter().cloned().fold(f64::NEG_INFINITY, f64::max))
+            (
+                xc.iter().cloned().fold(f64::INFINITY, f64::min),
+                xc.iter().cloned().fold(f64::NEG_INFINITY, f64::max),
+            )
         } else {
             (0.0, (ncols - 1) as f64)
         };
         let (y_min, y_max) = if let Some(ref yc) = self.y_coords {
-            (yc.iter().cloned().fold(f64::INFINITY, f64::min),
-             yc.iter().cloned().fold(f64::NEG_INFINITY, f64::max))
+            (
+                yc.iter().cloned().fold(f64::INFINITY, f64::min),
+                yc.iter().cloned().fold(f64::NEG_INFINITY, f64::max),
+            )
         } else {
             (0.0, (nrows - 1) as f64)
         };
@@ -100,30 +112,48 @@ impl Surface3DPlot {
         let mut z_max = f64::NEG_INFINITY;
         for row in &self.z_data {
             for &z in row {
-                if z.is_finite() { z_min = z_min.min(z); z_max = z_max.max(z); }
+                if z.is_finite() {
+                    z_min = z_min.min(z);
+                    z_max = z_max.max(z);
+                }
             }
         }
-        if !z_min.is_finite() || !z_max.is_finite() { return None; }
+        if !z_min.is_finite() || !z_max.is_finite() {
+            return None;
+        }
 
         let mut xr = (x_min, x_max);
         let mut yr = (y_min, y_max);
         let mut zr = (z_min, z_max);
-        if (xr.1 - xr.0).abs() < 1e-12 { xr.0 -= 0.5; xr.1 += 0.5; }
-        if (yr.1 - yr.0).abs() < 1e-12 { yr.0 -= 0.5; yr.1 += 0.5; }
-        if (zr.1 - zr.0).abs() < 1e-12 { zr.0 -= 0.5; zr.1 += 0.5; }
+        if (xr.1 - xr.0).abs() < 1e-12 {
+            xr.0 -= 0.5;
+            xr.1 += 0.5;
+        }
+        if (yr.1 - yr.0).abs() < 1e-12 {
+            yr.0 -= 0.5;
+            yr.1 += 0.5;
+        }
+        if (zr.1 - zr.0).abs() < 1e-12 {
+            zr.0 -= 0.5;
+            zr.1 += 0.5;
+        }
 
-        Some(DataRanges3D { x: xr, y: yr, z: zr })
+        Some(DataRanges3D {
+            x: xr,
+            y: yr,
+            z: zr,
+        })
     }
 
     pub fn x_at(&self, j: usize) -> f64 {
-        self.x_coords.as_ref().map_or(j as f64, |xc| {
-            xc.get(j).copied().unwrap_or(j as f64)
-        })
+        self.x_coords
+            .as_ref()
+            .map_or(j as f64, |xc| xc.get(j).copied().unwrap_or(j as f64))
     }
     pub fn y_at(&self, i: usize) -> f64 {
-        self.y_coords.as_ref().map_or(i as f64, |yc| {
-            yc.get(i).copied().unwrap_or(i as f64)
-        })
+        self.y_coords
+            .as_ref()
+            .map_or(i as f64, |yc| yc.get(i).copied().unwrap_or(i as f64))
     }
 
     /// Generate a surface from a function `f(x, y) -> z` over the given ranges.
@@ -134,47 +164,119 @@ impl Surface3DPlot {
     ///     .with_data_fn(|x, y| x * x + y * y, -2.0..=2.0, -2.0..=2.0, 40, 40);
     /// ```
     pub fn with_data_fn<F>(
-        mut self, f: F,
-        x_range: std::ops::RangeInclusive<f64>, y_range: std::ops::RangeInclusive<f64>,
-        x_res: usize, y_res: usize,
-    ) -> Self where F: Fn(f64, f64) -> f64 {
+        mut self,
+        f: F,
+        x_range: std::ops::RangeInclusive<f64>,
+        y_range: std::ops::RangeInclusive<f64>,
+        x_res: usize,
+        y_res: usize,
+    ) -> Self
+    where
+        F: Fn(f64, f64) -> f64,
+    {
         let x_res = x_res.max(2);
         let y_res = y_res.max(2);
         let (x_start, x_end) = (*x_range.start(), *x_range.end());
         let (y_start, y_end) = (*y_range.start(), *y_range.end());
-        let xs: Vec<f64> = (0..x_res).map(|i| {
-            x_start + (x_end - x_start) * i as f64 / (x_res - 1) as f64
-        }).collect();
-        let ys: Vec<f64> = (0..y_res).map(|i| {
-            y_start + (y_end - y_start) * i as f64 / (y_res - 1) as f64
-        }).collect();
-        self.z_data = ys.iter().map(|&y| xs.iter().map(|&x| f(x, y)).collect()).collect();
+        let xs: Vec<f64> = (0..x_res)
+            .map(|i| x_start + (x_end - x_start) * i as f64 / (x_res - 1) as f64)
+            .collect();
+        let ys: Vec<f64> = (0..y_res)
+            .map(|i| y_start + (y_end - y_start) * i as f64 / (y_res - 1) as f64)
+            .collect();
+        self.z_data = ys
+            .iter()
+            .map(|&y| xs.iter().map(|&x| f(x, y)).collect())
+            .collect();
         self.x_coords = Some(xs);
         self.y_coords = Some(ys);
         self
     }
 
-    pub fn with_z_data(mut self, z_data: Vec<Vec<f64>>) -> Self { self.z_data = z_data; self }
-    pub fn with_x_coords(mut self, xc: Vec<f64>) -> Self { self.x_coords = Some(xc); self }
-    pub fn with_y_coords(mut self, yc: Vec<f64>) -> Self { self.y_coords = Some(yc); self }
-    pub fn with_color<S: Into<String>>(mut self, c: S) -> Self { self.color = c.into(); self }
-    pub fn with_z_colormap(mut self, cm: ColorMap) -> Self { self.z_colormap = Some(cm); self }
-    pub fn with_no_wireframe(mut self) -> Self { self.show_wireframe = false; self }
-    pub fn with_wireframe_color<S: Into<String>>(mut self, c: S) -> Self { self.wireframe_color = c.into(); self }
-    pub fn with_wireframe_width(mut self, w: f64) -> Self { self.wireframe_width = w; self }
-    pub fn with_alpha(mut self, a: f64) -> Self { self.alpha = a; self }
-    pub fn with_legend<S: Into<String>>(mut self, l: S) -> Self { self.legend_label = Some(l.into()); self }
+    pub fn with_z_data(mut self, z_data: Vec<Vec<f64>>) -> Self {
+        self.z_data = z_data;
+        self
+    }
+    pub fn with_x_coords(mut self, xc: Vec<f64>) -> Self {
+        self.x_coords = Some(xc);
+        self
+    }
+    pub fn with_y_coords(mut self, yc: Vec<f64>) -> Self {
+        self.y_coords = Some(yc);
+        self
+    }
+    pub fn with_color<S: Into<String>>(mut self, c: S) -> Self {
+        self.color = c.into();
+        self
+    }
+    pub fn with_z_colormap(mut self, cm: ColorMap) -> Self {
+        self.z_colormap = Some(cm);
+        self
+    }
+    pub fn with_no_wireframe(mut self) -> Self {
+        self.show_wireframe = false;
+        self
+    }
+    pub fn with_wireframe_color<S: Into<String>>(mut self, c: S) -> Self {
+        self.wireframe_color = c.into();
+        self
+    }
+    pub fn with_wireframe_width(mut self, w: f64) -> Self {
+        self.wireframe_width = w;
+        self
+    }
+    pub fn with_alpha(mut self, a: f64) -> Self {
+        self.alpha = a;
+        self
+    }
+    pub fn with_legend<S: Into<String>>(mut self, l: S) -> Self {
+        self.legend_label = Some(l.into());
+        self
+    }
 
     // Delegate 3D box/axes config through Box3DConfig methods
-    pub fn with_azimuth(mut self, deg: f64) -> Self { self.box3d = self.box3d.with_azimuth(deg); self }
-    pub fn with_elevation(mut self, deg: f64) -> Self { self.box3d = self.box3d.with_elevation(deg); self }
-    pub fn with_view(mut self, v: View3D) -> Self { self.box3d = self.box3d.with_view(v); self }
-    pub fn with_x_label<S: Into<String>>(mut self, l: S) -> Self { self.box3d = self.box3d.with_x_label(l); self }
-    pub fn with_y_label<S: Into<String>>(mut self, l: S) -> Self { self.box3d = self.box3d.with_y_label(l); self }
-    pub fn with_z_label<S: Into<String>>(mut self, l: S) -> Self { self.box3d = self.box3d.with_z_label(l); self }
-    pub fn with_no_grid(mut self) -> Self { self.box3d = self.box3d.with_no_grid(); self }
-    pub fn with_no_box(mut self) -> Self { self.box3d = self.box3d.with_no_box(); self }
-    pub fn with_grid_lines(mut self, n: usize) -> Self { self.box3d = self.box3d.with_grid_lines(n); self }
-    pub fn with_z_axis_right(mut self, r: bool) -> Self { self.box3d = self.box3d.with_z_axis_right(r); self }
-    pub fn with_z_axis_auto(mut self) -> Self { self.box3d = self.box3d.with_z_axis_auto(); self }
+    pub fn with_azimuth(mut self, deg: f64) -> Self {
+        self.box3d = self.box3d.with_azimuth(deg);
+        self
+    }
+    pub fn with_elevation(mut self, deg: f64) -> Self {
+        self.box3d = self.box3d.with_elevation(deg);
+        self
+    }
+    pub fn with_view(mut self, v: View3D) -> Self {
+        self.box3d = self.box3d.with_view(v);
+        self
+    }
+    pub fn with_x_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.box3d = self.box3d.with_x_label(l);
+        self
+    }
+    pub fn with_y_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.box3d = self.box3d.with_y_label(l);
+        self
+    }
+    pub fn with_z_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.box3d = self.box3d.with_z_label(l);
+        self
+    }
+    pub fn with_no_grid(mut self) -> Self {
+        self.box3d = self.box3d.with_no_grid();
+        self
+    }
+    pub fn with_no_box(mut self) -> Self {
+        self.box3d = self.box3d.with_no_box();
+        self
+    }
+    pub fn with_grid_lines(mut self, n: usize) -> Self {
+        self.box3d = self.box3d.with_grid_lines(n);
+        self
+    }
+    pub fn with_z_axis_right(mut self, r: bool) -> Self {
+        self.box3d = self.box3d.with_z_axis_right(r);
+        self
+    }
+    pub fn with_z_axis_auto(mut self) -> Self {
+        self.box3d = self.box3d.with_z_axis_auto();
+        self
+    }
 }

@@ -12,19 +12,22 @@ fn render(plot: StreamgraphPlot) -> String {
     SvgBackend.render_scene(&render_multiple(plots, layout))
 }
 
-fn weekly_x() -> Vec<f64> { (1..=12).map(|w| w as f64).collect() }
+fn weekly_x() -> Vec<f64> {
+    (1..=12).map(|w| w as f64).collect()
+}
 
 fn make_three_series() -> StreamgraphPlot {
     StreamgraphPlot::new()
         .with_x(weekly_x())
-        .with_series([10.0, 14.0, 18.0, 22.0, 20.0, 16.0,
-                      12.0, 18.0, 24.0, 28.0, 22.0, 16.0])
+        .with_series([
+            10.0, 14.0, 18.0, 22.0, 20.0, 16.0, 12.0, 18.0, 24.0, 28.0, 22.0, 16.0,
+        ])
         .with_label("Alpha")
-        .with_series([5.0, 8.0, 12.0, 15.0, 14.0, 10.0,
-                      8.0, 11.0, 16.0, 18.0, 14.0, 9.0])
+        .with_series([
+            5.0, 8.0, 12.0, 15.0, 14.0, 10.0, 8.0, 11.0, 16.0, 18.0, 14.0, 9.0,
+        ])
         .with_label("Beta")
-        .with_series([3.0, 4.0, 6.0, 8.0, 9.0, 7.0,
-                      5.0, 7.0, 9.0, 10.0, 8.0, 5.0])
+        .with_series([3.0, 4.0, 6.0, 8.0, 9.0, 7.0, 5.0, 7.0, 9.0, 10.0, 8.0, 5.0])
         .with_label("Gamma")
 }
 
@@ -75,10 +78,13 @@ fn test_streamgraph_order_original() {
 
 #[test]
 fn test_streamgraph_smooth() {
-    let sg = make_three_series();  // smooth=true by default
+    let sg = make_three_series(); // smooth=true by default
     let svg = render(sg);
     // Smooth paths contain 'C' control-point commands
-    assert!(svg.contains(" C ") || svg.contains("C "), "smooth path should use cubic bezier");
+    assert!(
+        svg.contains(" C ") || svg.contains("C "),
+        "smooth path should use cubic bezier"
+    );
 }
 
 #[test]
@@ -86,7 +92,10 @@ fn test_streamgraph_linear() {
     let sg = make_three_series().with_linear();
     let svg = render(sg);
     // Linear paths use only L commands; no cubic bezier
-    assert!(!svg.contains(" C "), "linear path should not use cubic bezier");
+    assert!(
+        !svg.contains(" C "),
+        "linear path should not use cubic bezier"
+    );
     std::fs::write("test_outputs/streamgraph_linear.svg", &svg).unwrap();
 }
 
@@ -117,7 +126,7 @@ fn test_streamgraph_no_labels() {
 
 #[test]
 fn test_streamgraph_with_labels() {
-    let sg = make_three_series();  // show_labels=true by default
+    let sg = make_three_series(); // show_labels=true by default
     let svg = render(sg);
     // At least one label should appear
     let has_label = svg.contains(">Alpha<") || svg.contains(">Beta<") || svg.contains(">Gamma<");
@@ -131,8 +140,10 @@ fn test_streamgraph_with_labels() {
 fn test_streamgraph_legend() {
     let sg = make_three_series().with_legend("Species");
     let svg = render(sg);
-    assert!(svg.contains("Alpha") && svg.contains("Beta") && svg.contains("Gamma"),
-        "legend should contain series names");
+    assert!(
+        svg.contains("Alpha") && svg.contains("Beta") && svg.contains("Gamma"),
+        "legend should contain series names"
+    );
     std::fs::write("test_outputs/streamgraph_legend.svg", &svg).unwrap();
 }
 
@@ -194,8 +205,10 @@ fn test_streamgraph_two_points() {
     // Minimum viable x count
     let sg = StreamgraphPlot::new()
         .with_x([0.0, 1.0])
-        .with_series([5.0, 8.0]).with_label("A")
-        .with_series([3.0, 4.0]).with_label("B");
+        .with_series([5.0, 8.0])
+        .with_label("A")
+        .with_series([3.0, 4.0])
+        .with_label("B");
     let svg = render(sg);
     assert!(svg.contains("<path"));
 }
@@ -204,12 +217,14 @@ fn test_streamgraph_two_points() {
 fn test_streamgraph_explicit_colors() {
     let sg = StreamgraphPlot::new()
         .with_x(weekly_x())
-        .with_series([10.0, 12.0, 14.0, 16.0, 15.0, 13.0,
-                      11.0, 14.0, 17.0, 19.0, 16.0, 12.0])
-        .with_color("steelblue").with_label("A")
-        .with_series([5.0, 6.0, 8.0, 9.0, 8.0, 7.0,
-                      6.0, 7.0, 9.0, 10.0, 8.0, 6.0])
-        .with_color("tomato").with_label("B");
+        .with_series([
+            10.0, 12.0, 14.0, 16.0, 15.0, 13.0, 11.0, 14.0, 17.0, 19.0, 16.0, 12.0,
+        ])
+        .with_color("steelblue")
+        .with_label("A")
+        .with_series([5.0, 6.0, 8.0, 9.0, 8.0, 7.0, 6.0, 7.0, 9.0, 10.0, 8.0, 6.0])
+        .with_color("tomato")
+        .with_label("B");
     let svg = render(sg);
     // steelblue → #4682b4, tomato → #ff6347
     assert!(svg.contains("#4682b4") && svg.contains("#ff6347"));

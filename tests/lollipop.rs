@@ -1,8 +1,8 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::LollipopPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use std::fs;
 
 fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
@@ -58,7 +58,13 @@ fn test_lollipop_baseline_hidden() {
 #[test]
 fn test_lollipop_domains() {
     let lp = LollipopPlot::new()
-        .with_points([(10.0, 3.0), (25.0, 7.0), (40.0, 2.0), (60.0, 5.0), (80.0, 4.0)])
+        .with_points([
+            (10.0, 3.0),
+            (25.0, 7.0),
+            (40.0, 2.0),
+            (60.0, 5.0),
+            (80.0, 4.0),
+        ])
         .with_domain(1.0, 36.0, Some("N-term"), "steelblue")
         .with_domain(36.0, 70.0, Some("Kinase"), "tomato")
         .with_domain(70.0, 100.0, Some("SH2"), "seagreen")
@@ -198,14 +204,23 @@ fn test_lollipop_labeled_colored_point() {
 fn test_lollipop_mutation_landscape() {
     // Realistic protein mutation landscape
     let mutations = vec![
-        (12.0, 3.0), (25.0, 1.0), (41.0, 7.0), (55.0, 2.0),
-        (68.0, 4.0), (82.0, 1.0), (97.0, 5.0), (110.0, 2.0),
-        (124.0, 8.0), (138.0, 3.0), (150.0, 1.0), (163.0, 6.0),
+        (12.0, 3.0),
+        (25.0, 1.0),
+        (41.0, 7.0),
+        (55.0, 2.0),
+        (68.0, 4.0),
+        (82.0, 1.0),
+        (97.0, 5.0),
+        (110.0, 2.0),
+        (124.0, 8.0),
+        (138.0, 3.0),
+        (150.0, 1.0),
+        (163.0, 6.0),
     ];
     let lp = LollipopPlot::new()
         .with_points(mutations)
-        .with_colored_point(41.0, 7.0, "tomato")   // hotspot
-        .with_labeled_colored_point(124.0, 8.0, "R248W", "tomato")  // named hotspot
+        .with_colored_point(41.0, 7.0, "tomato") // hotspot
+        .with_labeled_colored_point(124.0, 8.0, "R248W", "tomato") // named hotspot
         .with_domain(1.0, 60.0, Some("N-term"), "#4e79a7")
         .with_domain(61.0, 120.0, Some("Kinase"), "#f28e2b")
         .with_domain(121.0, 180.0, Some("C-term"), "#59a14f")

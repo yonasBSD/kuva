@@ -7,7 +7,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// UpSet intersection plot from binary set-membership columns.
@@ -53,14 +53,20 @@ pub fn run(args: UpSetArgs) -> Result<(), String> {
     };
 
     // Per-set sizes: count of 1s in each column.
-    let set_sizes: Vec<usize> = (0..ncols).map(|col| {
-        table.rows.iter().filter(|row| {
-            row.get(col)
-                .and_then(|v| v.trim().parse::<f64>().ok())
-                .map(|x| x > 0.5)
-                .unwrap_or(false)
-        }).count()
-    }).collect();
+    let set_sizes: Vec<usize> = (0..ncols)
+        .map(|col| {
+            table
+                .rows
+                .iter()
+                .filter(|row| {
+                    row.get(col)
+                        .and_then(|v| v.trim().parse::<f64>().ok())
+                        .map(|x| x > 0.5)
+                        .unwrap_or(false)
+                })
+                .count()
+        })
+        .collect();
 
     // Group rows by bitmask to compute intersection sizes.
     let mut mask_counts: HashMap<u64, usize> = HashMap::new();

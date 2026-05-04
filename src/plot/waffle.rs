@@ -88,7 +88,9 @@ pub struct WafflePlot {
 }
 
 impl Default for WafflePlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WafflePlot {
@@ -149,10 +151,7 @@ impl WafflePlot {
     ///         ("C", 20.0, "tomato"),
     ///     ]);
     /// ```
-    pub fn with_categories<L, V, C>(
-        mut self,
-        items: impl IntoIterator<Item = (L, V, C)>,
-    ) -> Self
+    pub fn with_categories<L, V, C>(mut self, items: impl IntoIterator<Item = (L, V, C)>) -> Self
     where
         L: Into<String>,
         V: Into<f64>,

@@ -59,7 +59,9 @@ pub struct HorizonPlot {
 }
 
 impl Default for HorizonPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl HorizonPlot {
@@ -91,8 +93,8 @@ impl HorizonPlot {
     {
         // category10 palette — same source as Palette::category10() in render/palette.rs
         const PALETTE: &[&str] = &[
-            "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-            "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+            "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
+            "#bcbd22", "#17becf",
         ];
         let idx = self.series.len();
         let pos_color = PALETTE[idx % PALETTE.len()].to_string();
@@ -189,23 +191,33 @@ impl HorizonPlot {
     /// If `value_max` is set, use that; otherwise derive from data.
     pub fn pos_band_width(&self) -> f64 {
         let vmax = self.value_max.unwrap_or_else(|| {
-            self.series.iter()
+            self.series
+                .iter()
                 .flat_map(|s| s.y.iter())
                 .map(|&v| (v - self.baseline).max(0.0))
                 .fold(0.0_f64, f64::max)
         });
-        if vmax <= 0.0 || self.n_bands == 0 { 1.0 } else { vmax / self.n_bands as f64 }
+        if vmax <= 0.0 || self.n_bands == 0 {
+            1.0
+        } else {
+            vmax / self.n_bands as f64
+        }
     }
 
     /// Compute the negative band width.
     pub fn neg_band_width(&self) -> f64 {
         let vmax = self.value_max.unwrap_or_else(|| {
-            self.series.iter()
+            self.series
+                .iter()
                 .flat_map(|s| s.y.iter())
                 .map(|&v| (self.baseline - v).max(0.0))
                 .fold(0.0_f64, f64::max)
         });
-        if vmax <= 0.0 || self.n_bands == 0 { 1.0 } else { vmax / self.n_bands as f64 }
+        if vmax <= 0.0 || self.n_bands == 0 {
+            1.0
+        } else {
+            vmax / self.n_bands as f64
+        }
     }
 
     /// x data extent across all series.
@@ -218,6 +230,10 @@ impl HorizonPlot {
                 xmax = xmax.max(x);
             }
         }
-        if xmin.is_finite() { Some((xmin, xmax)) } else { None }
+        if xmin.is_finite() {
+            Some((xmin, xmax))
+        } else {
+            None
+        }
     }
 }

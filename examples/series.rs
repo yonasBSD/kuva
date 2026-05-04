@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/series/`.
 
-use kuva::plot::SeriesPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::SeriesPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/series";
 const N: usize = 80;
@@ -60,13 +60,9 @@ fn basic() {
 fn multi_series() {
     let pi2 = 2.0 * std::f64::consts::PI;
 
-    let sin_data: Vec<f64> = (0..N)
-        .map(|i| (i as f64 * pi2 / N as f64).sin())
-        .collect();
+    let sin_data: Vec<f64> = (0..N).map(|i| (i as f64 * pi2 / N as f64).sin()).collect();
 
-    let cos_data: Vec<f64> = (0..N)
-        .map(|i| (i as f64 * pi2 / N as f64).cos())
-        .collect();
+    let cos_data: Vec<f64> = (0..N).map(|i| (i as f64 * pi2 / N as f64).cos()).collect();
 
     let damped: Vec<f64> = (0..N)
         .map(|i| {
@@ -120,12 +116,30 @@ fn styles() {
         std::fs::write(format!("{OUT}/style_{name}.svg"), svg).unwrap();
     };
 
-    make("line", "SeriesStyle::Line",
-        SeriesPlot::new().with_data(data.clone()).with_color("steelblue").with_line_style());
-    make("point", "SeriesStyle::Point",
-        SeriesPlot::new().with_data(data.clone()).with_color("steelblue").with_point_style());
-    make("both", "SeriesStyle::Both",
-        SeriesPlot::new().with_data(data).with_color("steelblue").with_line_point_style());
+    make(
+        "line",
+        "SeriesStyle::Line",
+        SeriesPlot::new()
+            .with_data(data.clone())
+            .with_color("steelblue")
+            .with_line_style(),
+    );
+    make(
+        "point",
+        "SeriesStyle::Point",
+        SeriesPlot::new()
+            .with_data(data.clone())
+            .with_color("steelblue")
+            .with_point_style(),
+    );
+    make(
+        "both",
+        "SeriesStyle::Both",
+        SeriesPlot::new()
+            .with_data(data)
+            .with_color("steelblue")
+            .with_line_point_style(),
+    );
 }
 
 /// Custom stroke width and point radius.

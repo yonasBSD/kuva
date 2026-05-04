@@ -72,7 +72,9 @@ pub struct EcdfPlot {
 }
 
 impl Default for EcdfPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EcdfPlot {
@@ -113,7 +115,11 @@ impl EcdfPlot {
         T: Into<f64>,
     {
         let values: Vec<f64> = data.into_iter().map(|v| v.into()).collect();
-        self.groups.push(EcdfGroup { label: label.into(), data: values, color: None });
+        self.groups.push(EcdfGroup {
+            label: label.into(),
+            data: values,
+            color: None,
+        });
         self
     }
 
@@ -153,7 +159,11 @@ impl EcdfPlot {
     {
         for (label, data) in groups {
             let values: Vec<f64> = data.into_iter().map(|v| v.into()).collect();
-            self.groups.push(EcdfGroup { label: label.into(), data: values, color: None });
+            self.groups.push(EcdfGroup {
+                label: label.into(),
+                data: values,
+                color: None,
+            });
         }
         self
     }

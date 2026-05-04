@@ -1,10 +1,10 @@
-use kuva::plot::{ScatterPlot, LinePlot, LegendPosition};
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::legend::{LegendEntry, LegendShape};
-use kuva::render::render::render_multiple;
+use kuva::plot::{LegendPosition, LinePlot, ScatterPlot};
+use kuva::render::figure::Figure;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-use kuva::backend::svg::SvgBackend;
-use kuva::render::figure::Figure;
+use kuva::render::render::render_multiple;
 
 fn svg(plots: Vec<Plot>, layout: Layout) -> String {
     SvgBackend.render_scene(&render_multiple(plots, layout))
@@ -27,17 +27,30 @@ fn test_manual_entries_override() {
 
     // Supply entries in reverse order: Beta first, Alpha second.
     let entries = vec![
-        LegendEntry { label: "Beta".into(), color: "tomato".into(), shape: LegendShape::Line, dasharray: None },
-        LegendEntry { label: "Alpha".into(), color: "steelblue".into(), shape: LegendShape::Circle, dasharray: None },
+        LegendEntry {
+            label: "Beta".into(),
+            color: "tomato".into(),
+            shape: LegendShape::Line,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Alpha".into(),
+            color: "steelblue".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
     ];
 
     let layout = Layout::auto_from_plots(&plots).with_legend_entries(entries);
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_override.svg", &out).unwrap();
 
-    let beta_pos  = out.find("Beta").expect("'Beta' not in SVG");
+    let beta_pos = out.find("Beta").expect("'Beta' not in SVG");
     let alpha_pos = out.find("Alpha").expect("'Alpha' not in SVG");
-    assert!(beta_pos < alpha_pos, "'Beta' should appear before 'Alpha' in SVG");
+    assert!(
+        beta_pos < alpha_pos,
+        "'Beta' should appear before 'Alpha' in SVG"
+    );
 }
 
 /// Manual entries completely replace auto-collected entries.
@@ -50,16 +63,25 @@ fn test_manual_entries_bypasses_auto() {
 
     let plots = vec![Plot::Scatter(scatter)];
 
-    let entries = vec![
-        LegendEntry { label: "manual-label".into(), color: "steelblue".into(), shape: LegendShape::Circle, dasharray: None },
-    ];
+    let entries = vec![LegendEntry {
+        label: "manual-label".into(),
+        color: "steelblue".into(),
+        shape: LegendShape::Circle,
+        dasharray: None,
+    }];
 
     let layout = Layout::auto_from_plots(&plots).with_legend_entries(entries);
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_bypass_auto.svg", &out).unwrap();
 
-    assert!(!out.contains("auto-label"), "'auto-label' should not appear when manual entries are set");
-    assert!(out.contains("manual-label"), "'manual-label' should appear in SVG");
+    assert!(
+        !out.contains("auto-label"),
+        "'auto-label' should not appear when manual entries are set"
+    );
+    assert!(
+        out.contains("manual-label"),
+        "'manual-label' should appear in SVG"
+    );
 }
 
 /// with_legend_at: legend floats at the given pixel position; right-margin unchanged.
@@ -69,20 +91,32 @@ fn test_legend_at_no_margin() {
 
     // Reference: scatter without any legend — gives us baseline width.
     let layout_no_legend = Layout::auto_from_plots(&[Plot::Scatter(
-        ScatterPlot::new().with_data(data.clone()).with_color("steelblue"),
+        ScatterPlot::new()
+            .with_data(data.clone())
+            .with_color("steelblue"),
     )]);
     let svg_no_legend = svg(
-        vec![Plot::Scatter(ScatterPlot::new().with_data(data.clone()).with_color("steelblue"))],
+        vec![Plot::Scatter(
+            ScatterPlot::new()
+                .with_data(data.clone())
+                .with_color("steelblue"),
+        )],
         layout_no_legend,
     );
 
     // Scatter with legend at absolute position.
     let plots = vec![Plot::Scatter(
-        ScatterPlot::new().with_data(data.clone()).with_color("steelblue").with_legend("My label"),
+        ScatterPlot::new()
+            .with_data(data.clone())
+            .with_color("steelblue")
+            .with_legend("My label"),
     )];
-    let entries = vec![
-        LegendEntry { label: "My label".into(), color: "steelblue".into(), shape: LegendShape::Circle, dasharray: None },
-    ];
+    let entries = vec![LegendEntry {
+        label: "My label".into(),
+        color: "steelblue".into(),
+        shape: LegendShape::Circle,
+        dasharray: None,
+    }];
     let layout = Layout::auto_from_plots(&plots)
         .with_legend_entries(entries)
         .with_legend_at(50.0, 50.0);
@@ -97,7 +131,7 @@ fn test_legend_at_no_margin() {
     }
 
     let width_no_legend = extract_width(&svg_no_legend);
-    let width_with_at   = extract_width(&out);
+    let width_with_at = extract_width(&out);
     assert_eq!(
         width_no_legend as u64, width_with_at as u64,
         "with_legend_at should not widen the canvas (no right-margin reserved)"
@@ -117,8 +151,8 @@ fn test_right_middle_preset() {
         .with_legend("Series A");
 
     let plots = vec![Plot::Scatter(scatter)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_legend_position(LegendPosition::OutsideRightMiddle);
+    let layout =
+        Layout::auto_from_plots(&plots).with_legend_position(LegendPosition::OutsideRightMiddle);
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_right_middle.svg", &out).unwrap();
 
@@ -138,7 +172,10 @@ fn test_right_middle_preset() {
         let scan_start = out.find("</defs>").map(|i| i + 7).unwrap_or(0);
         let mut search = &out[scan_start..];
         while let Some(rect_pos) = search.find("<rect") {
-            let tag_end = search[rect_pos..].find('>').map(|e| rect_pos + e).unwrap_or(search.len());
+            let tag_end = search[rect_pos..]
+                .find('>')
+                .map(|e| rect_pos + e)
+                .unwrap_or(search.len());
             let tag = &search[rect_pos..=tag_end];
             // Skip the canvas background rect (has no x= attribute)
             if tag.contains(" x=\"") {
@@ -223,18 +260,23 @@ fn extract_width(s: &str) -> f64 {
 /// The legend box rect x must be strictly greater than every tick label x.
 #[test]
 fn inside_left_legend_clears_tick_labels() {
-    let make_plots = || vec![Plot::Scatter(
-        ScatterPlot::new()
-            .with_data(vec![(1.0, 100.0), (2.0, 200.0), (3.0, 150.0)])
-            .with_color("steelblue"),
-    )];
+    let make_plots = || {
+        vec![Plot::Scatter(
+            ScatterPlot::new()
+                .with_data(vec![(1.0, 100.0), (2.0, 200.0), (3.0, 150.0)])
+                .with_color("steelblue"),
+        )]
+    };
 
-    let entries = vec![
-        LegendEntry { label: "Series A".into(), color: "steelblue".into(), shape: LegendShape::Circle, dasharray: None },
-    ];
+    let entries = vec![LegendEntry {
+        label: "Series A".into(),
+        color: "steelblue".into(),
+        shape: LegendShape::Circle,
+        dasharray: None,
+    }];
 
     for (pos, name) in [
-        (LegendPosition::InsideTopLeft,    "top_left"),
+        (LegendPosition::InsideTopLeft, "top_left"),
         (LegendPosition::InsideBottomLeft, "bottom_left"),
     ] {
         let plots = make_plots();
@@ -294,8 +336,10 @@ fn test_legend_box_suppress() {
     assert!(out.contains("Alpha"), "'Alpha' should appear in SVG");
     // The legend border rect is the only element with fill="none"; with show_box=false it is absent.
     // (Scatter data circles use a real fill color, grid lines don't use <rect>.)
-    assert!(!out.contains("fill=\"none\""),
-        "legend border rect (fill=none) should not appear when show_box=false");
+    assert!(
+        !out.contains("fill=\"none\""),
+        "legend border rect (fill=none) should not appear when show_box=false"
+    );
 }
 
 /// with_legend_title: a bold title row is rendered above entries.
@@ -310,8 +354,14 @@ fn test_legend_title() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_title.svg", &out).unwrap();
 
-    assert!(out.contains("Groups"), "'Groups' title should appear in SVG");
-    assert!(out.contains("Series A"), "'Series A' entry should appear in SVG");
+    assert!(
+        out.contains("Groups"),
+        "'Groups' title should appear in SVG"
+    );
+    assert!(
+        out.contains("Series A"),
+        "'Series A' entry should appear in SVG"
+    );
 }
 
 /// with_legend_group: two groups render all titles and all entry labels.
@@ -323,12 +373,25 @@ fn test_legend_groups() {
     let plots = vec![Plot::Scatter(scatter)];
 
     let group_a = vec![
-        LegendEntry { label: "Apple".into(), color: "red".into(), shape: LegendShape::Rect, dasharray: None },
-        LegendEntry { label: "Apricot".into(), color: "orange".into(), shape: LegendShape::Rect, dasharray: None },
+        LegendEntry {
+            label: "Apple".into(),
+            color: "red".into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Apricot".into(),
+            color: "orange".into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        },
     ];
-    let group_b = vec![
-        LegendEntry { label: "Banana".into(), color: "yellow".into(), shape: LegendShape::Circle, dasharray: None },
-    ];
+    let group_b = vec![LegendEntry {
+        label: "Banana".into(),
+        color: "yellow".into(),
+        shape: LegendShape::Circle,
+        dasharray: None,
+    }];
 
     let layout = Layout::auto_from_plots(&plots)
         .with_legend_group("Fruits A", group_a)
@@ -336,8 +399,14 @@ fn test_legend_groups() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_groups.svg", &out).unwrap();
 
-    assert!(out.contains("Fruits A"), "'Fruits A' group title should appear");
-    assert!(out.contains("Fruits B"), "'Fruits B' group title should appear");
+    assert!(
+        out.contains("Fruits A"),
+        "'Fruits A' group title should appear"
+    );
+    assert!(
+        out.contains("Fruits B"),
+        "'Fruits B' group title should appear"
+    );
     assert!(out.contains("Apple"), "'Apple' should appear");
     assert!(out.contains("Apricot"), "'Apricot' should appear");
     assert!(out.contains("Banana"), "'Banana' should appear");
@@ -345,7 +414,10 @@ fn test_legend_groups() {
     // Group A entries appear before group B entries in SVG output order
     let fruits_a_pos = out.find("Fruits A").expect("Fruits A missing");
     let fruits_b_pos = out.find("Fruits B").expect("Fruits B missing");
-    assert!(fruits_a_pos < fruits_b_pos, "'Fruits A' should appear before 'Fruits B'");
+    assert!(
+        fruits_a_pos < fruits_b_pos,
+        "'Fruits A' should appear before 'Fruits B'"
+    );
 }
 
 /// InsideTopRight: legend x should be less than plot_right (inside the axes).
@@ -358,8 +430,7 @@ fn test_inside_top_right() {
     let plots = vec![Plot::Scatter(scatter)];
     let layout_ref = Layout::auto_from_plots(&plots);
     // Canvas width without legend (InsideTopRight adds no right margin)
-    let layout = layout_ref
-        .with_legend_position(LegendPosition::InsideTopRight);
+    let layout = layout_ref.with_legend_position(LegendPosition::InsideTopRight);
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_inside_top_right.svg", &out).unwrap();
 
@@ -372,9 +443,9 @@ fn test_inside_top_right() {
         .with_color("steelblue")
         .with_legend("Series A");
     let plots2 = vec![Plot::Scatter(scatter2)];
-    let layout_outside = Layout::auto_from_plots(&plots2);  // default OutsideRightTop
+    let layout_outside = Layout::auto_from_plots(&plots2); // default OutsideRightTop
     let out_outside = svg(plots2, layout_outside);
-    let width_inside  = extract_width(&out);
+    let width_inside = extract_width(&out);
     let width_outside = extract_width(&out_outside);
     assert!(
         width_inside < width_outside,
@@ -390,12 +461,15 @@ fn test_outside_left() {
         .with_color("steelblue")
         .with_legend("Left Label");
     let plots = vec![Plot::Scatter(scatter)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_legend_position(LegendPosition::OutsideLeftTop);
+    let layout =
+        Layout::auto_from_plots(&plots).with_legend_position(LegendPosition::OutsideLeftTop);
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_outside_left.svg", &out).unwrap();
 
-    assert!(out.contains("Left Label"), "'Left Label' should appear in SVG");
+    assert!(
+        out.contains("Left Label"),
+        "'Left Label' should appear in SVG"
+    );
 }
 
 /// with_legend_at(x, y): Custom placement, no right-margin reserved.
@@ -413,18 +487,21 @@ fn test_custom_position() {
         .with_color("steelblue")
         .with_legend("Custom");
     let plots2 = vec![Plot::Scatter(scatter2)];
-    let layout_baseline = Layout::auto_from_plots(&plots2)
-        .with_legend_position(LegendPosition::InsideTopRight);
+    let layout_baseline =
+        Layout::auto_from_plots(&plots2).with_legend_position(LegendPosition::InsideTopRight);
     let out_baseline = svg(plots2, layout_baseline);
 
     let layout = Layout::auto_from_plots(&plots).with_legend_at(50.0, 50.0);
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_custom_position.svg", &out).unwrap();
 
-    assert!(out.contains("Custom"), "'Custom' label should appear in SVG");
+    assert!(
+        out.contains("Custom"),
+        "'Custom' label should appear in SVG"
+    );
 
     // Custom position adds no right margin — width should match InsideTopRight baseline.
-    let width_custom   = extract_width(&out);
+    let width_custom = extract_width(&out);
     let width_baseline = extract_width(&out_baseline);
     assert_eq!(
         width_custom as u64, width_baseline as u64,
@@ -447,17 +524,20 @@ fn test_data_coords_position() {
         .with_color("steelblue")
         .with_legend("Data Coords");
     let plots2 = vec![Plot::Scatter(scatter2)];
-    let layout_baseline = Layout::auto_from_plots(&plots2)
-        .with_legend_position(LegendPosition::InsideTopRight);
+    let layout_baseline =
+        Layout::auto_from_plots(&plots2).with_legend_position(LegendPosition::InsideTopRight);
     let out_baseline = svg(plots2, layout_baseline);
 
     let layout = Layout::auto_from_plots(&plots).with_legend_at_data(2.0, 4.0);
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_api_data_coords.svg", &out).unwrap();
 
-    assert!(out.contains("Data Coords"), "'Data Coords' label should appear in SVG");
+    assert!(
+        out.contains("Data Coords"),
+        "'Data Coords' label should appear in SVG"
+    );
 
-    let width_data     = extract_width(&out);
+    let width_data = extract_width(&out);
     let width_baseline = extract_width(&out_baseline);
     assert_eq!(
         width_data as u64, width_baseline as u64,
@@ -526,7 +606,10 @@ fn extract_height_val(s: &str) -> f64 {
 }
 
 fn check_entries_present(out: &str) {
-    assert!(out.contains("Series A"), "legend entry 'Series A' should be present");
+    assert!(
+        out.contains("Series A"),
+        "legend entry 'Series A' should be present"
+    );
 }
 
 // ── Inside positions ──────────────────────────────────────────────────────────
@@ -539,8 +622,16 @@ fn legend_position_inside_top_right() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_inside_top_right.svg", &out).unwrap();
     check_entries_present(&out);
-    assert_eq!(extract_width(&out) as u64, bw as u64, "InsideTopRight should not widen canvas");
-    assert_eq!(extract_height_val(&out) as u64, bh as u64, "InsideTopRight should not change canvas height");
+    assert_eq!(
+        extract_width(&out) as u64,
+        bw as u64,
+        "InsideTopRight should not widen canvas"
+    );
+    assert_eq!(
+        extract_height_val(&out) as u64,
+        bh as u64,
+        "InsideTopRight should not change canvas height"
+    );
 }
 
 #[test]
@@ -551,8 +642,16 @@ fn legend_position_inside_top_left() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_inside_top_left.svg", &out).unwrap();
     check_entries_present(&out);
-    assert_eq!(extract_width(&out) as u64, bw as u64, "InsideTopLeft should not widen canvas");
-    assert_eq!(extract_height_val(&out) as u64, bh as u64, "InsideTopLeft should not change canvas height");
+    assert_eq!(
+        extract_width(&out) as u64,
+        bw as u64,
+        "InsideTopLeft should not widen canvas"
+    );
+    assert_eq!(
+        extract_height_val(&out) as u64,
+        bh as u64,
+        "InsideTopLeft should not change canvas height"
+    );
 }
 
 #[test]
@@ -563,8 +662,16 @@ fn legend_position_inside_bottom_right() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_inside_bottom_right.svg", &out).unwrap();
     check_entries_present(&out);
-    assert_eq!(extract_width(&out) as u64, bw as u64, "InsideBottomRight should not widen canvas");
-    assert_eq!(extract_height_val(&out) as u64, bh as u64, "InsideBottomRight should not change canvas height");
+    assert_eq!(
+        extract_width(&out) as u64,
+        bw as u64,
+        "InsideBottomRight should not widen canvas"
+    );
+    assert_eq!(
+        extract_height_val(&out) as u64,
+        bh as u64,
+        "InsideBottomRight should not change canvas height"
+    );
 }
 
 #[test]
@@ -575,8 +682,16 @@ fn legend_position_inside_bottom_left() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_inside_bottom_left.svg", &out).unwrap();
     check_entries_present(&out);
-    assert_eq!(extract_width(&out) as u64, bw as u64, "InsideBottomLeft should not widen canvas");
-    assert_eq!(extract_height_val(&out) as u64, bh as u64, "InsideBottomLeft should not change canvas height");
+    assert_eq!(
+        extract_width(&out) as u64,
+        bw as u64,
+        "InsideBottomLeft should not widen canvas"
+    );
+    assert_eq!(
+        extract_height_val(&out) as u64,
+        bh as u64,
+        "InsideBottomLeft should not change canvas height"
+    );
 }
 
 #[test]
@@ -587,8 +702,16 @@ fn legend_position_inside_top_center() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_inside_top_center.svg", &out).unwrap();
     check_entries_present(&out);
-    assert_eq!(extract_width(&out) as u64, bw as u64, "InsideTopCenter should not widen canvas");
-    assert_eq!(extract_height_val(&out) as u64, bh as u64, "InsideTopCenter should not change canvas height");
+    assert_eq!(
+        extract_width(&out) as u64,
+        bw as u64,
+        "InsideTopCenter should not widen canvas"
+    );
+    assert_eq!(
+        extract_height_val(&out) as u64,
+        bh as u64,
+        "InsideTopCenter should not change canvas height"
+    );
 }
 
 #[test]
@@ -599,8 +722,16 @@ fn legend_position_inside_bottom_center() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_inside_bottom_center.svg", &out).unwrap();
     check_entries_present(&out);
-    assert_eq!(extract_width(&out) as u64, bw as u64, "InsideBottomCenter should not widen canvas");
-    assert_eq!(extract_height_val(&out) as u64, bh as u64, "InsideBottomCenter should not change canvas height");
+    assert_eq!(
+        extract_width(&out) as u64,
+        bw as u64,
+        "InsideBottomCenter should not widen canvas"
+    );
+    assert_eq!(
+        extract_height_val(&out) as u64,
+        bh as u64,
+        "InsideBottomCenter should not change canvas height"
+    );
 }
 
 // ── Outside Right ─────────────────────────────────────────────────────────────
@@ -613,7 +744,10 @@ fn legend_position_outside_right_top() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_right_top.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_width(&out) > bw, "OutsideRightTop should widen canvas");
+    assert!(
+        extract_width(&out) > bw,
+        "OutsideRightTop should widen canvas"
+    );
 }
 
 #[test]
@@ -624,7 +758,10 @@ fn legend_position_outside_right_middle() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_right_middle.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_width(&out) > bw, "OutsideRightMiddle should widen canvas");
+    assert!(
+        extract_width(&out) > bw,
+        "OutsideRightMiddle should widen canvas"
+    );
 }
 
 #[test]
@@ -635,7 +772,10 @@ fn legend_position_outside_right_bottom() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_right_bottom.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_width(&out) > bw, "OutsideRightBottom should widen canvas");
+    assert!(
+        extract_width(&out) > bw,
+        "OutsideRightBottom should widen canvas"
+    );
 }
 
 // ── Outside Left ──────────────────────────────────────────────────────────────
@@ -648,7 +788,10 @@ fn legend_position_outside_left_top() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_left_top.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_width(&out) > bw, "OutsideLeftTop should widen canvas");
+    assert!(
+        extract_width(&out) > bw,
+        "OutsideLeftTop should widen canvas"
+    );
 }
 
 #[test]
@@ -659,7 +802,10 @@ fn legend_position_outside_left_middle() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_left_middle.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_width(&out) > bw, "OutsideLeftMiddle should widen canvas");
+    assert!(
+        extract_width(&out) > bw,
+        "OutsideLeftMiddle should widen canvas"
+    );
 }
 
 #[test]
@@ -670,7 +816,10 @@ fn legend_position_outside_left_bottom() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_left_bottom.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_width(&out) > bw, "OutsideLeftBottom should widen canvas");
+    assert!(
+        extract_width(&out) > bw,
+        "OutsideLeftBottom should widen canvas"
+    );
 }
 
 // ── Outside Top ───────────────────────────────────────────────────────────────
@@ -683,7 +832,10 @@ fn legend_position_outside_top_left() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_top_left.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_height_val(&out) > bh, "OutsideTopLeft should increase canvas height");
+    assert!(
+        extract_height_val(&out) > bh,
+        "OutsideTopLeft should increase canvas height"
+    );
 }
 
 #[test]
@@ -694,7 +846,10 @@ fn legend_position_outside_top_center() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_top_center.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_height_val(&out) > bh, "OutsideTopCenter should increase canvas height");
+    assert!(
+        extract_height_val(&out) > bh,
+        "OutsideTopCenter should increase canvas height"
+    );
 }
 
 #[test]
@@ -705,7 +860,10 @@ fn legend_position_outside_top_right() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_top_right.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_height_val(&out) > bh, "OutsideTopRight should increase canvas height");
+    assert!(
+        extract_height_val(&out) > bh,
+        "OutsideTopRight should increase canvas height"
+    );
 }
 
 // ── Outside Bottom ────────────────────────────────────────────────────────────
@@ -718,7 +876,10 @@ fn legend_position_outside_bottom_left() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_bottom_left.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_height_val(&out) > bh, "OutsideBottomLeft should increase canvas height");
+    assert!(
+        extract_height_val(&out) > bh,
+        "OutsideBottomLeft should increase canvas height"
+    );
 }
 
 #[test]
@@ -729,7 +890,10 @@ fn legend_position_outside_bottom_center() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_bottom_center.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_height_val(&out) > bh, "OutsideBottomCenter should increase canvas height");
+    assert!(
+        extract_height_val(&out) > bh,
+        "OutsideBottomCenter should increase canvas height"
+    );
 }
 
 #[test]
@@ -740,7 +904,10 @@ fn legend_position_outside_bottom_right() {
     let out = svg(plots, layout);
     std::fs::write("test_outputs/legend_pos_outside_bottom_right.svg", &out).unwrap();
     check_entries_present(&out);
-    assert!(extract_height_val(&out) > bh, "OutsideBottomRight should increase canvas height");
+    assert!(
+        extract_height_val(&out) > bh,
+        "OutsideBottomRight should increase canvas height"
+    );
 }
 
 // ── Twin-Y OutsideRight legend tests ─────────────────────────────────────────
@@ -766,8 +933,18 @@ fn twin_y_svg(pos: LegendPosition) -> String {
             .with_color("tomato"),
     )];
     let entries = vec![
-        LegendEntry { label: "Primary".into(),   color: "steelblue".into(), shape: LegendShape::Circle, dasharray: None },
-        LegendEntry { label: "Secondary".into(), color: "tomato".into(),    shape: LegendShape::Circle, dasharray: None },
+        LegendEntry {
+            label: "Primary".into(),
+            color: "steelblue".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Secondary".into(),
+            color: "tomato".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
     ];
     let layout = Layout::new((0.0, 4.0), (0.0, 5.0))
         .with_title("Twin-Y Legend Test")
@@ -813,8 +990,14 @@ fn max_y2_tick_x(svg: &str, box_x: f64) -> f64 {
 }
 
 fn check_twin_entries(out: &str) {
-    assert!(out.contains("Primary"),   "legend entry 'Primary' should be present");
-    assert!(out.contains("Secondary"), "legend entry 'Secondary' should be present");
+    assert!(
+        out.contains("Primary"),
+        "legend entry 'Primary' should be present"
+    );
+    assert!(
+        out.contains("Secondary"),
+        "legend entry 'Secondary' should be present"
+    );
 }
 
 #[test]

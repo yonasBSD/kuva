@@ -9,14 +9,14 @@
 //!
 //! SVGs are written to `docs/src/assets/ecdf/`.
 
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal};
-use kuva::plot::EcdfPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::EcdfPlot;
 use kuva::render::layout::Layout;
 use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
+use rand::SeedableRng;
+use rand_distr::{Distribution, Normal};
 
 const OUT: &str = "docs/src/assets/ecdf";
 
@@ -37,7 +37,8 @@ fn main() {
 
 fn normal_samples(mean: f64, std: f64, n: usize, seed: u64) -> Vec<f64> {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
-    Normal::new(mean, std).unwrap()
+    Normal::new(mean, std)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(n)
         .collect()
@@ -62,8 +63,8 @@ fn basic() {
 
 fn multigroup() {
     let pal = Palette::category10();
-    let control  = normal_samples(0.0, 1.0, 150, 1);
-    let treated  = normal_samples(1.2, 0.9, 150, 2);
+    let control = normal_samples(0.0, 1.0, 150, 1);
+    let treated = normal_samples(1.2, 0.9, 150, 2);
 
     let plot = EcdfPlot::new()
         .with_data_colored("Control", control, pal[0].to_string())
@@ -83,7 +84,8 @@ fn multigroup() {
 fn complementary() {
     // Simulated nanopore read-length distribution (log-normal)
     let mut rng = rand::rngs::SmallRng::seed_from_u64(7);
-    let data: Vec<f64> = Normal::new(7.5_f64, 1.2).unwrap()
+    let data: Vec<f64> = Normal::new(7.5_f64, 1.2)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(300)
         .map(|v| v.exp())
@@ -112,7 +114,7 @@ fn confidence_band() {
     let large = normal_samples(0.0, 1.0, 150, 11);
 
     let plot = EcdfPlot::new()
-        .with_data("n = 20",  small)
+        .with_data("n = 20", small)
         .with_data("n = 150", large)
         .with_confidence_band()
         .with_legend("");

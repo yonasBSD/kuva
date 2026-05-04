@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use kuva::plot::{BrickPlot, LegendPosition, LegendEntry, LegendShape};
+use kuva::plot::{BrickPlot, LegendEntry, LegendPosition, LegendShape};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render_to_svg;
+use std::collections::HashMap;
 
 fn write(name: &str, svg: &str) {
     std::fs::create_dir_all("test_outputs").ok();
@@ -11,20 +11,22 @@ fn write(name: &str, svg: &str) {
 
 fn palette() -> Vec<&'static str> {
     vec![
-        "#4477AA","#EE6677","#228833","#CCBB44","#66CCEE","#AA3377","#BBBBBB",
-        "#332288","#882255","#44AA99","#DDCC77","#117733","#999933","#AA4499",
-        "#88CCEE","#CC6677","#DDDDDD","#44BB99","#AAAA00","#EE8866",
+        "#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#BBBBBB", "#332288",
+        "#882255", "#44AA99", "#DDCC77", "#117733", "#999933", "#AA4499", "#88CCEE", "#CC6677",
+        "#DDDDDD", "#44BB99", "#AAAA00", "#EE8866",
     ]
 }
 
 fn make_entries(n: usize, label_prefix: &str) -> Vec<LegendEntry> {
     let pal = palette();
-    (0..n).map(|i| LegendEntry {
-        label: format!("{} {}", label_prefix, i + 1),
-        color: pal[i % pal.len()].to_string(),
-        shape: LegendShape::Rect,
-        dasharray: None,
-    }).collect()
+    (0..n)
+        .map(|i| LegendEntry {
+            label: format!("{} {}", label_prefix, i + 1),
+            color: pal[i % pal.len()].to_string(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        })
+        .collect()
 }
 
 fn make_brick_with_entries(n_entries: usize) -> (Vec<Plot>, Vec<LegendEntry>) {
@@ -71,12 +73,14 @@ fn test_legend_columns_many_entries() {
 #[test]
 fn test_legend_columns_long_labels() {
     let pal = palette();
-    let entries: Vec<LegendEntry> = (0..20).map(|i| LegendEntry {
-        label: format!("Long motif label number {:02}", i + 1),
-        color: pal[i % pal.len()].to_string(),
-        shape: LegendShape::Rect,
-        dasharray: None,
-    }).collect();
+    let entries: Vec<LegendEntry> = (0..20)
+        .map(|i| LegendEntry {
+            label: format!("Long motif label number {:02}", i + 1),
+            color: pal[i % pal.len()].to_string(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        })
+        .collect();
     let (plots, _) = make_brick_with_entries(0);
     let layout = Layout::auto_from_plots(&plots)
         .with_legend_entries(entries)
@@ -105,5 +109,8 @@ fn test_legend_columns_extends_canvas() {
         .with_legend_position(LegendPosition::OutsideBottomColumns);
     let h_cols = ComputedLayout::from_layout(&layout_cols).height;
 
-    assert!(h_cols > h_default, "OutsideBottomColumns must extend canvas height");
+    assert!(
+        h_cols > h_default,
+        "OutsideBottomColumns must extend canvas height"
+    );
 }

@@ -1,24 +1,27 @@
-use kuva::plot::surface3d::Surface3DPlot;
-use kuva::plot::heatmap::ColorMap;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::heatmap::ColorMap;
+use kuva::plot::surface3d::Surface3DPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 fn paraboloid_grid(n: usize) -> Vec<Vec<f64>> {
-    (0..n).map(|i| {
-        (0..n).map(|j| {
-            let x = (i as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
-            let y = (j as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
-            x * x + y * y
-        }).collect()
-    }).collect()
+    (0..n)
+        .map(|i| {
+            (0..n)
+                .map(|j| {
+                    let x = (i as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
+                    let y = (j as f64 - n as f64 / 2.0) / (n as f64 / 4.0);
+                    x * x + y * y
+                })
+                .collect()
+        })
+        .collect()
 }
 
 #[test]
 fn test_surface3d_basic() {
-    let surface = Surface3DPlot::new(paraboloid_grid(10))
-        .with_color("steelblue");
+    let surface = Surface3DPlot::new(paraboloid_grid(10)).with_color("steelblue");
 
     let plots = vec![Plot::Surface3D(surface)];
     let layout = Layout::auto_from_plots(&plots).with_title("Surface3D Basic");
@@ -26,13 +29,15 @@ fn test_surface3d_basic() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/surface3d_basic.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("<path"), "should contain path elements for surface faces");
+    assert!(
+        svg.contains("<path"),
+        "should contain path elements for surface faces"
+    );
 }
 
 #[test]
 fn test_surface3d_colormap() {
-    let surface = Surface3DPlot::new(paraboloid_grid(15))
-        .with_z_colormap(ColorMap::Viridis);
+    let surface = Surface3DPlot::new(paraboloid_grid(15)).with_z_colormap(ColorMap::Viridis);
 
     let plots = vec![Plot::Surface3D(surface)];
     let layout = Layout::auto_from_plots(&plots);
@@ -42,7 +47,10 @@ fn test_surface3d_colormap() {
     assert!(svg.contains("<svg"));
     let path_count = svg.matches("<path").count();
     // Should have many paths: back panes + grid + surface faces
-    assert!(path_count > 100, "colormap surface should have many paths, got {path_count}");
+    assert!(
+        path_count > 100,
+        "colormap surface should have many paths, got {path_count}"
+    );
 }
 
 #[test]
@@ -73,7 +81,10 @@ fn test_surface3d_alpha() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/surface3d_alpha.svg", svg.clone()).unwrap();
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("opacity"), "should contain opacity attribute for alpha");
+    assert!(
+        svg.contains("opacity"),
+        "should contain opacity attribute for alpha"
+    );
 }
 
 #[test]
@@ -108,9 +119,10 @@ fn test_surface3d_axis_labels() {
 fn test_surface3d_explicit_coords() {
     let xs: Vec<f64> = (-5..=5).map(|i| i as f64).collect();
     let ys: Vec<f64> = (-5..=5).map(|i| i as f64).collect();
-    let z_data: Vec<Vec<f64>> = ys.iter().map(|&y| {
-        xs.iter().map(|&x| (x * x + y * y).sqrt().sin()).collect()
-    }).collect();
+    let z_data: Vec<Vec<f64>> = ys
+        .iter()
+        .map(|&y| xs.iter().map(|&x| (x * x + y * y).sqrt().sin()).collect())
+        .collect();
 
     let surface = Surface3DPlot::new(z_data)
         .with_x_coords(xs)
@@ -143,7 +155,13 @@ fn test_surface3d_custom_view() {
 #[test]
 fn test_surface3d_with_data_fn() {
     let surface = Surface3DPlot::new(vec![])
-        .with_data_fn(|x, y| (x * x + y * y).sqrt().sin(), -3.0..=3.0, -3.0..=3.0, 30, 30)
+        .with_data_fn(
+            |x, y| (x * x + y * y).sqrt().sin(),
+            -3.0..=3.0,
+            -3.0..=3.0,
+            30,
+            30,
+        )
         .with_z_colormap(ColorMap::Viridis);
 
     assert_eq!(surface.nrows(), 30);
@@ -157,14 +175,17 @@ fn test_surface3d_with_data_fn() {
     assert!(svg.contains("<svg"));
     // 30x30 grid = 29x29 = 841 faces + back panes → lots of paths
     let path_count = svg.matches("<path").count();
-    assert!(path_count > 800, "high-res surface should have many paths, got {path_count}");
+    assert!(
+        path_count > 800,
+        "high-res surface should have many paths, got {path_count}"
+    );
 }
 
 #[test]
 fn test_surface3d_with_data_fn_low_vs_high_res() {
     // Low res
-    let low = Surface3DPlot::new(vec![])
-        .with_data_fn(|x, y| x * x + y * y, -2.0..=2.0, -2.0..=2.0, 5, 5);
+    let low =
+        Surface3DPlot::new(vec![]).with_data_fn(|x, y| x * x + y * y, -2.0..=2.0, -2.0..=2.0, 5, 5);
     assert_eq!(low.nrows(), 5);
     assert_eq!(low.ncols(), 5);
 
@@ -175,8 +196,13 @@ fn test_surface3d_with_data_fn_low_vs_high_res() {
     std::fs::write("test_outputs/surface3d_low_res.svg", svg_low.clone()).unwrap();
 
     // High res
-    let high = Surface3DPlot::new(vec![])
-        .with_data_fn(|x, y| x * x + y * y, -2.0..=2.0, -2.0..=2.0, 40, 40);
+    let high = Surface3DPlot::new(vec![]).with_data_fn(
+        |x, y| x * x + y * y,
+        -2.0..=2.0,
+        -2.0..=2.0,
+        40,
+        40,
+    );
     assert_eq!(high.nrows(), 40);
     assert_eq!(high.ncols(), 40);
 
@@ -187,7 +213,10 @@ fn test_surface3d_with_data_fn_low_vs_high_res() {
     std::fs::write("test_outputs/surface3d_high_res.svg", svg_high.clone()).unwrap();
 
     // High res should produce significantly more SVG content
-    assert!(svg_high.len() > svg_low.len() * 5,
+    assert!(
+        svg_high.len() > svg_low.len() * 5,
         "high-res ({} bytes) should be much larger than low-res ({} bytes)",
-        svg_high.len(), svg_low.len());
+        svg_high.len(),
+        svg_low.len()
+    );
 }

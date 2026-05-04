@@ -1,22 +1,22 @@
-use kuva::plot::diceplot::DicePlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::diceplot::DicePlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use kuva::render::theme::Theme;
 
 #[test]
 fn test_dice_categorical_basic() {
     let organs = vec!["Lung".into(), "Liver".into(), "Brain".into()];
     let data = vec![
-        ("miR-1", "Cpd1", "Lung",  "#b2182b"),
+        ("miR-1", "Cpd1", "Lung", "#b2182b"),
         ("miR-1", "Cpd1", "Liver", "#2166ac"),
         ("miR-1", "Cpd1", "Brain", "#cccccc"),
-        ("miR-1", "Cpd2", "Lung",  "#cccccc"),
+        ("miR-1", "Cpd2", "Lung", "#cccccc"),
         ("miR-1", "Cpd2", "Brain", "#b2182b"),
-        ("miR-2", "Cpd1", "Lung",  "#2166ac"),
+        ("miR-2", "Cpd1", "Lung", "#2166ac"),
         ("miR-2", "Cpd1", "Liver", "#b2182b"),
-        ("miR-2", "Cpd2", "Lung",  "#cccccc"),
+        ("miR-2", "Cpd2", "Lung", "#cccccc"),
         ("miR-2", "Cpd2", "Liver", "#2166ac"),
         ("miR-2", "Cpd2", "Brain", "#b2182b"),
     ];
@@ -48,10 +48,7 @@ fn test_dice_categorical_basic() {
 fn test_dice_categorical_absent_dots_omitted() {
     let cats = vec!["A".into(), "B".into(), "C".into(), "D".into()];
     // Only 2 of 4 positions present in this cell
-    let data = vec![
-        ("X1", "Y1", "A", "#ff0000"),
-        ("X1", "Y1", "C", "#0000ff"),
-    ];
+    let data = vec![("X1", "Y1", "A", "#ff0000"), ("X1", "Y1", "C", "#0000ff")];
 
     let dice = DicePlot::new(4)
         .with_category_labels(cats)
@@ -71,8 +68,8 @@ fn test_dice_categorical_absent_dots_omitted() {
 fn test_dice_continuous_tile() {
     let data = vec![
         ("G1", "S1", vec![0, 1, 2, 3], Some(0.8), Some(5.0)),
-        ("G1", "S2", vec![0, 2],       Some(0.3), Some(2.0)),
-        ("G2", "S1", vec![1, 3],       Some(0.6), Some(8.0)),
+        ("G1", "S2", vec![0, 2], Some(0.3), Some(2.0)),
+        ("G2", "S1", vec![1, 3], Some(0.6), Some(8.0)),
         ("G2", "S2", vec![0, 1, 2, 3], Some(0.1), Some(3.0)),
     ];
 
@@ -97,13 +94,13 @@ fn test_dice_continuous_tile() {
 fn test_dice_per_dot_continuous() {
     let cats = vec!["C1".into(), "C2".into(), "C3".into()];
     let data = vec![
-        ("X1", "Y1", 0_usize, Some(1.5),  Some(3.0)),
-        ("X1", "Y1", 1,       Some(-0.8), Some(1.5)),
-        ("X1", "Y1", 2,       Some(0.2),  Some(4.0)),
-        ("X1", "Y2", 0,       Some(-1.2), Some(2.0)),
-        ("X1", "Y2", 2,       Some(0.9),  Some(5.0)),
-        ("X2", "Y1", 1,       Some(2.0),  Some(3.5)),
-        ("X2", "Y1", 2,       Some(-0.3), Some(1.0)),
+        ("X1", "Y1", 0_usize, Some(1.5), Some(3.0)),
+        ("X1", "Y1", 1, Some(-0.8), Some(1.5)),
+        ("X1", "Y1", 2, Some(0.2), Some(4.0)),
+        ("X1", "Y2", 0, Some(-1.2), Some(2.0)),
+        ("X1", "Y2", 2, Some(0.9), Some(5.0)),
+        ("X2", "Y1", 1, Some(2.0), Some(3.5)),
+        ("X2", "Y1", 2, Some(-0.3), Some(1.0)),
     ];
 
     let dice = DicePlot::new(3)
@@ -157,17 +154,14 @@ fn test_dice_position_legend() {
 fn test_dice_dot_legend() {
     let organs = vec!["Lung".into(), "Liver".into()];
     let data = vec![
-        ("X1", "Y1", "Lung",  "#b2182b"),
+        ("X1", "Y1", "Lung", "#b2182b"),
         ("X1", "Y1", "Liver", "#2166ac"),
     ];
 
     let dice = DicePlot::new(2)
         .with_category_labels(organs)
         .with_records(data)
-        .with_dot_legend(vec![
-            ("Down", "#2166ac"),
-            ("Up",   "#b2182b"),
-        ]);
+        .with_dot_legend(vec![("Down", "#2166ac"), ("Up", "#b2182b")]);
 
     let plots = vec![Plot::DicePlot(dice)];
     let layout = Layout::auto_from_plots(&plots);
@@ -186,7 +180,7 @@ fn test_dice_size_legend() {
     let cats = vec!["A".into(), "B".into()];
     let data = vec![
         ("X1", "Y1", 0_usize, Some(1.0), Some(2.0)),
-        ("X1", "Y1", 1,       Some(0.5), Some(8.0)),
+        ("X1", "Y1", 1, Some(0.5), Some(8.0)),
     ];
 
     let dice = DicePlot::new(2)
@@ -209,8 +203,8 @@ fn test_dice_size_legend() {
 fn test_dice_colorbar() {
     let data = vec![
         ("X1", "Y1", vec![0, 1], Some(0.2), None),
-        ("X1", "Y2", vec![0],    Some(0.9), None),
-        ("X2", "Y1", vec![1],    Some(0.5), None),
+        ("X1", "Y2", vec![0], Some(0.9), None),
+        ("X2", "Y1", vec![1], Some(0.5), None),
     ];
 
     let dice = DicePlot::new(2)
@@ -266,7 +260,11 @@ fn test_dice_all_ndots_variants() {
         let svg = SvgBackend.render_scene(&scene);
 
         assert!(svg.contains("<svg"), "ndots={n} should produce valid SVG");
-        assert_eq!(svg.matches("<circle").count(), n, "ndots={n} should have {n} circles");
+        assert_eq!(
+            svg.matches("<circle").count(),
+            n,
+            "ndots={n} should have {n} circles"
+        );
     }
 }
 
@@ -276,8 +274,8 @@ fn test_dice_stacked_legends() {
     let cats = vec!["A".into(), "B".into(), "C".into()];
     let data = vec![
         ("X1", "Y1", 0_usize, Some(1.0), Some(3.0)),
-        ("X1", "Y1", 1,       Some(-0.5), Some(1.0)),
-        ("X1", "Y1", 2,       Some(0.8), Some(5.0)),
+        ("X1", "Y1", 1, Some(-0.5), Some(1.0)),
+        ("X1", "Y1", 2, Some(0.8), Some(5.0)),
     ];
 
     let dice = DicePlot::new(3)
@@ -316,8 +314,7 @@ fn test_dice_position_legend_dark_theme() {
         .with_position_legend("Organ");
 
     let plots = vec![Plot::DicePlot(dice)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_theme(Theme::dark());
+    let layout = Layout::auto_from_plots(&plots).with_theme(Theme::dark());
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -354,7 +351,8 @@ fn test_dice_single_dot_positions() {
         let svg = SvgBackend.render_scene(&scene);
 
         assert_eq!(
-            svg.matches("<circle").count(), expected_circles,
+            svg.matches("<circle").count(),
+            expected_circles,
             "ndots={ndots}: expected {expected_circles} circles"
         );
     }
@@ -368,7 +366,7 @@ fn test_dice_long_legend_title_fits_box() {
     let cats: Vec<String> = vec!["Cat A".into(), "Cat B".into()];
     let data = vec![
         ("X1", "Y1", 0_usize, Some(1.0), Some(5.0)),
-        ("X1", "Y1", 1,       Some(0.5), Some(2.0)),
+        ("X1", "Y1", 1, Some(0.5), Some(2.0)),
     ];
 
     let dice = DicePlot::new(2)
@@ -400,11 +398,16 @@ fn test_dice_large_grid_with_position_legend() {
     // Position (which pip) = organ affected (Lung/Liver/Brain/Kidney)
     // Pip colour          = direction of effect (Upregulated/Downregulated/Not sig.)
     // These are two genuinely different dimensions, so both legends carry distinct information.
-    let organs: Vec<String> = vec!["Lung".into(), "Liver".into(), "Brain".into(), "Kidney".into()];
+    let organs: Vec<String> = vec![
+        "Lung".into(),
+        "Liver".into(),
+        "Brain".into(),
+        "Kidney".into(),
+    ];
 
-    const UP: &str = "#d73027";   // upregulated   – red
-    const DN: &str = "#4575b4";   // downregulated – blue
-    const NS: &str = "#aaaaaa";   // not significant – grey
+    const UP: &str = "#d73027"; // upregulated   – red
+    const DN: &str = "#4575b4"; // downregulated – blue
+    const NS: &str = "#aaaaaa"; // not significant – grey
 
     // (miRNA, Compound, Organ, significance_colour)
     // miR-1: predominantly upregulated in Lung/Liver
@@ -413,70 +416,70 @@ fn test_dice_large_grid_with_position_legend() {
     // miR-4: downregulated in Lung, mixed
     // miR-5: mostly not significant
     let combos: &[(&str, &str, &str, &str)] = &[
-        ("miR-1", "CpdA", "Lung",   UP),
-        ("miR-1", "CpdA", "Liver",  UP),
-        ("miR-1", "CpdA", "Brain",  NS),
-        ("miR-1", "CpdB", "Lung",   UP),
+        ("miR-1", "CpdA", "Lung", UP),
+        ("miR-1", "CpdA", "Liver", UP),
+        ("miR-1", "CpdA", "Brain", NS),
+        ("miR-1", "CpdB", "Lung", UP),
         ("miR-1", "CpdB", "Kidney", NS),
-        ("miR-1", "CpdC", "Lung",   UP),
-        ("miR-1", "CpdC", "Liver",  UP),
-        ("miR-1", "CpdD", "Liver",  UP),
-        ("miR-1", "CpdD", "Brain",  NS),
-        ("miR-1", "CpdE", "Lung",   UP),
-        ("miR-1", "CpdF", "Liver",  UP),
-        ("miR-1", "CpdF", "Brain",  DN),
-        ("miR-1", "CpdG", "Lung",   UP),
-        ("miR-1", "CpdG", "Liver",  NS),
-        ("miR-1", "CpdH", "Lung",   UP),
-        ("miR-1", "CpdH", "Liver",  UP),
-        ("miR-2", "CpdA", "Brain",  DN),
+        ("miR-1", "CpdC", "Lung", UP),
+        ("miR-1", "CpdC", "Liver", UP),
+        ("miR-1", "CpdD", "Liver", UP),
+        ("miR-1", "CpdD", "Brain", NS),
+        ("miR-1", "CpdE", "Lung", UP),
+        ("miR-1", "CpdF", "Liver", UP),
+        ("miR-1", "CpdF", "Brain", DN),
+        ("miR-1", "CpdG", "Lung", UP),
+        ("miR-1", "CpdG", "Liver", NS),
+        ("miR-1", "CpdH", "Lung", UP),
+        ("miR-1", "CpdH", "Liver", UP),
+        ("miR-2", "CpdA", "Brain", DN),
         ("miR-2", "CpdA", "Kidney", DN),
-        ("miR-2", "CpdB", "Lung",   NS),
+        ("miR-2", "CpdB", "Lung", NS),
         ("miR-2", "CpdB", "Kidney", DN),
         ("miR-2", "CpdC", "Kidney", DN),
-        ("miR-2", "CpdD", "Lung",   NS),
+        ("miR-2", "CpdD", "Lung", NS),
         ("miR-2", "CpdD", "Kidney", DN),
-        ("miR-2", "CpdE", "Liver",  NS),
+        ("miR-2", "CpdE", "Liver", NS),
         ("miR-2", "CpdE", "Kidney", DN),
-        ("miR-2", "CpdF", "Brain",  DN),
-        ("miR-2", "CpdG", "Liver",  UP),
+        ("miR-2", "CpdF", "Brain", DN),
+        ("miR-2", "CpdG", "Liver", UP),
         ("miR-2", "CpdG", "Kidney", DN),
-        ("miR-2", "CpdH", "Brain",  NS),
+        ("miR-2", "CpdH", "Brain", NS),
         ("miR-2", "CpdH", "Kidney", DN),
-        ("miR-3", "CpdA", "Brain",  UP),
-        ("miR-3", "CpdA", "Lung",   NS),
-        ("miR-3", "CpdB", "Brain",  UP),
-        ("miR-3", "CpdB", "Liver",  NS),
-        ("miR-3", "CpdC", "Brain",  UP),
-        ("miR-3", "CpdD", "Brain",  UP),
-        ("miR-3", "CpdD", "Lung",   NS),
-        ("miR-3", "CpdE", "Brain",  UP),
+        ("miR-3", "CpdA", "Brain", UP),
+        ("miR-3", "CpdA", "Lung", NS),
+        ("miR-3", "CpdB", "Brain", UP),
+        ("miR-3", "CpdB", "Liver", NS),
+        ("miR-3", "CpdC", "Brain", UP),
+        ("miR-3", "CpdD", "Brain", UP),
+        ("miR-3", "CpdD", "Lung", NS),
+        ("miR-3", "CpdE", "Brain", UP),
         ("miR-3", "CpdE", "Kidney", NS),
-        ("miR-3", "CpdF", "Brain",  UP),
-        ("miR-3", "CpdG", "Brain",  UP),
-        ("miR-3", "CpdG", "Liver",  DN),
-        ("miR-3", "CpdH", "Brain",  UP),
-        ("miR-4", "CpdA", "Lung",   DN),
-        ("miR-4", "CpdA", "Liver",  NS),
-        ("miR-4", "CpdB", "Lung",   DN),
-        ("miR-4", "CpdC", "Lung",   DN),
+        ("miR-3", "CpdF", "Brain", UP),
+        ("miR-3", "CpdG", "Brain", UP),
+        ("miR-3", "CpdG", "Liver", DN),
+        ("miR-3", "CpdH", "Brain", UP),
+        ("miR-4", "CpdA", "Lung", DN),
+        ("miR-4", "CpdA", "Liver", NS),
+        ("miR-4", "CpdB", "Lung", DN),
+        ("miR-4", "CpdC", "Lung", DN),
         ("miR-4", "CpdC", "Kidney", UP),
-        ("miR-4", "CpdD", "Lung",   DN),
-        ("miR-4", "CpdE", "Lung",   DN),
-        ("miR-4", "CpdE", "Brain",  NS),
-        ("miR-4", "CpdF", "Lung",   DN),
-        ("miR-4", "CpdF", "Liver",  UP),
-        ("miR-4", "CpdG", "Lung",   DN),
-        ("miR-4", "CpdH", "Lung",   DN),
+        ("miR-4", "CpdD", "Lung", DN),
+        ("miR-4", "CpdE", "Lung", DN),
+        ("miR-4", "CpdE", "Brain", NS),
+        ("miR-4", "CpdF", "Lung", DN),
+        ("miR-4", "CpdF", "Liver", UP),
+        ("miR-4", "CpdG", "Lung", DN),
+        ("miR-4", "CpdH", "Lung", DN),
         ("miR-4", "CpdH", "Kidney", NS),
-        ("miR-5", "CpdA", "Lung",   NS),
-        ("miR-5", "CpdB", "Brain",  NS),
-        ("miR-5", "CpdC", "Liver",  NS),
-        ("miR-5", "CpdC", "Lung",   NS),
+        ("miR-5", "CpdA", "Lung", NS),
+        ("miR-5", "CpdB", "Brain", NS),
+        ("miR-5", "CpdC", "Liver", NS),
+        ("miR-5", "CpdC", "Lung", NS),
         ("miR-5", "CpdD", "Kidney", NS),
-        ("miR-5", "CpdE", "Brain",  NS),
-        ("miR-5", "CpdF", "Lung",   NS),
-        ("miR-5", "CpdG", "Liver",  NS),
+        ("miR-5", "CpdE", "Brain", NS),
+        ("miR-5", "CpdF", "Lung", NS),
+        ("miR-5", "CpdG", "Liver", NS),
         ("miR-5", "CpdH", "Kidney", NS),
     ];
 
@@ -485,8 +488,8 @@ fn test_dice_large_grid_with_position_legend() {
         .with_records(combos.iter().copied())
         .with_position_legend("Organ")
         .with_dot_legend(vec![
-            ("Upregulated",     UP),
-            ("Downregulated",   DN),
+            ("Upregulated", UP),
+            ("Downregulated", DN),
             ("Not significant", NS),
         ])
         .with_grid_lines(true);
@@ -536,12 +539,12 @@ fn test_dice_fill_colorbar_range() {
     // Explicit fill_range should be respected — colorbar min/max derived from it.
     let data = vec![
         ("G1", "S1", vec![0], Some(0.0_f64), None),
-        ("G1", "S2", vec![0], Some(1.0),     None),
+        ("G1", "S2", vec![0], Some(1.0), None),
     ];
 
     let dice = DicePlot::new(1)
         .with_points(data)
-        .with_fill_range(0.0, 5.0)   // explicit range wider than data
+        .with_fill_range(0.0, 5.0) // explicit range wider than data
         .with_fill_legend("Score");
 
     let plots = vec![Plot::DicePlot(dice)];

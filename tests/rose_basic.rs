@@ -1,7 +1,7 @@
-use kuva::plot::rose::{RosePlot, RoseEncoding, compass_labels_for_n};
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
-use kuva::render::render::render_rose;
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::rose::{compass_labels_for_n, RoseEncoding, RosePlot};
+use kuva::render::render::render_rose;
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 
 fn render(rp: RosePlot, title: &str) -> String {
     let plots = vec![Plot::Rose(rp)];
@@ -72,8 +72,8 @@ fn test_rose_stacked() {
     let rp = RosePlot::new()
         .with_x_labels(["Jan", "Feb", "Mar", "Apr", "May", "Jun"])
         .with_stack("Cats A", vec![10.0_f64, 15.0, 20.0, 25.0, 18.0, 12.0])
-        .with_stack("Cats B", vec![5.0_f64,  8.0, 12.0, 10.0, 14.0, 9.0])
-        .with_stack("Cats C", vec![2.0_f64,  4.0,  6.0,  8.0,  5.0, 3.0]);
+        .with_stack("Cats B", vec![5.0_f64, 8.0, 12.0, 10.0, 14.0, 9.0])
+        .with_stack("Cats C", vec![2.0_f64, 4.0, 6.0, 8.0, 5.0, 3.0]);
     let svg = render(rp, "Stacked Rose");
     write("test_outputs/rose_stacked.svg", &svg);
     assert!(svg.contains("<path"), "should have wedge paths");
@@ -109,7 +109,10 @@ fn test_rose_bearing_data() {
     let rp = RosePlot::new().with_bearing_data(bearings, 12);
     let svg = render(rp, "Bearing Rose");
     write("test_outputs/rose_bearing_data.svg", &svg);
-    assert!(svg.contains("<path"), "should have wedge paths from bearing data");
+    assert!(
+        svg.contains("<path"),
+        "should have wedge paths from bearing data"
+    );
 }
 
 #[test]
@@ -173,7 +176,10 @@ fn test_rose_show_values() {
         .with_slice("Mar", 200.0);
     let svg = render(rp, "Values Rose");
     write("test_outputs/rose_show_values.svg", &svg);
-    assert!(svg.contains("<text"), "should have text elements for values");
+    assert!(
+        svg.contains("<text"),
+        "should have text elements for values"
+    );
 }
 
 #[test]
@@ -245,9 +251,7 @@ fn test_rose_slices_api() {
 
 #[test]
 fn test_rose_into_plot() {
-    let rp = RosePlot::new()
-        .with_slice("A", 10.0)
-        .with_slice("B", 20.0);
+    let rp = RosePlot::new().with_slice("A", 10.0).with_slice("B", 20.0);
     let p: Plot = rp.into();
     assert!(matches!(p, Plot::Rose(_)), "should convert into Plot::Rose");
 }
@@ -272,17 +276,23 @@ fn test_rose_equal_values() {
         .with_slice("D", 25.0);
     let svg = render(rp, "Equal Values Rose");
     write("test_outputs/rose_equal_values.svg", &svg);
-    assert!(svg.contains("<path"), "should have wedge paths for equal values");
+    assert!(
+        svg.contains("<path"),
+        "should have wedge paths for equal values"
+    );
 }
 
 #[test]
 fn test_rose_nightingale() {
     // Classic Nightingale diagram: 12 months × 3 stacked causes
-    let months = ["Jan","Feb","Mar","Apr","May","Jun",
-                  "Jul","Aug","Sep","Oct","Nov","Dec"];
-    let preventable = vec![12.0, 11.0, 14.0, 10.0, 9.0, 7.0, 6.0, 5.0, 8.0, 10.0, 13.0, 15.0];
-    let wounds      = vec![ 3.0,  4.0,  2.0,  3.0, 2.0, 2.0, 1.0, 1.0, 2.0,  3.0,  3.0,  4.0];
-    let other       = vec![ 2.0,  2.0,  1.0,  2.0, 1.0, 1.0, 1.0, 1.0, 1.0,  1.0,  2.0,  2.0];
+    let months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    let preventable = vec![
+        12.0, 11.0, 14.0, 10.0, 9.0, 7.0, 6.0, 5.0, 8.0, 10.0, 13.0, 15.0,
+    ];
+    let wounds = vec![3.0, 4.0, 2.0, 3.0, 2.0, 2.0, 1.0, 1.0, 2.0, 3.0, 3.0, 4.0];
+    let other = vec![2.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0];
 
     let rp = RosePlot::new()
         .with_x_labels(months.iter().copied())
@@ -294,7 +304,10 @@ fn test_rose_nightingale() {
     let svg = render(rp, "Nightingale Polar Area Diagram");
     write("test_outputs/rose_nightingale.svg", &svg);
     assert!(svg.contains("<path"), "should have stacked wedge paths");
-    assert!(svg.contains("Jan") || svg.contains("<text"), "should have month labels or text");
+    assert!(
+        svg.contains("Jan") || svg.contains("<text"),
+        "should have month labels or text"
+    );
 }
 
 #[test]
@@ -308,7 +321,10 @@ fn test_rose_render_rose_fn() {
     let scene = render_rose(rp, layout);
     let svg = SvgBackend.render_scene(&scene);
     write("test_outputs/rose_render_fn.svg", &svg);
-    assert!(svg.contains("<path"), "render_rose should produce wedge paths");
+    assert!(
+        svg.contains("<path"),
+        "render_rose should produce wedge paths"
+    );
 }
 
 #[test]
@@ -317,7 +333,7 @@ fn test_rose_compass_labels_for_n() {
     assert_eq!(labels_4, vec!["N", "E", "S", "W"]);
 
     let labels_8 = compass_labels_for_n(8);
-    assert_eq!(labels_8, vec!["N","NE","E","SE","S","SW","W","NW"]);
+    assert_eq!(labels_8, vec!["N", "NE", "E", "SE", "S", "SW", "W", "NW"]);
 
     let labels_16 = compass_labels_for_n(16);
     assert_eq!(labels_16[0], "N");

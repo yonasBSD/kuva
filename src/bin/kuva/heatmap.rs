@@ -8,7 +8,7 @@ use kuva::render::render::render_multiple;
 use std::collections::BTreeMap;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Heatmap from a wide matrix (first column as row labels).
@@ -67,13 +67,13 @@ pub fn run(args: HeatmapArgs) -> Result<(), String> {
 
     // ── Long-format pivot ─────────────────────────────────────────────────────
     let (row_labels, col_labels, matrix) = if args.long_format {
-        let row_col   = args.row_col.unwrap_or(ColSpec::Index(0));
-        let col_col   = args.col_col.unwrap_or(ColSpec::Index(1));
+        let row_col = args.row_col.unwrap_or(ColSpec::Index(0));
+        let col_col = args.col_col.unwrap_or(ColSpec::Index(1));
         let value_col = args.value_col.unwrap_or(ColSpec::Index(2));
 
         let rows_str = table.col_str(&row_col)?;
         let cols_str = table.col_str(&col_col)?;
-        let vals     = table.col_f64(&value_col)?;
+        let vals = table.col_f64(&value_col)?;
 
         // Collect unique row/col labels in insertion order.
         let mut row_order: Vec<String> = Vec::new();
@@ -96,11 +96,13 @@ pub fn run(args: HeatmapArgs) -> Result<(), String> {
             cells.insert((ri, ci), v);
         }
 
-        let mat: Vec<Vec<f64>> = (0..row_order.len()).map(|ri| {
-            (0..col_order.len()).map(|ci| {
-                *cells.get(&(ri, ci)).unwrap_or(&0.0)
-            }).collect()
-        }).collect();
+        let mat: Vec<Vec<f64>> = (0..row_order.len())
+            .map(|ri| {
+                (0..col_order.len())
+                    .map(|ci| *cells.get(&(ri, ci)).unwrap_or(&0.0))
+                    .collect()
+            })
+            .collect();
 
         (row_order, col_order, mat)
     } else {
@@ -138,13 +140,22 @@ pub fn run(args: HeatmapArgs) -> Result<(), String> {
         } else {
             (1..ncols).map(|i| format!("col_{i}")).collect()
         };
-        let matrix: Vec<Vec<f64>> = table.rows.iter().enumerate().map(|(r, row)| {
-            row[1..].iter().enumerate().map(|(c, cell)| {
-                cell.trim().parse::<f64>().map_err(|_| {
-                    format!("row {r}, col {}: '{}' is not a number", c + 1, cell)
-                })
-            }).collect::<Result<Vec<f64>, String>>()
-        }).collect::<Result<Vec<_>, _>>()?;
+        let matrix: Vec<Vec<f64>> = table
+            .rows
+            .iter()
+            .enumerate()
+            .map(|(r, row)| {
+                row[1..]
+                    .iter()
+                    .enumerate()
+                    .map(|(c, cell)| {
+                        cell.trim().parse::<f64>().map_err(|_| {
+                            format!("row {r}, col {}: '{}' is not a number", c + 1, cell)
+                        })
+                    })
+                    .collect::<Result<Vec<f64>, String>>()
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
         (row_labels, col_labels, matrix)
     };

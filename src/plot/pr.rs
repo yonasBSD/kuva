@@ -161,7 +161,11 @@ pub fn compute_pr_points(predictions: &[(f64, bool)]) -> (Vec<PrPoint>, f64) {
     }
 
     // Anchor: (recall=0, precision=1.0) at threshold=+∞
-    let mut points = vec![PrPoint { recall: 0.0, precision: 1.0, threshold: f64::INFINITY }];
+    let mut points = vec![PrPoint {
+        recall: 0.0,
+        precision: 1.0,
+        threshold: f64::INFINITY,
+    }];
     let mut tp = 0usize;
     let mut fp = 0usize;
     let mut i = 0usize;
@@ -170,12 +174,24 @@ pub fn compute_pr_points(predictions: &[(f64, bool)]) -> (Vec<PrPoint>, f64) {
         let thresh = sorted[i].0;
         // Consume all items at this threshold
         while i < sorted.len() && (sorted[i].0 - thresh).abs() < f64::EPSILON * 100.0 {
-            if sorted[i].1 { tp += 1; } else { fp += 1; }
+            if sorted[i].1 {
+                tp += 1;
+            } else {
+                fp += 1;
+            }
             i += 1;
         }
-        let precision = if tp + fp > 0 { tp as f64 / (tp + fp) as f64 } else { 1.0 };
+        let precision = if tp + fp > 0 {
+            tp as f64 / (tp + fp) as f64
+        } else {
+            1.0
+        };
         let recall = tp as f64 / n_pos as f64;
-        points.push(PrPoint { recall, precision, threshold: thresh });
+        points.push(PrPoint {
+            recall,
+            precision,
+            threshold: thresh,
+        });
     }
 
     (points, prevalence)
@@ -194,7 +210,9 @@ pub fn auc_pr_trapz(points: &[PrPoint]) -> f64 {
 
 /// Index of the point that maximises F1 = 2·P·R / (P+R).
 pub fn optimal_f1_idx(points: &[PrPoint]) -> usize {
-    points.iter().enumerate()
+    points
+        .iter()
+        .enumerate()
         .max_by(|(_, a), (_, b)| {
             let f1a = f1(a.precision, a.recall);
             let f1b = f1(b.precision, b.recall);
@@ -206,7 +224,11 @@ pub fn optimal_f1_idx(points: &[PrPoint]) -> usize {
 
 fn f1(precision: f64, recall: f64) -> f64 {
     let denom = precision + recall;
-    if denom > 0.0 { 2.0 * precision * recall / denom } else { 0.0 }
+    if denom > 0.0 {
+        2.0 * precision * recall / denom
+    } else {
+        0.0
+    }
 }
 
 /// Full pipeline: compute everything for a `PrGroup`.
@@ -214,8 +236,13 @@ pub fn compute_pr_group(group: &PrGroup) -> PrComputed {
     let (points, prevalence) = if let Some(raw) = &group.raw_predictions {
         compute_pr_points(raw)
     } else if let Some(pts) = &group.precomputed_points {
-        let converted = pts.iter()
-            .map(|&(r, p)| PrPoint { recall: r, precision: p, threshold: f64::NAN })
+        let converted = pts
+            .iter()
+            .map(|&(r, p)| PrPoint {
+                recall: r,
+                precision: p,
+                threshold: f64::NAN,
+            })
             .collect();
         (converted, group.prevalence.unwrap_or(0.5))
     } else {
@@ -223,7 +250,12 @@ pub fn compute_pr_group(group: &PrGroup) -> PrComputed {
     };
 
     if points.is_empty() {
-        return PrComputed { points, auc: 0.0, prevalence, optimal_idx: None };
+        return PrComputed {
+            points,
+            auc: 0.0,
+            prevalence,
+            optimal_idx: None,
+        };
     }
 
     let auc = auc_pr_trapz(&points);
@@ -233,5 +265,10 @@ pub fn compute_pr_group(group: &PrGroup) -> PrComputed {
         None
     };
 
-    PrComputed { points, auc, prevalence, optimal_idx }
+    PrComputed {
+        points,
+        auc,
+        prevalence,
+        optimal_idx,
+    }
 }

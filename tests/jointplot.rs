@@ -1,5 +1,5 @@
-use kuva::prelude::*;
 use kuva::plot::scatter::{MarkerShape, TrendLine};
+use kuva::prelude::*;
 use std::fs;
 
 fn sample_data(n: usize, seed: u64) -> (Vec<f64>, Vec<f64>) {
@@ -8,9 +8,13 @@ fn sample_data(n: usize, seed: u64) -> (Vec<f64>, Vec<f64>) {
     let mut x = Vec::with_capacity(n);
     let mut y = Vec::with_capacity(n);
     for _ in 0..n {
-        v = v.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        v = v
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         let fx = (v >> 33) as f64 / (u32::MAX as f64);
-        v = v.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        v = v
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         let fy = (v >> 33) as f64 / (u32::MAX as f64);
         x.push(fx * 10.0 - 5.0);
         y.push(fy * 10.0 - 5.0);
@@ -70,9 +74,7 @@ fn test_jointplot_two_groups() {
 #[test]
 fn test_jointplot_top_only() {
     let (x, y) = sample_data(100, 3);
-    let jp = JointPlot::new()
-        .with_xy(x, y)
-        .with_right_marginal(false);
+    let jp = JointPlot::new().with_xy(x, y).with_right_marginal(false);
     let layout = Layout::new((-6.0, 6.0), (-6.0, 6.0)).with_title("JointPlot Top Only");
     let svg = SvgBackend.render_scene(&render_jointplot(jp, layout));
     write("jointplot_top_only.svg", &svg);
@@ -82,9 +84,7 @@ fn test_jointplot_top_only() {
 #[test]
 fn test_jointplot_right_only() {
     let (x, y) = sample_data(100, 4);
-    let jp = JointPlot::new()
-        .with_xy(x, y)
-        .with_top_marginal(false);
+    let jp = JointPlot::new().with_xy(x, y).with_top_marginal(false);
     let layout = Layout::new((-6.0, 6.0), (-6.0, 6.0)).with_title("JointPlot Right Only");
     let svg = SvgBackend.render_scene(&render_jointplot(jp, layout));
     write("jointplot_right_only.svg", &svg);
@@ -168,8 +168,7 @@ fn test_jointplot_legend() {
         .with_x_label("X")
         .with_y_label("Y");
     // Legend is auto-enabled because both groups have labels
-    let layout = Layout::new((-6.0, 9.0), (-6.0, 9.0))
-        .with_title("JointPlot Legend");
+    let layout = Layout::new((-6.0, 9.0), (-6.0, 9.0)).with_title("JointPlot Legend");
     let svg = SvgBackend.render_scene(&render_jointplot(jp, layout));
     write("jointplot_legend.svg", &svg);
     // Both group labels should appear in the SVG
@@ -235,11 +234,17 @@ fn test_jointplot_marker_shape() {
 fn test_jointplot_per_point_colors() {
     let (x, y) = sample_data(50, 80);
     // Color points by x value (positive = blue, negative = red)
-    let colors: Vec<String> = x.iter()
-        .map(|&v| if v > 0.0 { "#4e79a7".to_string() } else { "#e15759".to_string() })
+    let colors: Vec<String> = x
+        .iter()
+        .map(|&v| {
+            if v > 0.0 {
+                "#4e79a7".to_string()
+            } else {
+                "#e15759".to_string()
+            }
+        })
         .collect();
-    let group = JointGroup::new(x, y)
-        .with_colors(colors);
+    let group = JointGroup::new(x, y).with_colors(colors);
     let jp = JointPlot::new()
         .with_joint_group(group)
         .with_x_label("X")
@@ -258,8 +263,7 @@ fn test_jointplot_tooltips() {
         .with_color("#b07aa1")
         .with_tooltips()
         .with_tooltip_labels(labels);
-    let jp = JointPlot::new()
-        .with_joint_group(group);
+    let jp = JointPlot::new().with_joint_group(group);
     let layout = Layout::new((-6.0, 6.0), (-6.0, 6.0)).with_title("JointPlot Tooltips");
     let svg = SvgBackend.render_scene(&render_jointplot(jp, layout));
     write("jointplot_tooltips.svg", &svg);

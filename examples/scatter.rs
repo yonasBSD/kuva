@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/scatter/`.
 
-use kuva::plot::scatter::{MarkerShape, ScatterPlot, TrendLine};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::scatter::{MarkerShape, ScatterPlot, TrendLine};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/scatter";
 
@@ -156,12 +156,12 @@ fn error_bars() {
 fn markers() {
     let y_offsets = [1.0_f64, 2.0, 3.0, 4.0, 5.0, 6.0];
     let shapes = [
-        (MarkerShape::Circle,   "Circle",   "steelblue"),
-        (MarkerShape::Square,   "Square",   "crimson"),
+        (MarkerShape::Circle, "Circle", "steelblue"),
+        (MarkerShape::Square, "Square", "crimson"),
         (MarkerShape::Triangle, "Triangle", "seagreen"),
-        (MarkerShape::Diamond,  "Diamond",  "darkorange"),
-        (MarkerShape::Cross,    "Cross",    "purple"),
-        (MarkerShape::Plus,     "Plus",     "saddlebrown"),
+        (MarkerShape::Diamond, "Diamond", "darkorange"),
+        (MarkerShape::Cross, "Cross", "purple"),
+        (MarkerShape::Plus, "Plus", "saddlebrown"),
     ];
 
     let plots: Vec<Plot> = shapes
@@ -192,14 +192,26 @@ fn markers() {
 /// Per-point colors — three clusters colored independently via `.with_colors()`.
 fn per_point_colors() {
     let data = vec![
-        (1.0_f64, 1.5_f64), (1.5, 2.0), (2.0, 1.8),
-        (4.0, 4.5),         (4.5, 5.0), (5.0, 4.8),
-        (7.0, 2.0),         (7.5, 2.5), (8.0, 2.2),
+        (1.0_f64, 1.5_f64),
+        (1.5, 2.0),
+        (2.0, 1.8),
+        (4.0, 4.5),
+        (4.5, 5.0),
+        (5.0, 4.8),
+        (7.0, 2.0),
+        (7.5, 2.5),
+        (8.0, 2.2),
     ];
     let colors = vec![
-        "steelblue", "steelblue", "steelblue",
-        "crimson",   "crimson",   "crimson",
-        "seagreen",  "seagreen",  "seagreen",
+        "steelblue",
+        "steelblue",
+        "steelblue",
+        "crimson",
+        "crimson",
+        "crimson",
+        "seagreen",
+        "seagreen",
+        "seagreen",
     ];
 
     let plot = ScatterPlot::new()
@@ -248,7 +260,9 @@ fn marker_semi_transparent() {
     // Simple LCG so no external crate is needed in this example.
     let mut seed: u64 = 9_123_456_789;
     let mut lcg = || -> f64 {
-        seed = seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1_442_695_040_888_963_407);
+        seed = seed
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
         (seed >> 33) as f64 / ((1u64 << 31) as f64)
     };
     let gauss = |lcg: &mut dyn FnMut() -> f64| -> (f64, f64) {
@@ -260,8 +274,8 @@ fn marker_semi_transparent() {
     };
 
     let centers = [(3.0_f64, 4.0_f64), (5.0, 5.5), (4.0, 3.0)];
-    let colors  = ["steelblue", "tomato", "seagreen"];
-    let labels  = ["Cluster A", "Cluster B", "Cluster C"];
+    let colors = ["steelblue", "tomato", "seagreen"];
+    let labels = ["Cluster A", "Cluster B", "Cluster C"];
 
     let plots: Vec<Plot> = centers
         .iter()
@@ -301,7 +315,9 @@ fn marker_semi_transparent() {
 fn marker_hollow() {
     let mut seed: u64 = 5_555_555_555;
     let mut lcg = || -> f64 {
-        seed = seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1_442_695_040_888_963_407);
+        seed = seed
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
         (seed >> 33) as f64 / ((1u64 << 31) as f64)
     };
 

@@ -2,12 +2,14 @@ use clap::Args;
 
 use kuva::plot::scatter::{ScatterPlot, TrendLine};
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, LogArgs, apply_base_args, apply_axis_args, apply_log_args};
+use crate::layout_args::{
+    apply_axis_args, apply_base_args, apply_log_args, AxisArgs, BaseArgs, LogArgs,
+};
 use crate::output::write_output;
 
 /// Scatter plot from two numeric columns.
@@ -71,7 +73,11 @@ pub fn run(args: ScatterArgs) -> Result<(), String> {
     )?;
 
     let x_col = args.x.unwrap_or(ColSpec::Index(0));
-    let y_cols: Vec<ColSpec> = if args.y.is_empty() { vec![ColSpec::Index(1)] } else { args.y };
+    let y_cols: Vec<ColSpec> = if args.y.is_empty() {
+        vec![ColSpec::Index(1)]
+    } else {
+        args.y
+    };
     let color = args.color.unwrap_or_else(|| "steelblue".to_string());
     let size = args.size.unwrap_or(3.0);
     let trend = args.trend;
@@ -81,8 +87,11 @@ pub fn run(args: ScatterArgs) -> Result<(), String> {
 
     let plots: Vec<Plot> = if let Some(color_by) = args.color_by {
         if y_cols.len() > 1 {
-            return Err("--color-by and multiple --y columns are mutually exclusive. \
-                        Use one or the other to create multiple series.".to_string());
+            return Err(
+                "--color-by and multiple --y columns are mutually exclusive. \
+                        Use one or the other to create multiple series."
+                    .to_string(),
+            );
         }
         let y_col = &y_cols[0];
         let groups = table.group_by(&color_by)?;
@@ -105,8 +114,12 @@ pub fn run(args: ScatterArgs) -> Result<(), String> {
 
                 if trend {
                     plot = plot.with_trend(TrendLine::Linear);
-                    if equation { plot = plot.with_equation(); }
-                    if correlation { plot = plot.with_correlation(); }
+                    if equation {
+                        plot = plot.with_equation();
+                    }
+                    if correlation {
+                        plot = plot.with_correlation();
+                    }
                 }
                 if legend {
                     plot = plot.with_legend(name);
@@ -136,8 +149,12 @@ pub fn run(args: ScatterArgs) -> Result<(), String> {
 
                 if trend {
                     plot = plot.with_trend(TrendLine::Linear);
-                    if equation { plot = plot.with_equation(); }
-                    if correlation { plot = plot.with_correlation(); }
+                    if equation {
+                        plot = plot.with_equation();
+                    }
+                    if correlation {
+                        plot = plot.with_correlation();
+                    }
                 }
                 if legend {
                     plot = plot.with_legend(series_name);
@@ -158,8 +175,12 @@ pub fn run(args: ScatterArgs) -> Result<(), String> {
 
         if trend {
             plot = plot.with_trend(TrendLine::Linear);
-            if equation { plot = plot.with_equation(); }
-            if correlation { plot = plot.with_correlation(); }
+            if equation {
+                plot = plot.with_equation();
+            }
+            if correlation {
+                plot = plot.with_correlation();
+            }
         }
 
         vec![Plot::Scatter(plot)]

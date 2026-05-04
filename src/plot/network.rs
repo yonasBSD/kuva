@@ -122,7 +122,9 @@ pub struct NetworkPlot {
 }
 
 impl Default for NetworkPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl NetworkPlot {
@@ -161,39 +163,88 @@ impl NetworkPlot {
         idx
     }
 
-    fn push_edge(&mut self, source: String, target: String, weight: f64, color: Option<String>, label: Option<String>) {
+    fn push_edge(
+        &mut self,
+        source: String,
+        target: String,
+        weight: f64,
+        color: Option<String>,
+        label: Option<String>,
+    ) {
         let si = self.node_index(&source);
         let ti = self.node_index(&target);
-        self.edges.push(NetworkEdge { source: si, target: ti, weight, color, label });
+        self.edges.push(NetworkEdge {
+            source: si,
+            target: ti,
+            weight,
+            color,
+            label,
+        });
     }
 
     /// Add an edge, auto-creating source and target nodes by label if needed.
-    pub fn with_edge<S: Into<String>>(mut self, source: S, target: S, weight: impl Into<f64>) -> Self {
+    pub fn with_edge<S: Into<String>>(
+        mut self,
+        source: S,
+        target: S,
+        weight: impl Into<f64>,
+    ) -> Self {
         self.push_edge(source.into(), target.into(), weight.into(), None, None);
         self
     }
 
     /// Add an edge with an explicit colour.
     pub fn with_edge_color<S: Into<String>, C: Into<String>>(
-        mut self, source: S, target: S, weight: impl Into<f64>, color: C,
+        mut self,
+        source: S,
+        target: S,
+        weight: impl Into<f64>,
+        color: C,
     ) -> Self {
-        self.push_edge(source.into(), target.into(), weight.into(), Some(color.into()), None);
+        self.push_edge(
+            source.into(),
+            target.into(),
+            weight.into(),
+            Some(color.into()),
+            None,
+        );
         self
     }
 
     /// Add an edge with a text label rendered at its midpoint.
     pub fn with_edge_label<S: Into<String>, L: Into<String>>(
-        mut self, source: S, target: S, weight: impl Into<f64>, label: L,
+        mut self,
+        source: S,
+        target: S,
+        weight: impl Into<f64>,
+        label: L,
     ) -> Self {
-        self.push_edge(source.into(), target.into(), weight.into(), None, Some(label.into()));
+        self.push_edge(
+            source.into(),
+            target.into(),
+            weight.into(),
+            None,
+            Some(label.into()),
+        );
         self
     }
 
     /// Add an edge with both an explicit colour and a text label.
     pub fn with_edge_styled<S: Into<String>, C: Into<String>, L: Into<String>>(
-        mut self, source: S, target: S, weight: impl Into<f64>, color: C, label: L,
+        mut self,
+        source: S,
+        target: S,
+        weight: impl Into<f64>,
+        color: C,
+        label: L,
     ) -> Self {
-        self.push_edge(source.into(), target.into(), weight.into(), Some(color.into()), Some(label.into()));
+        self.push_edge(
+            source.into(),
+            target.into(),
+            weight.into(),
+            Some(color.into()),
+            Some(label.into()),
+        );
         self
     }
 
@@ -237,14 +288,24 @@ impl NetworkPlot {
         if let Some((matrix, indices)) = self.pending_matrix.take() {
             let n = indices.len();
             for i in 0..n {
-                if i >= matrix.len() { continue; }
+                if i >= matrix.len() {
+                    continue;
+                }
                 let j_start = if self.directed { 0 } else { i + 1 };
                 for j in j_start..n {
-                    if j == i || j >= matrix[i].len() { continue; }
+                    if j == i || j >= matrix[i].len() {
+                        continue;
+                    }
                     let w = matrix[i][j];
-                    if w.abs() < f64::EPSILON { continue; }
+                    if w.abs() < f64::EPSILON {
+                        continue;
+                    }
                     self.edges.push(NetworkEdge {
-                        source: indices[i], target: indices[j], weight: w, color: None, label: None,
+                        source: indices[i],
+                        target: indices[j],
+                        weight: w,
+                        color: None,
+                        label: None,
                     });
                 }
                 // Self-loops from diagonal: only in directed mode.
@@ -255,7 +316,11 @@ impl NetworkPlot {
                     let w = matrix[i][i];
                     if w.abs() >= f64::EPSILON {
                         self.edges.push(NetworkEdge {
-                            source: indices[i], target: indices[i], weight: w, color: None, label: None,
+                            source: indices[i],
+                            target: indices[i],
+                            weight: w,
+                            color: None,
+                            label: None,
                         });
                     }
                 }
@@ -372,8 +437,12 @@ impl NetworkPlot {
     /// `with_edge`/`with_edges`.
     pub fn compute_positions(&self) -> Vec<(f64, f64)> {
         let n = self.nodes.len();
-        if n == 0 { return vec![]; }
-        if n == 1 { return vec![(0.5, 0.5)]; }
+        if n == 0 {
+            return vec![];
+        }
+        if n == 1 {
+            return vec![(0.5, 0.5)];
+        }
 
         // Circle layout doesn't benefit from component-wise — it places
         // all nodes on one circle regardless.
@@ -397,15 +466,21 @@ impl NetworkPlot {
 
     fn circle_layout(&self) -> Vec<(f64, f64)> {
         let n = self.nodes.len();
-        if n == 0 { return vec![]; }
-        if n == 1 { return vec![(0.5, 0.5)]; }
-        (0..n).map(|i| {
-            let angle = 2.0 * std::f64::consts::PI * (i as f64) / (n as f64)
-                - std::f64::consts::FRAC_PI_2; // start at top
-            let x = 0.5 + 0.5 * angle.cos();
-            let y = 0.5 + 0.5 * angle.sin();
-            (x, y)
-        }).collect()
+        if n == 0 {
+            return vec![];
+        }
+        if n == 1 {
+            return vec![(0.5, 0.5)];
+        }
+        (0..n)
+            .map(|i| {
+                let angle = 2.0 * std::f64::consts::PI * (i as f64) / (n as f64)
+                    - std::f64::consts::FRAC_PI_2; // start at top
+                let x = 0.5 + 0.5 * angle.cos();
+                let y = 0.5 + 0.5 * angle.sin();
+                (x, y)
+            })
+            .collect()
     }
 
     // ── Connected components & tiling ──────────────────────────────────
@@ -418,7 +493,9 @@ impl NetworkPlot {
         let mut visited = vec![false; n];
         let mut components = Vec::new();
         for start in 0..n {
-            if visited[start] { continue; }
+            if visited[start] {
+                continue;
+            }
             let mut comp = Vec::new();
             let mut queue = std::collections::VecDeque::new();
             queue.push_back(start);
@@ -446,7 +523,7 @@ impl NetworkPlot {
         // Build a sub-NetworkPlot for each component and lay it out.
         struct CompLayout {
             indices: Vec<usize>,
-            positions: Vec<(f64, f64)>,  // in [0,1] space per component
+            positions: Vec<(f64, f64)>, // in [0,1] space per component
             node_count: usize,
         }
 
@@ -485,10 +562,15 @@ impl NetworkPlot {
             }
             // Add edges (remapped)
             for edge in &self.edges {
-                if let (Some(&new_s), Some(&new_t)) = (index_map.get(&edge.source), index_map.get(&edge.target)) {
+                if let (Some(&new_s), Some(&new_t)) =
+                    (index_map.get(&edge.source), index_map.get(&edge.target))
+                {
                     sub.edges.push(NetworkEdge {
-                        source: new_s, target: new_t,
-                        weight: edge.weight, color: edge.color.clone(), label: edge.label.clone(),
+                        source: new_s,
+                        target: new_t,
+                        weight: edge.weight,
+                        color: edge.color.clone(),
+                        label: edge.label.clone(),
                     });
                 }
             }
@@ -510,7 +592,8 @@ impl NetworkPlot {
         comp_layouts.sort_by_key(|b| std::cmp::Reverse(b.node_count));
 
         // Tile: allocate horizontal width proportional to sqrt(node_count).
-        let total_weight: f64 = comp_layouts.iter()
+        let total_weight: f64 = comp_layouts
+            .iter()
             .map(|c| (c.node_count as f64).sqrt())
             .sum();
         let gap = 0.03; // gap between components
@@ -539,7 +622,9 @@ impl NetworkPlot {
         let n = self.nodes.len();
         let mut adj = vec![vec![]; n];
         for e in &self.edges {
-            if e.source == e.target { continue; }
+            if e.source == e.target {
+                continue;
+            }
             adj[e.source].push((e.target, e.weight));
             if !self.directed {
                 adj[e.target].push((e.source, e.weight));
@@ -571,7 +656,9 @@ impl NetworkPlot {
                         u = v;
                     }
                 }
-                if u == n { break; }
+                if u == n {
+                    break;
+                }
                 visited[u] = true;
                 for &(v, w) in &adj[u] {
                     let edge_dist = 1.0 / w.max(1e-9);
@@ -589,14 +676,16 @@ impl NetworkPlot {
     fn initial_positions(&self) -> Vec<(f64, f64)> {
         let n = self.nodes.len();
         let cols = (n as f64).sqrt().ceil() as usize;
-        let mut pos: Vec<(f64, f64)> = (0..n).map(|i| {
-            let row = i / cols;
-            let col = i % cols;
-            let x = (col as f64 + 0.5) / cols as f64;
-            let y = (row as f64 + 0.5) / cols as f64;
-            let hash = ((i as u64).wrapping_mul(2654435761) & 0xFFFF) as f64 / 65536.0;
-            (x + 0.01 * hash, y + 0.01 * (1.0 - hash))
-        }).collect();
+        let mut pos: Vec<(f64, f64)> = (0..n)
+            .map(|i| {
+                let row = i / cols;
+                let col = i % cols;
+                let x = (col as f64 + 0.5) / cols as f64;
+                let y = (row as f64 + 0.5) / cols as f64;
+                let hash = ((i as u64).wrapping_mul(2654435761) & 0xFFFF) as f64 / 65536.0;
+                (x + 0.01 * hash, y + 0.01 * (1.0 - hash))
+            })
+            .collect();
         // Honour user-supplied positions
         for (i, node) in self.nodes.iter().enumerate() {
             if let Some((px, py)) = node.position {
@@ -612,12 +701,16 @@ impl NetworkPlot {
         let free: Vec<usize> = (0..n)
             .filter(|&i| self.nodes[i].position.is_none())
             .collect();
-        if free.is_empty() { return; }
+        if free.is_empty() {
+            return;
+        }
         let (mut xmin, mut xmax) = (f64::INFINITY, f64::NEG_INFINITY);
         let (mut ymin, mut ymax) = (f64::INFINITY, f64::NEG_INFINITY);
         for &i in &free {
-            xmin = xmin.min(pos[i].0); xmax = xmax.max(pos[i].0);
-            ymin = ymin.min(pos[i].1); ymax = ymax.max(pos[i].1);
+            xmin = xmin.min(pos[i].0);
+            xmax = xmax.max(pos[i].0);
+            ymin = ymin.min(pos[i].1);
+            ymax = ymax.max(pos[i].1);
         }
         let xrange = xmax - xmin;
         let yrange = ymax - ymin;
@@ -634,8 +727,12 @@ impl NetworkPlot {
 
     fn fruchterman_reingold(&self) -> Vec<(f64, f64)> {
         let n = self.nodes.len();
-        if n == 0 { return vec![]; }
-        if n == 1 { return vec![(0.5, 0.5)]; }
+        if n == 0 {
+            return vec![];
+        }
+        if n == 1 {
+            return vec![(0.5, 0.5)];
+        }
 
         let area = 4.0_f64;
         let k = (area / n as f64).sqrt();
@@ -645,8 +742,8 @@ impl NetworkPlot {
 
         let mut pos = self.initial_positions();
 
-        let fa = |d: f64| -> f64 { d * d / k };            // attractive
-        let fr_force = |d: f64| -> f64 { k * k / (d + 1e-6) };   // repulsive
+        let fa = |d: f64| -> f64 { d * d / k }; // attractive
+        let fr_force = |d: f64| -> f64 { k * k / (d + 1e-6) }; // repulsive
 
         let use_bh = n > 256;
 
@@ -682,7 +779,9 @@ impl NetworkPlot {
             // Attractive forces along edges
             for edge in &self.edges {
                 let (si, ti) = (edge.source, edge.target);
-                if si == ti { continue; }
+                if si == ti {
+                    continue;
+                }
                 let dx = pos[si].0 - pos[ti].0;
                 let dy = pos[si].1 - pos[ti].1;
                 let dist = (dx * dx + dy * dy).sqrt().max(1e-6);
@@ -697,7 +796,9 @@ impl NetworkPlot {
 
             // Apply displacement capped by temperature
             for i in 0..n {
-                if self.nodes[i].position.is_some() { continue; }
+                if self.nodes[i].position.is_some() {
+                    continue;
+                }
                 let dx = disp[i].0;
                 let dy = disp[i].1;
                 let mag = (dx * dx + dy * dy).sqrt().max(1e-6);
@@ -707,7 +808,9 @@ impl NetworkPlot {
             }
 
             temp -= cooling;
-            if temp < 0.0 { temp = 0.0; }
+            if temp < 0.0 {
+                temp = 0.0;
+            }
         }
 
         self.normalise_positions(&mut pos);
@@ -718,13 +821,19 @@ impl NetworkPlot {
 
     fn kamada_kawai(&self) -> Vec<(f64, f64)> {
         let n = self.nodes.len();
-        if n == 0 { return vec![]; }
-        if n == 1 { return vec![(0.5, 0.5)]; }
+        if n == 0 {
+            return vec![];
+        }
+        if n == 1 {
+            return vec![(0.5, 0.5)];
+        }
 
         let dist = self.all_pairs_distances();
 
         // Ideal distances: d_ij * L / max_dist, where L ≈ 1.0
-        let max_dist = dist.iter().flatten()
+        let max_dist = dist
+            .iter()
+            .flatten()
             .filter(|&&d| d.is_finite())
             .cloned()
             .fold(0.0_f64, f64::max)
@@ -748,10 +857,14 @@ impl NetworkPlot {
             let mut max_delta = 0.0_f64;
             let mut m = 0;
             for i in 0..n {
-                if self.nodes[i].position.is_some() { continue; }
+                if self.nodes[i].position.is_some() {
+                    continue;
+                }
                 let (mut dx, mut dy) = (0.0, 0.0);
                 for j in 0..n {
-                    if i == j || !dist[i][j].is_finite() { continue; }
+                    if i == j || !dist[i][j].is_finite() {
+                        continue;
+                    }
                     let xd = pos[i].0 - pos[j].0;
                     let yd = pos[i].1 - pos[j].1;
                     let actual = (xd * xd + yd * yd).sqrt().max(1e-9);
@@ -766,14 +879,18 @@ impl NetworkPlot {
                     m = i;
                 }
             }
-            if max_delta < epsilon { break; }
+            if max_delta < epsilon {
+                break;
+            }
 
             // Move node m to reduce its stress (inner loop)
             for _ in 0..5 {
                 let (mut dx, mut dy) = (0.0, 0.0);
                 let (mut dxx, mut dxy, mut dyy) = (0.0, 0.0, 0.0);
                 for j in 0..n {
-                    if m == j || !dist[m][j].is_finite() { continue; }
+                    if m == j || !dist[m][j].is_finite() {
+                        continue;
+                    }
                     let xd = pos[m].0 - pos[j].0;
                     let yd = pos[m].1 - pos[j].1;
                     let actual = (xd * xd + yd * yd).sqrt().max(1e-9);
@@ -803,9 +920,13 @@ impl NetworkPlot {
 
 struct QuadTree {
     // Bounding box
-    cx: f64, cy: f64, half: f64,
+    cx: f64,
+    cy: f64,
+    half: f64,
     // Centre of mass and total count
-    com_x: f64, com_y: f64, count: usize,
+    com_x: f64,
+    com_y: f64,
+    count: usize,
     // Children: NW, NE, SW, SE (None = empty)
     children: [Option<Box<QuadTree>>; 4],
 }
@@ -815,13 +936,23 @@ impl QuadTree {
         let (mut xmin, mut xmax) = (f64::INFINITY, f64::NEG_INFINITY);
         let (mut ymin, mut ymax) = (f64::INFINITY, f64::NEG_INFINITY);
         for &(x, y) in points {
-            xmin = xmin.min(x); xmax = xmax.max(x);
-            ymin = ymin.min(y); ymax = ymax.max(y);
+            xmin = xmin.min(x);
+            xmax = xmax.max(x);
+            ymin = ymin.min(y);
+            ymax = ymax.max(y);
         }
         let half = ((xmax - xmin).max(ymax - ymin) / 2.0).max(1e-6);
         let cx = (xmin + xmax) / 2.0;
         let cy = (ymin + ymax) / 2.0;
-        let mut tree = Self { cx, cy, half, com_x: 0.0, com_y: 0.0, count: 0, children: Default::default() };
+        let mut tree = Self {
+            cx,
+            cy,
+            half,
+            com_x: 0.0,
+            com_y: 0.0,
+            count: 0,
+            children: Default::default(),
+        };
         for &(x, y) in points {
             tree.insert(x, y);
         }
@@ -869,17 +1000,33 @@ impl QuadTree {
 
     fn push_down_depth(&mut self, x: f64, y: f64, depth: usize) {
         let qi = if x < self.cx {
-            if y < self.cy { 0 } else { 2 }
+            if y < self.cy {
+                0
+            } else {
+                2
+            }
         } else {
-            if y < self.cy { 1 } else { 3 }
+            if y < self.cy {
+                1
+            } else {
+                3
+            }
         };
         let child = self.children[qi].get_or_insert_with(|| {
             let h = self.half / 2.0;
-            let ncx = if qi % 2 == 0 { self.cx - h } else { self.cx + h };
+            let ncx = if qi % 2 == 0 {
+                self.cx - h
+            } else {
+                self.cx + h
+            };
             let ncy = if qi < 2 { self.cy - h } else { self.cy + h };
             Box::new(QuadTree {
-                cx: ncx, cy: ncy, half: h,
-                com_x: 0.0, com_y: 0.0, count: 0,
+                cx: ncx,
+                cy: ncy,
+                half: h,
+                com_x: 0.0,
+                com_y: 0.0,
+                count: 0,
                 children: Default::default(),
             })
         });
@@ -889,7 +1036,9 @@ impl QuadTree {
     /// Compute repulsive force on point (px, py) from all points in the tree.
     /// `theta` is the Barnes-Hut opening angle (0.8 is typical).
     fn repulsive_force(&self, px: f64, py: f64, k: f64, theta: f64) -> (f64, f64) {
-        if self.count == 0 { return (0.0, 0.0); }
+        if self.count == 0 {
+            return (0.0, 0.0);
+        }
 
         let dx = px - self.com_x;
         let dy = py - self.com_y;
@@ -897,7 +1046,9 @@ impl QuadTree {
 
         // If sufficiently far away, treat cluster as single point
         if self.half * 2.0 / dist.max(1e-9) < theta || self.count == 1 {
-            if dist < 1e-6 { return (0.0, 0.0); }
+            if dist < 1e-6 {
+                return (0.0, 0.0);
+            }
             let force = k * k / (dist + 1e-6) * self.count as f64;
             return (dx / dist * force, dy / dist * force);
         }
@@ -915,6 +1066,14 @@ impl QuadTree {
 
 impl Default for QuadTree {
     fn default() -> Self {
-        Self { cx: 0.0, cy: 0.0, half: 1.0, com_x: 0.0, com_y: 0.0, count: 0, children: Default::default() }
+        Self {
+            cx: 0.0,
+            cy: 0.0,
+            half: 1.0,
+            com_x: 0.0,
+            com_y: 0.0,
+            count: 0,
+            children: Default::default(),
+        }
     }
 }

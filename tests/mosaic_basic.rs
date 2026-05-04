@@ -1,6 +1,6 @@
-use kuva::plot::mosaic::MosaicPlot;
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::mosaic::MosaicPlot;
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 
 fn render(mp: MosaicPlot, title: &str) -> String {
     let plots = vec![Plot::Mosaic(mp)];
@@ -60,7 +60,10 @@ fn test_mosaic_no_percents() {
     std::fs::write("test_outputs/mosaic_no_percents.svg", &svg).unwrap();
     assert!(svg.contains("<rect"), "should still have rects");
     // No percent sign in cell labels
-    assert!(!svg.contains("%."), "should not have percent labels in cells");
+    assert!(
+        !svg.contains("%."),
+        "should not have percent labels in cells"
+    );
 }
 
 #[test]
@@ -76,7 +79,10 @@ fn test_mosaic_show_values() {
     std::fs::write("test_outputs/mosaic_show_values.svg", &svg).unwrap();
     assert!(svg.contains("<rect"));
     // Raw values should appear as text
-    assert!(svg.contains("120") || svg.contains("80"), "raw value labels");
+    assert!(
+        svg.contains("120") || svg.contains("80"),
+        "raw value labels"
+    );
 }
 
 #[test]
@@ -123,7 +129,10 @@ fn test_mosaic_custom_colors() {
         .with_group_colors(["#ff0000", "#00ff00", "#0000ff"]);
     let svg = render(mp, "Custom Colors");
     std::fs::write("test_outputs/mosaic_custom_colors.svg", &svg).unwrap();
-    assert!(svg.contains("ff0000"), "SVG should contain custom color ff0000");
+    assert!(
+        svg.contains("ff0000"),
+        "SVG should contain custom color ff0000"
+    );
 }
 
 #[test]
@@ -184,22 +193,27 @@ fn test_mosaic_market_share() {
     // 4 regions × 3 products — realistic market share data
     let mp = MosaicPlot::new()
         .with_cells([
-            ("North",   "Product A", 120.0),
-            ("North",   "Product B",  80.0),
-            ("North",   "Product C",  50.0),
-            ("South",   "Product A",  90.0),
-            ("South",   "Product B", 110.0),
-            ("South",   "Product C",  40.0),
-            ("East",    "Product A",  60.0),
-            ("East",    "Product B",  70.0),
-            ("East",    "Product C",  90.0),
-            ("West",    "Product A", 200.0),
-            ("West",    "Product B", 150.0),
-            ("West",    "Product C",  80.0),
+            ("North", "Product A", 120.0),
+            ("North", "Product B", 80.0),
+            ("North", "Product C", 50.0),
+            ("South", "Product A", 90.0),
+            ("South", "Product B", 110.0),
+            ("South", "Product C", 40.0),
+            ("East", "Product A", 60.0),
+            ("East", "Product B", 70.0),
+            ("East", "Product C", 90.0),
+            ("West", "Product A", 200.0),
+            ("West", "Product B", 150.0),
+            ("West", "Product C", 80.0),
         ])
         .with_legend("Product");
     let svg = render(mp, "Market Share by Region");
     std::fs::write("test_outputs/mosaic_market_share.svg", &svg).unwrap();
     assert!(svg.contains("<rect"));
-    assert!(svg.contains("North") || svg.contains("South") || svg.contains("East") || svg.contains("West"));
+    assert!(
+        svg.contains("North")
+            || svg.contains("South")
+            || svg.contains("East")
+            || svg.contains("West")
+    );
 }

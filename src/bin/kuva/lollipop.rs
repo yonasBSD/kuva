@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Lollipop plot — points on stems rising from a baseline.
@@ -71,15 +71,14 @@ pub fn run(args: LollipopArgs) -> Result<(), String> {
     let ys = table.col_f64(&y_col)?;
 
     // x can be numeric or categorical (string labels → use row index as x)
-    let (xs, cat_labels): (Vec<f64>, Option<Vec<String>>) =
-        match table.col_f64(&x_col) {
-            Ok(nums) => (nums, None),
-            Err(_) => {
-                let strs = table.col_str(&x_col)?;
-                let idxs = (0..strs.len()).map(|i| i as f64).collect();
-                (idxs, Some(strs))
-            }
-        };
+    let (xs, cat_labels): (Vec<f64>, Option<Vec<String>>) = match table.col_f64(&x_col) {
+        Ok(nums) => (nums, None),
+        Err(_) => {
+            let strs = table.col_str(&x_col)?;
+            let idxs = (0..strs.len()).map(|i| i as f64).collect();
+            (idxs, Some(strs))
+        }
+    };
 
     let n = xs.len();
     if ys.len() != n {

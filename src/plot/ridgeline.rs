@@ -50,7 +50,9 @@ pub struct RidgelineGroup {
 }
 
 impl Default for RidgelinePlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RidgelinePlot {
@@ -120,14 +122,44 @@ impl RidgelinePlot {
     }
 
     /// Show or hide the horizontal baseline drawn at each group's zero-density level (default `true`).
-    pub fn with_baseline(mut self, show: bool) -> Self { self.show_baseline = show; self }
-    pub fn with_filled(mut self, filled: bool) -> Self { self.filled = filled; self }
-    pub fn with_opacity(mut self, opacity: f64) -> Self { self.opacity = opacity; self }
-    pub fn with_bandwidth(mut self, bw: f64) -> Self { self.bandwidth = Some(bw); self }
-    pub fn with_kde_samples(mut self, samples: usize) -> Self { self.kde_samples = samples; self }
-    pub fn with_stroke_width(mut self, width: f64) -> Self { self.stroke_width = width; self }
-    pub fn with_overlap(mut self, overlap: f64) -> Self { self.overlap = overlap; self }
-    pub fn with_normalize(mut self, normalize: bool) -> Self { self.normalize = normalize; self }
-    pub fn with_legend(mut self, show: bool) -> Self { self.show_legend = show; self }
-    pub fn with_line_dash<S: Into<String>>(mut self, dash: S) -> Self { self.line_dash = Some(dash.into()); self }
+    pub fn with_baseline(mut self, show: bool) -> Self {
+        self.show_baseline = show;
+        self
+    }
+    pub fn with_filled(mut self, filled: bool) -> Self {
+        self.filled = filled;
+        self
+    }
+    pub fn with_opacity(mut self, opacity: f64) -> Self {
+        self.opacity = opacity;
+        self
+    }
+    pub fn with_bandwidth(mut self, bw: f64) -> Self {
+        self.bandwidth = Some(bw);
+        self
+    }
+    pub fn with_kde_samples(mut self, samples: usize) -> Self {
+        self.kde_samples = samples;
+        self
+    }
+    pub fn with_stroke_width(mut self, width: f64) -> Self {
+        self.stroke_width = width;
+        self
+    }
+    pub fn with_overlap(mut self, overlap: f64) -> Self {
+        self.overlap = overlap;
+        self
+    }
+    pub fn with_normalize(mut self, normalize: bool) -> Self {
+        self.normalize = normalize;
+        self
+    }
+    pub fn with_legend(mut self, show: bool) -> Self {
+        self.show_legend = show;
+        self
+    }
+    pub fn with_line_dash<S: Into<String>>(mut self, dash: S) -> Self {
+        self.line_dash = Some(dash.into());
+        self
+    }
 }

@@ -73,9 +73,10 @@ pub struct SeriesPlot {
     pub point_radius: f64,
 }
 
-
 impl Default for SeriesPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SeriesPlot {

@@ -1,9 +1,9 @@
 //! Treemap documentation examples.
-use kuva::plot::{TreemapPlot, TreemapNode, TreemapColorMode, ColorMap};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{ColorMap, TreemapColorMode, TreemapNode, TreemapPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/treemap";
@@ -35,21 +35,30 @@ fn main() {
 
     // Two-level grouped treemap
     let plot = TreemapPlot::new()
-        .with_children("Systems", vec![
-            TreemapNode::leaf("Rust", 18.0),
-            TreemapNode::leaf("C++", 12.0),
-            TreemapNode::leaf("C", 9.0),
-        ])
-        .with_children("Web", vec![
-            TreemapNode::leaf("JavaScript", 32.0),
-            TreemapNode::leaf("TypeScript", 9.0),
-            TreemapNode::leaf("Python", 38.0),
-        ])
-        .with_children("Enterprise", vec![
-            TreemapNode::leaf("Java", 10.0),
-            TreemapNode::leaf("Go", 14.0),
-            TreemapNode::leaf("Ruby", 5.0),
-        ]);
+        .with_children(
+            "Systems",
+            vec![
+                TreemapNode::leaf("Rust", 18.0),
+                TreemapNode::leaf("C++", 12.0),
+                TreemapNode::leaf("C", 9.0),
+            ],
+        )
+        .with_children(
+            "Web",
+            vec![
+                TreemapNode::leaf("JavaScript", 32.0),
+                TreemapNode::leaf("TypeScript", 9.0),
+                TreemapNode::leaf("Python", 38.0),
+            ],
+        )
+        .with_children(
+            "Enterprise",
+            vec![
+                TreemapNode::leaf("Java", 10.0),
+                TreemapNode::leaf("Go", 14.0),
+                TreemapNode::leaf("Ruby", 5.0),
+            ],
+        );
 
     let plots = vec![Plot::Treemap(plot)];
     let layout = Layout::auto_from_plots(&plots)

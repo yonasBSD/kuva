@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
-use kuva::render::render::{Scene, Primitive};
 use kuva::backend::svg::SvgBackend;
+use kuva::render::render::{Primitive, Scene};
 
 fn bench_svg_circles(c: &mut Criterion) {
     let mut group = c.benchmark_group("svg_circles");

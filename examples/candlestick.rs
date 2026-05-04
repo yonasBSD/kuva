@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/candlestick/`.
 
-use kuva::plot::CandlestickPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::CandlestickPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/candlestick";
 
@@ -87,13 +87,13 @@ fn basic() {
 fn volume() {
     let data: &[(&str, f64, f64, f64, f64, f64)] = &[
         ("Nov 01", 142.50, 146.20, 141.80, 145.30, 1_250_000.0),
-        ("Nov 02", 145.40, 147.80, 143.50, 144.10,   980_000.0),
-        ("Nov 03", 144.10, 144.90, 142.20, 144.10,   720_000.0),
+        ("Nov 02", 145.40, 147.80, 143.50, 144.10, 980_000.0),
+        ("Nov 03", 144.10, 144.90, 142.20, 144.10, 720_000.0),
         ("Nov 04", 143.80, 148.50, 143.20, 147.90, 1_580_000.0),
         ("Nov 05", 147.90, 150.20, 146.30, 149.80, 1_420_000.0),
         ("Nov 06", 149.80, 151.00, 146.50, 147.20, 1_100_000.0),
         ("Nov 07", 147.20, 148.10, 143.80, 144.50, 1_350_000.0),
-        ("Nov 08", 144.50, 146.80, 143.20, 145.90,   890_000.0),
+        ("Nov 08", 144.50, 146.80, 143.20, 145.90, 890_000.0),
         ("Nov 11", 145.90, 149.30, 145.50, 148.70, 1_180_000.0),
         ("Nov 12", 148.70, 152.00, 148.10, 151.50, 1_620_000.0),
         ("Nov 13", 151.50, 154.80, 150.90, 153.80, 1_780_000.0),
@@ -102,7 +102,7 @@ fn volume() {
         ("Nov 18", 151.20, 153.40, 150.80, 153.40, 1_340_000.0),
         ("Nov 19", 153.40, 157.20, 152.80, 156.50, 2_100_000.0),
         ("Nov 20", 156.50, 158.10, 154.20, 154.80, 1_650_000.0),
-        ("Nov 21", 154.80, 155.20, 152.10, 154.80,   980_000.0),
+        ("Nov 21", 154.80, 155.20, 152.10, 154.80, 980_000.0),
         ("Nov 22", 154.80, 158.50, 154.30, 157.90, 1_420_000.0),
         ("Nov 25", 157.90, 160.10, 156.80, 159.50, 1_890_000.0),
         ("Nov 26", 159.50, 161.20, 157.30, 158.40, 1_560_000.0),
@@ -124,7 +124,10 @@ fn volume() {
         .with_y_label("Price (USD)")
         .with_x_tick_rotate(-45.0);
 
-    let svg = SvgBackend.render_scene(&render_multiple(vec![Plot::Candlestick(make_plot())], layout));
+    let svg = SvgBackend.render_scene(&render_multiple(
+        vec![Plot::Candlestick(make_plot())],
+        layout,
+    ));
     std::fs::write(format!("{OUT}/volume.svg"), svg).unwrap();
 }
 
@@ -180,7 +183,7 @@ fn custom_colors() {
 fn continuous() {
     // Quarterly data: x = fractional year (e.g. 2022.0 = Q1 2022, 2022.25 = Q2)
     let data: &[(f64, &str, f64, f64, f64, f64)] = &[
-        (2022.00, "Q1'22",  98.0, 108.0,  95.0, 105.0),
+        (2022.00, "Q1'22", 98.0, 108.0, 95.0, 105.0),
         (2022.25, "Q2'22", 105.0, 112.0, 101.0, 108.5),
         (2022.50, "Q3'22", 108.5, 115.0, 107.0, 113.0),
         (2022.75, "Q4'22", 113.0, 116.0, 109.0, 110.5),
@@ -207,6 +210,9 @@ fn continuous() {
         .with_x_label("Quarter")
         .with_y_label("Price");
 
-    let svg = SvgBackend.render_scene(&render_multiple(vec![Plot::Candlestick(make_plot())], layout));
+    let svg = SvgBackend.render_scene(&render_multiple(
+        vec![Plot::Candlestick(make_plot())],
+        layout,
+    ));
     std::fs::write(format!("{OUT}/continuous.svg"), svg).unwrap();
 }

@@ -1,6 +1,6 @@
-use kuva::prelude::*;
 use kuva::backend::svg::SvgBackend;
 use kuva::plot::waterfall::WaterfallPlot;
+use kuva::prelude::*;
 
 fn render_plots(plots: Vec<Plot>) -> String {
     let layout = Layout::auto_from_plots(&plots);
@@ -37,11 +37,12 @@ fn test_scatter_custom_tooltip_labels() {
 
 #[test]
 fn test_scatter_no_tooltips_by_default() {
-    let plots = vec![ScatterPlot::new()
-        .with_data(vec![(1.0_f64, 2.0)])
-        .into()];
+    let plots = vec![ScatterPlot::new().with_data(vec![(1.0_f64, 2.0)]).into()];
     let svg = render_plots(plots);
-    assert!(!svg.contains("<title>"), "no tooltip expected when not requested");
+    assert!(
+        !svg.contains("<title>"),
+        "no tooltip expected when not requested"
+    );
 }
 
 // ── Bar ───────────────────────────────────────────────────────────────────────
@@ -118,6 +119,8 @@ fn test_tooltip_xml_escaping() {
     assert!(
         svg.contains("gene&lt;BRCA1&gt; &amp; p&lt;0.05"),
         "tooltip text should be XML-escaped; got:\n{}",
-        svg.lines().find(|l| l.contains("<title>")).unwrap_or("(not found)")
+        svg.lines()
+            .find(|l| l.contains("<title>"))
+            .unwrap_or("(not found)")
     );
 }

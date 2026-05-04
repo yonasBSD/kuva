@@ -190,8 +190,12 @@ pub struct LogArgs {
 
 /// Apply base output/appearance args to a layout.
 pub fn apply_base_args(mut layout: Layout, args: &BaseArgs) -> Layout {
-    if let Some(w) = args.width { layout = layout.with_width(w); }
-    if let Some(h) = args.height { layout = layout.with_height(h); }
+    if let Some(w) = args.width {
+        layout = layout.with_width(w);
+    }
+    if let Some(h) = args.height {
+        layout = layout.with_height(h);
+    }
     if let Some(ref t) = args.title {
         layout = layout.with_title(t.clone());
     }
@@ -213,7 +217,8 @@ pub fn apply_base_args(mut layout: Layout, args: &BaseArgs) -> Layout {
     // the theme's value, so this must come last).
     if args.terminal {
         layout = layout.with_show_grid(false);
-        let rows = args.term_height
+        let rows = args
+            .term_height
             .map(|h| h as u32)
             .or_else(|| std::env::var("LINES").ok().and_then(|s| s.parse().ok()))
             .unwrap_or(24u32);
@@ -237,12 +242,24 @@ pub fn apply_base_args(mut layout: Layout, args: &BaseArgs) -> Layout {
         layout = layout.with_interactive();
     }
     // Global wrap first, then per-element overrides.
-    if let Some(n) = args.wrap { layout = layout.with_wrap(n); }
-    if let Some(n) = args.title_wrap { layout = layout.with_title_wrap(n); }
-    if let Some(n) = args.x_label_wrap { layout = layout.with_x_label_wrap(n); }
-    if let Some(n) = args.y_label_wrap { layout = layout.with_y_label_wrap(n); }
-    if let Some(n) = args.y2_label_wrap { layout = layout.with_y2_label_wrap(n); }
-    if let Some(n) = args.legend_wrap { layout = layout.with_legend_wrap(n); }
+    if let Some(n) = args.wrap {
+        layout = layout.with_wrap(n);
+    }
+    if let Some(n) = args.title_wrap {
+        layout = layout.with_title_wrap(n);
+    }
+    if let Some(n) = args.x_label_wrap {
+        layout = layout.with_x_label_wrap(n);
+    }
+    if let Some(n) = args.y_label_wrap {
+        layout = layout.with_y_label_wrap(n);
+    }
+    if let Some(n) = args.y2_label_wrap {
+        layout = layout.with_y2_label_wrap(n);
+    }
+    if let Some(n) = args.legend_wrap {
+        layout = layout.with_legend_wrap(n);
+    }
     layout
 }
 
@@ -260,14 +277,30 @@ pub fn apply_axis_args(mut layout: Layout, args: &AxisArgs) -> Layout {
     if args.no_grid {
         layout = layout.with_show_grid(false);
     }
-    if let Some(v) = args.x_min { layout = layout.with_x_axis_min(v); }
-    if let Some(v) = args.x_max { layout = layout.with_x_axis_max(v); }
-    if let Some(v) = args.y_min { layout = layout.with_y_axis_min(v); }
-    if let Some(v) = args.y_max { layout = layout.with_y_axis_max(v); }
-    if let Some(s) = args.x_tick_step { layout = layout.with_x_tick_step(s); }
-    if let Some(s) = args.y_tick_step { layout = layout.with_y_tick_step(s); }
-    if let Some(n) = args.minor_ticks { layout = layout.with_minor_ticks(n); }
-    if args.minor_grid { layout = layout.with_show_minor_grid(true); }
+    if let Some(v) = args.x_min {
+        layout = layout.with_x_axis_min(v);
+    }
+    if let Some(v) = args.x_max {
+        layout = layout.with_x_axis_max(v);
+    }
+    if let Some(v) = args.y_min {
+        layout = layout.with_y_axis_min(v);
+    }
+    if let Some(v) = args.y_max {
+        layout = layout.with_y_axis_max(v);
+    }
+    if let Some(s) = args.x_tick_step {
+        layout = layout.with_x_tick_step(s);
+    }
+    if let Some(s) = args.y_tick_step {
+        layout = layout.with_y_tick_step(s);
+    }
+    if let Some(n) = args.minor_ticks {
+        layout = layout.with_minor_ticks(n);
+    }
+    if args.minor_grid {
+        layout = layout.with_show_minor_grid(true);
+    }
     if let Some(ref fmt) = args.x_tick_format {
         if let Some(tf) = parse_tick_format(fmt) {
             layout = layout.with_x_tick_format(tf);
@@ -331,13 +364,14 @@ fn colourblind_palette(condition: &str) -> Option<Palette> {
 /// Accepted values: auto, int, sci, percent, fixed:N
 fn parse_tick_format(s: &str) -> Option<TickFormat> {
     match s {
-        "auto"    => Some(TickFormat::Auto),
-        "int"     => Some(TickFormat::Integer),
-        "sci"     => Some(TickFormat::Sci),
+        "auto" => Some(TickFormat::Auto),
+        "int" => Some(TickFormat::Integer),
+        "sci" => Some(TickFormat::Sci),
         "percent" => Some(TickFormat::Percent),
-        _ if s.starts_with("fixed:") => {
-            s["fixed:".len()..].parse::<usize>().ok().map(TickFormat::Fixed)
-        }
+        _ if s.starts_with("fixed:") => s["fixed:".len()..]
+            .parse::<usize>()
+            .ok()
+            .map(TickFormat::Fixed),
         _ => None,
     }
 }

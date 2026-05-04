@@ -96,7 +96,9 @@ pub struct HexbinPlot {
 }
 
 impl Default for HexbinPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl HexbinPlot {

@@ -1,15 +1,12 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::brick::{BrickAnchor, BrickTemplate};
 use kuva::plot::BrickPlot;
-use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_brickplot_svg_output_builder() {
-
-
     let sequences: Vec<String> = vec![
        "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCATCATCATCCATCATCATCATTCAT".to_string(),
        "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCATCATCATCATCATCATCATTCAT".to_string(),
@@ -21,7 +18,7 @@ fn test_brickplot_svg_output_builder() {
        "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCATCATCATCCATCATCATCATTCAT".to_string(),
     ];
 
-    let names:Vec<String> = vec![
+    let names: Vec<String> = vec![
         "read_1".to_string(),
         "read_2".to_string(),
         "read_3".to_string(),
@@ -36,17 +33,16 @@ fn test_brickplot_svg_output_builder() {
     let b = colours.dna().clone(); // get the DNA template
 
     let brickplot = BrickPlot::new()
-                        .with_sequences(sequences)
-                        .with_names(names)
-                        .with_template(b.template)
-                        .with_x_offset(18.0);
-                        // .show_values();
+        .with_sequences(sequences)
+        .with_names(names)
+        .with_template(b.template)
+        .with_x_offset(18.0);
+    // .show_values();
 
     let plots = vec![Plot::Brick(brickplot)];
 
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("BrickPlot - DNA");
-        // .with_x_categories(x_labels);
+    let layout = Layout::auto_from_plots(&plots).with_title("BrickPlot - DNA");
+    // .with_x_categories(x_labels);
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -55,7 +51,6 @@ fn test_brickplot_svg_output_builder() {
     // Basic sanity assertion
     assert!(svg.contains("<svg"));
 }
-
 
 #[test]
 fn test_brickplot_per_read_offsets() {
@@ -92,7 +87,6 @@ fn test_brickplot_per_read_offsets() {
     assert!(svg.contains("<svg"));
 }
 
-
 #[test]
 fn test_brickplot_per_read_offsets_fallback() {
     // 4 sequences; read 2 (middle) uses None → falls back to the global x_offset (12.0),
@@ -122,20 +116,21 @@ fn test_brickplot_per_read_offsets_fallback() {
         .with_x_offsets(vec![Some(18.0), Some(10.0), None, Some(5.0_f64)]);
 
     let plots = vec![Plot::Brick(brickplot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("BrickPlot - per-read offsets with fallback");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("BrickPlot - per-read offsets with fallback");
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
-    std::fs::write("test_outputs/brickplot_per_read_offsets_fallback.svg", svg.clone()).unwrap();
+    std::fs::write(
+        "test_outputs/brickplot_per_read_offsets_fallback.svg",
+        svg.clone(),
+    )
+    .unwrap();
 
     assert!(svg.contains("<svg"));
 }
 
-
 #[test]
 fn test_brickplot_strigar_svg_output_builder() {
-
-
     let sequences: Vec<String> = vec![
        "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCATCATCATCCATCATCATCATTCAT".to_string(),
        "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCATCATCATCATCATCATCATTCAT".to_string(),
@@ -163,7 +158,7 @@ fn test_brickplot_strigar_svg_output_builder() {
         ("CAT:A,C:B,T:C".to_string(), "10A1B4A1C1A".to_string()),
     ];
 
-    let names:Vec<String> = vec![
+    let names: Vec<String> = vec![
         "read_1".to_string(),
         "read_2".to_string(),
         "read_3".to_string(),
@@ -178,18 +173,17 @@ fn test_brickplot_strigar_svg_output_builder() {
     let b = colours.dna().clone(); // get the DNA template
 
     let brickplot = BrickPlot::new()
-                        .with_sequences(sequences)
-                        .with_names(names)
-                        .with_template(b.template)
-                        .with_strigars(strigars)
-                        .with_x_offset(18.0);
-                        // .show_values();
+        .with_sequences(sequences)
+        .with_names(names)
+        .with_template(b.template)
+        .with_strigars(strigars)
+        .with_x_offset(18.0);
+    // .show_values();
 
     let plots = vec![Plot::Brick(brickplot)];
 
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("BrickPlot - strigar");
-        // .with_x_categories(x_labels);
+    let layout = Layout::auto_from_plots(&plots).with_title("BrickPlot - strigar");
+    // .with_x_categories(x_labels);
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -198,7 +192,6 @@ fn test_brickplot_strigar_svg_output_builder() {
     // Basic sanity assertion
     assert!(svg.contains("<svg"));
 }
-
 
 #[test]
 fn test_brick_legend_order() {
@@ -218,7 +211,7 @@ fn test_brick_legend_order() {
     // global totals: CAT=32, T=2 → CAT gets global A, T gets global B
     let strigars: Vec<(String, String)> = vec![
         ("CAT:A,T:B".to_string(), "10A1B1A".to_string()),
-        ("CAT:A".to_string(),     "12A".to_string()),
+        ("CAT:A".to_string(), "12A".to_string()),
         ("CAT:A,T:B".to_string(), "8A1B1A".to_string()),
     ];
 
@@ -235,8 +228,10 @@ fn test_brick_legend_order() {
 
     // 'A' is most frequent (CAT); 'B' is next (T).
     // The legend must list them in that order: CAT before T in the SVG.
-    let pos_cat = svg.find(">CAT<").expect("legend should contain 'CAT' label");
-    let pos_t   = svg.find(">T<").expect("legend should contain 'T' label");
+    let pos_cat = svg
+        .find(">CAT<")
+        .expect("legend should contain 'CAT' label");
+    let pos_t = svg.find(">T<").expect("legend should contain 'T' label");
     assert!(
         pos_cat < pos_t,
         "legend entry 'CAT' (global letter A, most frequent) must appear before 'T' (global letter B)"
@@ -255,9 +250,9 @@ fn test_brick_canonical_freq_counts_bricks_not_reads() {
     // brick counts are used: CAG scores 14+10+8=32, C scores 1+1+1=3, so CAG
     // is always global letter A (most frequent).
     let strigars: Vec<(String, String)> = vec![
-        ("CAG:A,C:B".to_string(), "14A1B".to_string()),  // CAG×14, C×1
-        ("CAG:A,C:B".to_string(), "10A1B".to_string()),  // CAG×10, C×1
-        ("CAG:A,C:B".to_string(),  "8A1B".to_string()),  // CAG×8,  C×1
+        ("CAG:A,C:B".to_string(), "14A1B".to_string()), // CAG×14, C×1
+        ("CAG:A,C:B".to_string(), "10A1B".to_string()), // CAG×10, C×1
+        ("CAG:A,C:B".to_string(), "8A1B".to_string()),  // CAG×8,  C×1
     ];
 
     let brickplot = BrickPlot::new()
@@ -269,7 +264,7 @@ fn test_brick_canonical_freq_counts_bricks_not_reads() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
     let pos_cag = svg.find(">CAG<").expect("legend must contain 'CAG'");
-    let pos_c   = svg.find(">C<").expect("legend must contain 'C'");
+    let pos_c = svg.find(">C<").expect("legend must contain 'C'");
     assert!(
         pos_cag < pos_c,
         "CAG (32 bricks) must be global letter A and appear before C (3 bricks) in the legend"
@@ -284,7 +279,10 @@ fn test_brick_stitched_format_with_gaps() {
     // Read_2: 12×AGA(3nt) starting at position 0.
     //         with_start_positions([0, 19]) aligns read_2's AGA with read_1's.
     let strigars: Vec<(String, String)> = vec![
-        ("A:A | @:GAA | AGA:B".to_string(), "16A | 1@ | 9B".to_string()),
+        (
+            "A:A | @:GAA | AGA:B".to_string(),
+            "16A | 1@ | 9B".to_string(),
+        ),
         ("AGA:A".to_string(), "12A".to_string()),
     ];
     let brickplot = BrickPlot::new()
@@ -308,9 +306,9 @@ fn test_brick_flanked_strigars() {
     // with_flanked_strigars: left flank + STR + right flank per read.
     // Left/right flanks render with DNA colours; STR bricks use strigar colours.
     let flanked = vec![
-        ("ACGTACGT", "CAG:A,C:B", "12A1B",  "TGCATGCA"),
-        ("ACGTACGT", "CAG:A,C:B", "10A1B",  "TGCATGCA"),
-        ("ACGT",     "CAG:A",     "8A",      "TGCA"),
+        ("ACGTACGT", "CAG:A,C:B", "12A1B", "TGCATGCA"),
+        ("ACGTACGT", "CAG:A,C:B", "10A1B", "TGCATGCA"),
+        ("ACGT", "CAG:A", "8A", "TGCA"),
     ];
     let brickplot = BrickPlot::new()
         .with_names(vec!["consensus", "read_1", "read_2"])
@@ -323,9 +321,15 @@ fn test_brick_flanked_strigars() {
 
     assert!(svg.contains("<svg"));
     // DNA A = rgb(0,150,0) → #009600 after SVG backend conversion; appears in flanks.
-    assert!(svg.contains("#009600"), "DNA A colour should appear in left/right flanks");
+    assert!(
+        svg.contains("#009600"),
+        "DNA A colour should appear in left/right flanks"
+    );
     // STR primary motif colour (#1f77b4 for global letter A) should appear.
-    assert!(svg.contains("#1f77b4"), "primary STR motif should use the default first palette colour");
+    assert!(
+        svg.contains("#1f77b4"),
+        "primary STR motif should use the default first palette colour"
+    );
 }
 
 #[test]
@@ -335,7 +339,7 @@ fn test_brick_right_anchor() {
     let strigars: Vec<(String, String)> = vec![
         ("CAG:A".to_string(), "14A".to_string()),
         ("CAG:A".to_string(), "10A".to_string()),
-        ("CAG:A".to_string(),  "8A".to_string()),
+        ("CAG:A".to_string(), "8A".to_string()),
     ];
     let brickplot = BrickPlot::new()
         .with_names(vec!["r1", "r2", "r3"])
@@ -365,7 +369,10 @@ fn test_brick_mark_primary() {
     let layout = Layout::auto_from_plots(&plots);
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
-    assert!(svg.contains(">CAG*<"), "primary motif label must end with '*'");
+    assert!(
+        svg.contains(">CAG*<"),
+        "primary motif label must end with '*'"
+    );
     // Secondary motif (C) should NOT have a star.
     assert!(!svg.contains(">C*<"), "non-primary motif must not have '*'");
 }
@@ -377,9 +384,9 @@ fn test_brick_consensus_row() {
     // Without consensus locking the display might show AGC.
     // With consensus locking the display must show CAG for both.
     let strigars: Vec<(String, String)> = vec![
-        ("CAG:A".to_string(), "12A".to_string()),  // consensus: uses CAG
-        ("AGC:A".to_string(), "10A".to_string()),  // read with rotated motif
-        ("GCA:A".to_string(),  "8A".to_string()),  // another rotation
+        ("CAG:A".to_string(), "12A".to_string()), // consensus: uses CAG
+        ("AGC:A".to_string(), "10A".to_string()), // read with rotated motif
+        ("GCA:A".to_string(), "8A".to_string()),  // another rotation
     ];
     let brickplot = BrickPlot::new()
         .with_names(vec!["consensus", "read_1", "read_2"])
@@ -391,9 +398,18 @@ fn test_brick_consensus_row() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
     // Legend must show CAG (consensus rotation) not AGC or GCA.
-    assert!(svg.contains(">CAG<"), "legend must use the consensus row's rotation (CAG)");
-    assert!(!svg.contains(">AGC<"), "AGC rotation must not appear in legend when consensus_row=0");
-    assert!(!svg.contains(">GCA<"), "GCA rotation must not appear in legend when consensus_row=0");
+    assert!(
+        svg.contains(">CAG<"),
+        "legend must use the consensus row's rotation (CAG)"
+    );
+    assert!(
+        !svg.contains(">AGC<"),
+        "AGC rotation must not appear in legend when consensus_row=0"
+    );
+    assert!(
+        !svg.contains(">GCA<"),
+        "GCA rotation must not appear in legend when consensus_row=0"
+    );
 }
 
 #[test]
@@ -415,9 +431,15 @@ fn test_brick_notations() {
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
     // Row 0 has one run of 12 A bricks → auto label "(CAG)12".
-    assert!(svg.contains("(CAG)12"), "per-block notation must appear for enabled row");
+    assert!(
+        svg.contains("(CAG)12"),
+        "per-block notation must appear for enabled row"
+    );
     // Row 1 has notations disabled → no "(CAG)10" label generated.
-    assert!(!svg.contains("(CAG)10"), "disabled row must not get per-block notation");
+    assert!(
+        !svg.contains("(CAG)10"),
+        "disabled row must not get per-block notation"
+    );
 }
 
 #[test]
@@ -432,10 +454,7 @@ fn test_brick_stitched_per_segment_canonical() {
             "ACCCTA:A | ACCCTA:A | TAACCC:A,T:B | CCCTAA:A,ACCTAACCCTTAA:B".to_string(),
             "2A | 36@ | 2A | 213@ | 2A1B3A | 31@ | 2A1B2A".to_string(),
         ),
-        (
-            "ACCCTA:A".to_string(),
-            "5A".to_string(),
-        ),
+        ("ACCCTA:A".to_string(), "5A".to_string()),
     ];
     let brickplot = BrickPlot::new()
         .with_names(vec!["read_1", "read_2"])
@@ -453,7 +472,10 @@ fn test_brick_stitched_per_segment_canonical() {
     assert!(svg.contains("#c8c8c8"), "gap bricks should be grey");
     // Only one non-gap motif colour should appear for the ACCCTA family
     // (global letter A = blue = #1f77b4)
-    assert!(svg.contains("#1f77b4"), "ACCCTA-family should be blue (global A)");
+    assert!(
+        svg.contains("#1f77b4"),
+        "ACCCTA-family should be blue (global A)"
+    );
 }
 
 // ── Bladerunner format spec tests ────────────────────────────────────────────
@@ -472,14 +494,12 @@ fn test_brick_spec_form_b_gap_width() {
     // The 30@ has no motifs entry → form B → 30 grey bricks of width 1 each.
     //
     // Total row width = 3*3 (CAG) + 30 (gap) + 2*3 (TGC) = 9 + 30 + 6 = 45 nt.
-    let bp = BrickPlot::new()
-        .with_names(vec!["r1"])
-        .with_strigars(vec![(
-            "CAG:A | TGC:A".to_string(),
-            "3A | 30@ | 2A".to_string(),
-        )]);
+    let bp = BrickPlot::new().with_names(vec!["r1"]).with_strigars(vec![(
+        "CAG:A | TGC:A".to_string(),
+        "3A | 30@ | 2A".to_string(),
+    )]);
 
-    let x_max = Plot::Brick(bp).bounds().expect("should have bounds").0.1;
+    let x_max = Plot::Brick(bp).bounds().expect("should have bounds").0 .1;
     assert!(
         (x_max - 45.0).abs() < 0.01,
         "form B 30@ gap: expected total width 45 nt, got {}",
@@ -498,14 +518,12 @@ fn test_brick_spec_form_a_gap_width() {
     // Gap width = len("ATGAT") * 1 = 5 nt.
     //
     // Total row width = 3*3 (CAG) + 5 (gap) + 2*3 (TGC) = 9 + 5 + 6 = 20 nt.
-    let bp = BrickPlot::new()
-        .with_names(vec!["r1"])
-        .with_strigars(vec![(
-            "CAG:A | @:ATGAT | TGC:A".to_string(),
-            "3A | 1@ | 2A".to_string(),
-        )]);
+    let bp = BrickPlot::new().with_names(vec!["r1"]).with_strigars(vec![(
+        "CAG:A | @:ATGAT | TGC:A".to_string(),
+        "3A | 1@ | 2A".to_string(),
+    )]);
 
-    let x_max = Plot::Brick(bp).bounds().expect("should have bounds").0.1;
+    let x_max = Plot::Brick(bp).bounds().expect("should have bounds").0 .1;
     assert!(
         (x_max - 20.0).abs() < 0.01,
         "form A @:ATGAT gap: expected total width 20 nt, got {}",
@@ -524,21 +542,17 @@ fn test_brick_spec_form_a_vs_b_disambiguation_of_1at() {
     // Form B: motifs has no @-entry → gap width = 1 nt (count taken directly).
     //   Total = 3*3 (CAG) + 1 (gap) + 2*3 (TGC) = 16 nt.
 
-    let form_a = BrickPlot::new()
-        .with_names(vec!["r1"])
-        .with_strigars(vec![(
-            "CAG:A | @:AT | TGC:A".to_string(),
-            "3A | 1@ | 2A".to_string(),
-        )]);
-    let form_b = BrickPlot::new()
-        .with_names(vec!["r1"])
-        .with_strigars(vec![(
-            "CAG:A | TGC:A".to_string(),
-            "3A | 1@ | 2A".to_string(),
-        )]);
+    let form_a = BrickPlot::new().with_names(vec!["r1"]).with_strigars(vec![(
+        "CAG:A | @:AT | TGC:A".to_string(),
+        "3A | 1@ | 2A".to_string(),
+    )]);
+    let form_b = BrickPlot::new().with_names(vec!["r1"]).with_strigars(vec![(
+        "CAG:A | TGC:A".to_string(),
+        "3A | 1@ | 2A".to_string(),
+    )]);
 
-    let x_max_a = Plot::Brick(form_a).bounds().expect("form A bounds").0.1;
-    let x_max_b = Plot::Brick(form_b).bounds().expect("form B bounds").0.1;
+    let x_max_a = Plot::Brick(form_a).bounds().expect("form A bounds").0 .1;
+    let x_max_b = Plot::Brick(form_b).bounds().expect("form B bounds").0 .1;
 
     // 3×CAG(3nt) + gap + 2×TGC(3nt) = 9 + gap + 6
     assert!(
@@ -578,9 +592,15 @@ fn test_brick_spec_bean1_sca31_renders() {
 
     assert!(svg.contains("<svg"), "must produce valid SVG");
     // Form A gaps (AT=2nt, GAA=3nt) produce grey bricks.
-    assert!(svg.contains("#c8c8c8"), "form A gap segments must render as grey bricks");
+    assert!(
+        svg.contains("#c8c8c8"),
+        "form A gap segments must render as grey bricks"
+    );
     // At least the primary motif colour must appear.
-    assert!(svg.contains("#1f77b4"), "primary motif (global A) must use the first palette colour");
+    assert!(
+        svg.contains("#1f77b4"),
+        "primary motif (global A) must use the first palette colour"
+    );
 }
 
 #[test]
@@ -622,7 +642,7 @@ fn test_brick_spec_bean1_sca31_gap_widths() {
         .with_names(vec!["SCA31_read"])
         .with_strigars(strigars);
 
-    let x_max = Plot::Brick(bp).bounds().expect("should have bounds").0.1;
+    let x_max = Plot::Brick(bp).bounds().expect("should have bounds").0 .1;
     assert!(
         (x_max - 4956.0).abs() < 0.01,
         "BEAN1/SCA31 total width: expected 4956 nt, got {}",
@@ -639,8 +659,8 @@ fn test_brick_spec_stitched_with_traditional_notation() {
         // consensus row — notation provided
         ("ACGTACGT", "CAG:A,CAA:B,CCG:C", "6A1B2A1C10A", "TGCATGCA"),
         // read rows — no notation
-        ("ACGTACGT", "CAG:A,CCG:B",        "8A1B10A",     "TGCATGCA"),
-        ("ACGTACGT", "CAG:A",              "20A",          "TGCA"),
+        ("ACGTACGT", "CAG:A,CCG:B", "8A1B10A", "TGCATGCA"),
+        ("ACGTACGT", "CAG:A", "20A", "TGCA"),
     ];
     let brickplot = BrickPlot::new()
         .with_names(vec!["consensus", "read_1", "read_2"])
@@ -661,13 +681,31 @@ fn test_brick_spec_stitched_with_traditional_notation() {
 
     assert!(svg.contains("<svg"), "must produce valid SVG");
     // Per-block labels appear above consensus row (auto-generated from run-length encoding).
-    assert!(svg.contains("(CAG)6"),  "run of 6 A bricks must produce (CAG)6 label");
-    assert!(svg.contains("(CAA)1"),  "run of 1 B brick must produce (CAA)1 label");
-    assert!(svg.contains("(CAG)2"),  "run of 2 A bricks must produce (CAG)2 label");
-    assert!(svg.contains("(CCG)1"),  "run of 1 C brick must produce (CCG)1 label");
-    assert!(svg.contains("(CAG)10"), "run of 10 A bricks must produce (CAG)10 label");
+    assert!(
+        svg.contains("(CAG)6"),
+        "run of 6 A bricks must produce (CAG)6 label"
+    );
+    assert!(
+        svg.contains("(CAA)1"),
+        "run of 1 B brick must produce (CAA)1 label"
+    );
+    assert!(
+        svg.contains("(CAG)2"),
+        "run of 2 A bricks must produce (CAG)2 label"
+    );
+    assert!(
+        svg.contains("(CCG)1"),
+        "run of 1 C brick must produce (CCG)1 label"
+    );
+    assert!(
+        svg.contains("(CAG)10"),
+        "run of 10 A bricks must produce (CAG)10 label"
+    );
     // Primary motif has '*' in legend.
-    assert!(svg.contains("*"), "mark_primary must append * to primary motif legend label");
+    assert!(
+        svg.contains("*"),
+        "mark_primary must append * to primary motif legend label"
+    );
     // DNA flank colour must appear (A in flanks → #009600).
     assert!(svg.contains("#009600"), "DNA flank bricks must appear");
 }
@@ -678,14 +716,12 @@ fn test_brick_spec_multi_segment_single_candidate() {
     // motifs: CAG:A,CAA:B,CCG:C — three motifs in one segment.
     // STRIGAR: 2A1B2A1C10A → (CAG)2(CAA)1(CAG)2(CCG)1(CAG)10.
     // Total width = (2+2+10)*3 + 1*3 + 1*3 = 42 + 3 + 3 = 48 nt.
-    let bp = BrickPlot::new()
-        .with_names(vec!["r1"])
-        .with_strigars(vec![(
-            "CAG:A,CAA:B,CCG:C".to_string(),
-            "2A1B2A1C10A".to_string(),
-        )]);
+    let bp = BrickPlot::new().with_names(vec!["r1"]).with_strigars(vec![(
+        "CAG:A,CAA:B,CCG:C".to_string(),
+        "2A1B2A1C10A".to_string(),
+    )]);
 
-    let x_max = Plot::Brick(bp).bounds().expect("bounds").0.1;
+    let x_max = Plot::Brick(bp).bounds().expect("bounds").0 .1;
     assert!(
         (x_max - 48.0).abs() < 0.01,
         "single-segment 3-motif: expected 48 nt, got {}",
@@ -703,14 +739,12 @@ fn test_brick_spec_segment_count_mismatch_form_b() {
     // motifs: ATAAA:A | ATA:A
     // STRIGAR: 10A | 50@ | 5A
     // Width = 10*5 + 50 + 5*3 = 50 + 50 + 15 = 115 nt.
-    let bp = BrickPlot::new()
-        .with_names(vec!["r1"])
-        .with_strigars(vec![(
-            "ATAAA:A | ATA:A".to_string(),
-            "10A | 50@ | 5A".to_string(),
-        )]);
+    let bp = BrickPlot::new().with_names(vec!["r1"]).with_strigars(vec![(
+        "ATAAA:A | ATA:A".to_string(),
+        "10A | 50@ | 5A".to_string(),
+    )]);
 
-    let x_max = Plot::Brick(bp).bounds().expect("bounds").0.1;
+    let x_max = Plot::Brick(bp).bounds().expect("bounds").0 .1;
     assert!(
         (x_max - 115.0).abs() < 0.01,
         "form B 50@ gap (2 motif segs, 3 strigar segs): expected 115 nt, got {}",
@@ -757,16 +791,14 @@ fn test_brickplot_figure_haplotypes_shared_x() {
             "CGGCGATCAGGCCGCACTCATCATCATCATCAT",
             "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCAT",
         ])
-        .with_names(vec!["hap2_r1","hap2_r2","hap2_r3","hap2_r4",
-                          "hap2_r5","hap2_r6","hap2_r7","hap2_r8"])
+        .with_names(vec![
+            "hap2_r1", "hap2_r2", "hap2_r3", "hap2_r4", "hap2_r5", "hap2_r6", "hap2_r7", "hap2_r8",
+        ])
         .with_template(tmpl.template.clone())
         .with_row_height(20.0);
 
     let figure = Figure::new(2, 1)
-        .with_plots(vec![
-            vec![Plot::Brick(hap1)],
-            vec![Plot::Brick(hap2)],
-        ])
+        .with_plots(vec![vec![Plot::Brick(hap1)], vec![Plot::Brick(hap2)]])
         .with_shared_x_all()
         .with_title("Haplotype brick plots — shared x, equal row height");
 
@@ -779,8 +811,14 @@ fn test_brickplot_figure_haplotypes_shared_x() {
     // The two panels should have different heights (hap1: 3 rows, hap2: 8 rows)
     // but together form a taller canvas than a single uniform cell_height figure.
     // Verify both hap names appear as y-axis tick labels.
-    assert!(svg.contains("hap1_r1"), "hap1 read labels should be present");
-    assert!(svg.contains("hap2_r1"), "hap2 read labels should be present");
+    assert!(
+        svg.contains("hap1_r1"),
+        "hap1 read labels should be present"
+    );
+    assert!(
+        svg.contains("hap2_r1"),
+        "hap2 read labels should be present"
+    );
 }
 
 /// Verify that `with_row_height` produces a canvas height where each brick row
@@ -816,8 +854,14 @@ fn test_brickplot_row_height_standalone_sizing() {
     let layout8 = Layout::auto_from_plots(&plots8);
 
     // Both layouts must have an explicit height set.
-    assert!(layout3.height.is_some(), "layout for 3-row brick should have height set");
-    assert!(layout8.height.is_some(), "layout for 8-row brick should have height set");
+    assert!(
+        layout3.height.is_some(),
+        "layout for 3-row brick should have height set"
+    );
+    assert!(
+        layout8.height.is_some(),
+        "layout for 8-row brick should have height set"
+    );
 
     // The 8-row canvas must be taller than the 3-row canvas by ~5×20 = 100 px.
     let h3 = layout3.height.unwrap();

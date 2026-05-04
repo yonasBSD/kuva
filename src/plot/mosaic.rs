@@ -86,8 +86,17 @@ impl MosaicPlot {
     }
 
     /// Add a single cell (col × row = value).
-    pub fn with_cell(mut self, col: impl Into<String>, row: impl Into<String>, value: impl Into<f64>) -> Self {
-        self.cells.push(MosaicCell { col: col.into(), row: row.into(), value: value.into() });
+    pub fn with_cell(
+        mut self,
+        col: impl Into<String>,
+        row: impl Into<String>,
+        value: impl Into<f64>,
+    ) -> Self {
+        self.cells.push(MosaicCell {
+            col: col.into(),
+            row: row.into(),
+            value: value.into(),
+        });
         self
     }
 
@@ -100,7 +109,11 @@ impl MosaicPlot {
         I: IntoIterator<Item = (C, R, V)>,
     {
         for (col, row, val) in cells {
-            self.cells.push(MosaicCell { col: col.into(), row: row.into(), value: val.into() });
+            self.cells.push(MosaicCell {
+                col: col.into(),
+                row: row.into(),
+                value: val.into(),
+            });
         }
         self
     }
@@ -118,7 +131,10 @@ impl MosaicPlot {
     }
 
     /// Set per-row-category colors (indexed by row order).
-    pub fn with_group_colors(mut self, colors: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_group_colors(
+        mut self,
+        colors: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.group_colors = Some(colors.into_iter().map(|c| c.into()).collect());
         self
     }
@@ -205,7 +221,8 @@ impl MosaicPlot {
 
     /// Sum of all values in a column.
     pub(crate) fn col_total(&self, col: &str) -> f64 {
-        self.cells.iter()
+        self.cells
+            .iter()
             .filter(|c| c.col == col)
             .map(|c| c.value)
             .sum()
@@ -213,7 +230,8 @@ impl MosaicPlot {
 
     /// Value for a specific (col, row) pair (sums duplicates).
     pub(crate) fn cell_value(&self, col: &str, row: &str) -> f64 {
-        self.cells.iter()
+        self.cells
+            .iter()
             .filter(|c| c.col == col && c.row == row)
             .map(|c| c.value)
             .sum()

@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/waffle/`.
 
-use kuva::plot::waffle::{WafflePlot, CellShape};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::waffle::{CellShape, WafflePlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/waffle";

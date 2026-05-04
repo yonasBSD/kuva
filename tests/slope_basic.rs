@@ -1,8 +1,8 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::slope::{SlopePlot, SlopeValueFormat};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use std::fs;
 
 fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
@@ -15,12 +15,12 @@ fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
 
 fn countries() -> Vec<(&'static str, f64, f64)> {
     vec![
-        ("Germany",      68.2, 71.5),
-        ("France",       70.1, 68.9),
-        ("Italy",        65.3, 69.1),
-        ("Spain",        72.4, 74.8),
-        ("Poland",       58.6, 63.2),
-        ("Netherlands",  74.3, 76.1),
+        ("Germany", 68.2, 71.5),
+        ("France", 70.1, 68.9),
+        ("Italy", 65.3, 69.1),
+        ("Spain", 72.4, 74.8),
+        ("Poland", 58.6, 63.2),
+        ("Netherlands", 74.3, 76.1),
     ]
 }
 
@@ -110,8 +110,14 @@ fn test_slope_with_legend() {
     let layout = Layout::auto_from_plots(&plots).with_title("Employment Rate (legend)");
     let svg = write_svg("slope_with_legend", plots, layout);
     // Direction color legend should have Increase and Decrease entries
-    assert!(svg.contains("Increase"), "Expected 'Increase' legend entry in SVG");
-    assert!(svg.contains("Decrease"), "Expected 'Decrease' legend entry in SVG");
+    assert!(
+        svg.contains("Increase"),
+        "Expected 'Increase' legend entry in SVG"
+    );
+    assert!(
+        svg.contains("Decrease"),
+        "Expected 'Decrease' legend entry in SVG"
+    );
 }
 
 #[test]
@@ -136,14 +142,14 @@ fn test_slope_integer_format() {
 #[test]
 fn test_slope_gene_expression() {
     let genes = vec![
-        ("BRCA1",  4.2_f64,  7.8_f64),
-        ("TP53",   6.1,  5.4),
-        ("MYC",    3.3,  8.9),
-        ("EGFR",   7.5,  6.2),
-        ("VEGFA",  2.8,  5.1),
-        ("CDKN2A", 5.9,  4.3),
-        ("KRAS",   8.1,  7.6),
-        ("PIK3CA", 3.6,  6.7),
+        ("BRCA1", 4.2_f64, 7.8_f64),
+        ("TP53", 6.1, 5.4),
+        ("MYC", 3.3, 8.9),
+        ("EGFR", 7.5, 6.2),
+        ("VEGFA", 2.8, 5.1),
+        ("CDKN2A", 5.9, 4.3),
+        ("KRAS", 8.1, 7.6),
+        ("PIK3CA", 3.6, 6.7),
     ];
     let mut sp = SlopePlot::new()
         .with_before_label("Control")

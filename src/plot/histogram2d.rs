@@ -74,7 +74,9 @@ pub struct Histogram2D {
 }
 
 impl Default for Histogram2D {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Histogram2D {
@@ -111,14 +113,14 @@ impl Histogram2D {
     /// let hist = Histogram2D::new()
     ///     .with_data(data, (0.0, 20.0), (0.0, 20.0), 20, 20);
     /// ```
-    pub fn with_data<T: Into<f64>>(mut self,
-                                       data: Vec<(T, T)>,
-                                       x_range: (f64, f64),
-                                       y_range: (f64, f64),
-                                       bins_x: usize,
-                                       bins_y: usize)
-                                    -> Self {
-
+    pub fn with_data<T: Into<f64>>(
+        mut self,
+        data: Vec<(T, T)>,
+        x_range: (f64, f64),
+        y_range: (f64, f64),
+        bins_x: usize,
+        bins_y: usize,
+    ) -> Self {
         let mut bins = vec![vec![0usize; bins_x]; bins_y];
 
         let x_bin_width = (x_range.1 - x_range.0) / bins_x as f64;

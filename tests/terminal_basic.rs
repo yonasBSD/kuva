@@ -11,8 +11,14 @@ fn scatter_renders_non_empty() {
     // at 80×24 resolution against an 800×500 scene.
     let scatter = ScatterPlot::new()
         .with_data(vec![
-            (1.0_f64, 2.0), (2.0, 4.0), (3.0, 1.0), (4.0, 5.0),
-            (5.0, 3.0),     (1.5, 4.5), (3.5, 2.5), (2.5, 1.5),
+            (1.0_f64, 2.0),
+            (2.0, 4.0),
+            (3.0, 1.0),
+            (4.0, 5.0),
+            (5.0, 3.0),
+            (1.5, 4.5),
+            (3.5, 2.5),
+            (2.5, 1.5),
         ])
         .with_color("steelblue")
         .with_size(8.0);
@@ -75,8 +81,16 @@ fn ylabel_renders_vertically() {
         let mut s = String::new();
         let mut in_esc = false;
         for c in out.chars() {
-            if c == '\x1b' { in_esc = true; continue; }
-            if in_esc { if c == 'm' { in_esc = false; } continue; }
+            if c == '\x1b' {
+                in_esc = true;
+                continue;
+            }
+            if in_esc {
+                if c == 'm' {
+                    in_esc = false;
+                }
+                continue;
+            }
             s.push(c);
         }
         s
@@ -127,19 +141,17 @@ fn legend_swatches_show_series_color() {
         let line = line.unwrap();
         // Extract all ANSI color codes preceding '█' on this line.
         // At least one should differ from the legend background.
-        let has_colored_swatch = line
-            .match_indices('█')
-            .any(|(i, _)| {
-                // Look backwards from '█' for the nearest ANSI color code.
-                let prefix = &line[..i];
-                if let Some(esc_end) = prefix.rfind('m') {
-                    if let Some(esc_start) = prefix[..esc_end].rfind("\x1b[") {
-                        let code = &prefix[esc_start + 2..esc_end];
-                        return code != legend_bg;
-                    }
+        let has_colored_swatch = line.match_indices('█').any(|(i, _)| {
+            // Look backwards from '█' for the nearest ANSI color code.
+            let prefix = &line[..i];
+            if let Some(esc_end) = prefix.rfind('m') {
+                if let Some(esc_start) = prefix[..esc_end].rfind("\x1b[") {
+                    let code = &prefix[esc_start + 2..esc_end];
+                    return code != legend_bg;
                 }
-                false
-            });
+            }
+            false
+        });
         assert!(
             has_colored_swatch,
             "legend swatch for '{label}' should have a non-background color"

@@ -1,8 +1,8 @@
-use kuva::plot::{LinePlot, ScatterPlot, BandPlot};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{BandPlot, LinePlot, ScatterPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_standalone_band() {
@@ -16,13 +16,15 @@ fn test_standalone_band() {
         .with_opacity(0.25);
 
     let line = LinePlot::new()
-        .with_data(x.iter().zip(y.iter()).map(|(&a, &b)| (a, b)).collect::<Vec<_>>())
+        .with_data(
+            x.iter()
+                .zip(y.iter())
+                .map(|(&a, &b)| (a, b))
+                .collect::<Vec<_>>(),
+        )
         .with_color("steelblue");
 
-    let plots = vec![
-        Plot::Band(band),
-        Plot::Line(line),
-    ];
+    let plots = vec![Plot::Band(band), Plot::Line(line)];
 
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Standalone Band")
@@ -46,7 +48,12 @@ fn test_line_with_band() {
     let y_upper: Vec<f64> = y.iter().map(|&v| v + 0.4).collect();
 
     let line = LinePlot::new()
-        .with_data(x.iter().zip(y.iter()).map(|(&a, &b)| (a, b)).collect::<Vec<_>>())
+        .with_data(
+            x.iter()
+                .zip(y.iter())
+                .map(|(&a, &b)| (a, b))
+                .collect::<Vec<_>>(),
+        )
         .with_color("crimson")
         .with_band(y_lower, y_upper);
 
@@ -73,7 +80,12 @@ fn test_scatter_with_band() {
     let y_upper: Vec<f64> = y.iter().map(|&v| v + 2.0).collect();
 
     let scatter = ScatterPlot::new()
-        .with_data(x.iter().zip(y.iter()).map(|(&a, &b)| (a, b)).collect::<Vec<_>>())
+        .with_data(
+            x.iter()
+                .zip(y.iter())
+                .map(|(&a, &b)| (a, b))
+                .collect::<Vec<_>>(),
+        )
         .with_color("darkorange")
         .with_band(y_lower, y_upper);
 

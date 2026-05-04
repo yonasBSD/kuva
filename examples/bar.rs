@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/bar/`.
 
-use kuva::plot::BarPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::BarPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/bar";
 
@@ -31,10 +31,10 @@ fn main() {
 fn basic() {
     let plot = BarPlot::new()
         .with_bars(vec![
-            ("Apples",  42.0),
+            ("Apples", 42.0),
             ("Bananas", 58.0),
             ("Cherries", 31.0),
-            ("Dates",   47.0),
+            ("Dates", 47.0),
             ("Elderberry", 25.0),
         ])
         .with_color("steelblue");
@@ -51,10 +51,22 @@ fn basic() {
 /// Grouped bar chart — multiple series side-by-side within each category.
 fn grouped() {
     let plot = BarPlot::new()
-        .with_group("Q1", vec![(18.0, "steelblue"), (12.0, "crimson"), (9.0,  "seagreen")])
-        .with_group("Q2", vec![(22.0, "steelblue"), (17.0, "crimson"), (14.0, "seagreen")])
-        .with_group("Q3", vec![(19.0, "steelblue"), (21.0, "crimson"), (11.0, "seagreen")])
-        .with_group("Q4", vec![(25.0, "steelblue"), (15.0, "crimson"), (18.0, "seagreen")])
+        .with_group(
+            "Q1",
+            vec![(18.0, "steelblue"), (12.0, "crimson"), (9.0, "seagreen")],
+        )
+        .with_group(
+            "Q2",
+            vec![(22.0, "steelblue"), (17.0, "crimson"), (14.0, "seagreen")],
+        )
+        .with_group(
+            "Q3",
+            vec![(19.0, "steelblue"), (21.0, "crimson"), (11.0, "seagreen")],
+        )
+        .with_group(
+            "Q4",
+            vec![(25.0, "steelblue"), (15.0, "crimson"), (18.0, "seagreen")],
+        )
         .with_legend(vec!["Product A", "Product B", "Product C"]);
 
     let plots = vec![Plot::Bar(plot)];
@@ -69,10 +81,22 @@ fn grouped() {
 /// Stacked bar chart — series stacked vertically within each category.
 fn stacked() {
     let plot = BarPlot::new()
-        .with_group("Q1", vec![(18.0, "steelblue"), (12.0, "crimson"), (9.0,  "seagreen")])
-        .with_group("Q2", vec![(22.0, "steelblue"), (17.0, "crimson"), (14.0, "seagreen")])
-        .with_group("Q3", vec![(19.0, "steelblue"), (21.0, "crimson"), (11.0, "seagreen")])
-        .with_group("Q4", vec![(25.0, "steelblue"), (15.0, "crimson"), (18.0, "seagreen")])
+        .with_group(
+            "Q1",
+            vec![(18.0, "steelblue"), (12.0, "crimson"), (9.0, "seagreen")],
+        )
+        .with_group(
+            "Q2",
+            vec![(22.0, "steelblue"), (17.0, "crimson"), (14.0, "seagreen")],
+        )
+        .with_group(
+            "Q3",
+            vec![(19.0, "steelblue"), (21.0, "crimson"), (11.0, "seagreen")],
+        )
+        .with_group(
+            "Q4",
+            vec![(25.0, "steelblue"), (15.0, "crimson"), (18.0, "seagreen")],
+        )
         .with_legend(vec!["Product A", "Product B", "Product C"])
         .with_stacked();
 

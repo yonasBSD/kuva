@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Dot plot with size and colour encoding.
@@ -72,7 +72,8 @@ pub fn run(args: DotArgs) -> Result<(), String> {
     let sizes = table.col_f64(&size_col)?;
     let colors = table.col_f64(&color_col)?;
 
-    let pts: Vec<(String, String, f64, f64)> = xs.into_iter()
+    let pts: Vec<(String, String, f64, f64)> = xs
+        .into_iter()
         .zip(ys)
         .zip(sizes)
         .zip(colors)

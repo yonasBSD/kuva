@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/phylo/`.
 
-use kuva::plot::{PhyloTree, TreeBranchStyle, TreeOrientation};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{PhyloTree, TreeBranchStyle, TreeOrientation};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/phylo";
 
@@ -32,13 +32,12 @@ fn main() {
 /// Basic rectangular tree from Newick, Left orientation, with support values.
 fn basic() {
     let tree = PhyloTree::from_newick(
-        "((TaxonA:1.0,TaxonB:2.0)95:1.0,(TaxonC:0.5,TaxonD:0.5)88:1.5,TaxonE:3.0);"
+        "((TaxonA:1.0,TaxonB:2.0)95:1.0,(TaxonC:0.5,TaxonD:0.5)88:1.5,TaxonE:3.0);",
     )
     .with_support_threshold(80.0);
 
     let plots = vec![Plot::PhyloTree(tree)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Rectangular Tree");
+    let layout = Layout::auto_from_plots(&plots).with_title("Rectangular Tree");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/basic.svg"), svg).unwrap();
@@ -46,16 +45,13 @@ fn basic() {
 
 /// Phylogram mode — branch lengths used for the depth axis, Top orientation.
 fn phylogram() {
-    let tree = PhyloTree::from_newick(
-        "((A:1.0,B:3.0)90:1.0,(C:2.0,(D:0.5,E:1.5)85:1.0):2.0);"
-    )
-    .with_orientation(TreeOrientation::Top)
-    .with_phylogram()
-    .with_support_threshold(80.0);
+    let tree = PhyloTree::from_newick("((A:1.0,B:3.0)90:1.0,(C:2.0,(D:0.5,E:1.5)85:1.0):2.0);")
+        .with_orientation(TreeOrientation::Top)
+        .with_phylogram()
+        .with_support_threshold(80.0);
 
     let plots = vec![Plot::PhyloTree(tree)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Phylogram (Top orientation)");
+    let layout = Layout::auto_from_plots(&plots).with_title("Phylogram (Top orientation)");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/phylogram.svg"), svg).unwrap();
@@ -76,8 +72,7 @@ fn circular() {
         .with_phylogram();
 
     let plots = vec![Plot::PhyloTree(tree)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Circular Tree — 20 Taxa");
+    let layout = Layout::auto_from_plots(&plots).with_title("Circular Tree — 20 Taxa");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/circular.svg"), svg).unwrap();
@@ -89,23 +84,22 @@ fn circular() {
 ///   0 = root, 1 = Bacteria, 2 = Eukarya, …
 fn clade_color() {
     let edges: Vec<(&str, &str, f64)> = vec![
-        ("root",     "Bacteria",    1.5),
-        ("root",     "Eukarya",     2.0),
-        ("Bacteria", "E. coli",     0.5),
+        ("root", "Bacteria", 1.5),
+        ("root", "Eukarya", 2.0),
+        ("Bacteria", "E. coli", 0.5),
         ("Bacteria", "B. subtilis", 0.7),
-        ("Eukarya",  "Yeast",       1.0),
-        ("Eukarya",  "Human",       0.8),
+        ("Eukarya", "Yeast", 1.0),
+        ("Eukarya", "Human", 0.8),
     ];
 
     // node 1 = Bacteria, node 2 = Eukarya
     let tree = PhyloTree::from_edges(&edges)
-        .with_clade_color(1, "#e41a1c")   // Bacteria subtree → red
-        .with_clade_color(2, "#377eb8")   // Eukarya subtree → blue
+        .with_clade_color(1, "#e41a1c") // Bacteria subtree → red
+        .with_clade_color(2, "#377eb8") // Eukarya subtree → blue
         .with_legend("Domains");
 
     let plots = vec![Plot::PhyloTree(tree)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Clade Coloring by Domain");
+    let layout = Layout::auto_from_plots(&plots).with_title("Clade Coloring by Domain");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/clade_color.svg"), svg).unwrap();
@@ -121,12 +115,10 @@ fn upgma() {
         vec![0.8, 0.8, 0.7, 0.0],
     ];
 
-    let tree = PhyloTree::from_distance_matrix(&labels, &dist)
-        .with_phylogram();
+    let tree = PhyloTree::from_distance_matrix(&labels, &dist).with_phylogram();
 
     let plots = vec![Plot::PhyloTree(tree)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("UPGMA Tree from Distance Matrix");
+    let layout = Layout::auto_from_plots(&plots).with_title("UPGMA Tree from Distance Matrix");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/upgma.svg"), svg).unwrap();

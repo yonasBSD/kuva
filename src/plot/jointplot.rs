@@ -1,4 +1,4 @@
-use crate::plot::scatter::{ScatterPlot, MarkerShape, TrendLine};
+use crate::plot::scatter::{MarkerShape, ScatterPlot, TrendLine};
 
 /// Marginal distribution style for `JointPlot`.
 #[derive(Clone, Debug, Default)]
@@ -29,8 +29,7 @@ impl JointGroup {
     ) -> Self {
         let xv: Vec<f64> = x.into_iter().map(|v| v.into()).collect();
         let yv: Vec<f64> = y.into_iter().map(|v| v.into()).collect();
-        let scatter = ScatterPlot::new()
-            .with_data(xv.iter().copied().zip(yv.iter().copied()));
+        let scatter = ScatterPlot::new().with_data(xv.iter().copied().zip(yv.iter().copied()));
         Self { scatter }
     }
 
@@ -88,28 +87,19 @@ impl JointGroup {
     }
 
     /// Set per-point sizes. Must have the same length as the data.
-    pub fn with_sizes(
-        mut self,
-        sizes: impl IntoIterator<Item = impl Into<f64>>,
-    ) -> Self {
+    pub fn with_sizes(mut self, sizes: impl IntoIterator<Item = impl Into<f64>>) -> Self {
         self.scatter = self.scatter.with_sizes(sizes);
         self
     }
 
     /// Set per-point colors. Must have the same length as the data.
-    pub fn with_colors(
-        mut self,
-        colors: impl IntoIterator<Item = impl Into<String>>,
-    ) -> Self {
+    pub fn with_colors(mut self, colors: impl IntoIterator<Item = impl Into<String>>) -> Self {
         self.scatter = self.scatter.with_colors(colors);
         self
     }
 
     /// Add symmetric X error bars (±value).
-    pub fn with_x_err(
-        mut self,
-        errors: impl IntoIterator<Item = impl Into<f64> + Copy>,
-    ) -> Self {
+    pub fn with_x_err(mut self, errors: impl IntoIterator<Item = impl Into<f64> + Copy>) -> Self {
         self.scatter = self.scatter.with_x_err(errors);
         self
     }
@@ -124,10 +114,7 @@ impl JointGroup {
     }
 
     /// Add symmetric Y error bars (±value).
-    pub fn with_y_err(
-        mut self,
-        errors: impl IntoIterator<Item = impl Into<f64> + Copy>,
-    ) -> Self {
+    pub fn with_y_err(mut self, errors: impl IntoIterator<Item = impl Into<f64> + Copy>) -> Self {
         self.scatter = self.scatter.with_y_err(errors);
         self
     }
@@ -244,7 +231,9 @@ pub struct JointPlot {
 }
 
 impl Default for JointPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl JointPlot {
@@ -306,49 +295,93 @@ impl JointPlot {
     }
 
     /// Set the marginal distribution style.
-    pub fn with_marginal_type(mut self, t: MarginalType) -> Self { self.marginal_type = t; self }
+    pub fn with_marginal_type(mut self, t: MarginalType) -> Self {
+        self.marginal_type = t;
+        self
+    }
     /// Show/hide the top marginal panel (default `true`).
-    pub fn with_top_marginal(mut self, v: bool) -> Self { self.show_top = v; self }
+    pub fn with_top_marginal(mut self, v: bool) -> Self {
+        self.show_top = v;
+        self
+    }
     /// Show/hide the right marginal panel (default `true`).
-    pub fn with_right_marginal(mut self, v: bool) -> Self { self.show_right = v; self }
+    pub fn with_right_marginal(mut self, v: bool) -> Self {
+        self.show_right = v;
+        self
+    }
     /// Set marginal panel size in pixels (height for top, width for right). Default `80.0`.
-    pub fn with_marginal_size(mut self, s: f64) -> Self { self.marginal_size = s; self }
+    pub fn with_marginal_size(mut self, s: f64) -> Self {
+        self.marginal_size = s;
+        self
+    }
     /// Set the gap in pixels between each marginal panel and the scatter. Default `4.0`.
-    pub fn with_marginal_gap(mut self, g: f64) -> Self { self.marginal_gap = g; self }
+    pub fn with_marginal_gap(mut self, g: f64) -> Self {
+        self.marginal_gap = g;
+        self
+    }
     /// Set the number of histogram bins. Default `20`.
-    pub fn with_bins(mut self, n: usize) -> Self { self.bins = n; self }
+    pub fn with_bins(mut self, n: usize) -> Self {
+        self.bins = n;
+        self
+    }
     /// Set the KDE bandwidth (`None` = Silverman's rule of thumb).
-    pub fn with_bandwidth(mut self, bw: f64) -> Self { self.bandwidth = Some(bw); self }
+    pub fn with_bandwidth(mut self, bw: f64) -> Self {
+        self.bandwidth = Some(bw);
+        self
+    }
     /// Set the opacity of marginal bars/density fill. Default `0.6`.
-    pub fn with_marginal_alpha(mut self, a: f64) -> Self { self.marginal_alpha = a; self }
+    pub fn with_marginal_alpha(mut self, a: f64) -> Self {
+        self.marginal_alpha = a;
+        self
+    }
     /// Set the x-axis label.
-    pub fn with_x_label(mut self, s: impl Into<String>) -> Self { self.x_label = Some(s.into()); self }
+    pub fn with_x_label(mut self, s: impl Into<String>) -> Self {
+        self.x_label = Some(s.into());
+        self
+    }
     /// Set the y-axis label.
-    pub fn with_y_label(mut self, s: impl Into<String>) -> Self { self.y_label = Some(s.into()); self }
+    pub fn with_y_label(mut self, s: impl Into<String>) -> Self {
+        self.y_label = Some(s.into());
+        self
+    }
     /// Set the default scatter marker radius applied by `with_xy`/`with_group`. Default `4.0`.
-    pub fn with_marker_size(mut self, r: f64) -> Self { self.marker_size = r; self }
+    pub fn with_marker_size(mut self, r: f64) -> Self {
+        self.marker_size = r;
+        self
+    }
     /// Set the default scatter marker opacity applied by `with_xy`/`with_group`. Default `0.8`.
-    pub fn with_marker_opacity(mut self, a: f64) -> Self { self.marker_opacity = a; self }
+    pub fn with_marker_opacity(mut self, a: f64) -> Self {
+        self.marker_opacity = a;
+        self
+    }
 
     /// Returns `(x_min, x_max)` across all groups. Returns `(0.0, 1.0)` if no data.
     pub fn x_range(&self) -> (f64, f64) {
-        let all_x: Vec<f64> = self.groups.iter()
-            .flat_map(|g| g.x_values())
-            .collect();
-        if all_x.is_empty() { return (0.0, 1.0); }
+        let all_x: Vec<f64> = self.groups.iter().flat_map(|g| g.x_values()).collect();
+        if all_x.is_empty() {
+            return (0.0, 1.0);
+        }
         let min = all_x.iter().cloned().fold(f64::INFINITY, f64::min);
         let max = all_x.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        if (max - min).abs() < 1e-12 { (min - 1.0, max + 1.0) } else { (min, max) }
+        if (max - min).abs() < 1e-12 {
+            (min - 1.0, max + 1.0)
+        } else {
+            (min, max)
+        }
     }
 
     /// Returns `(y_min, y_max)` across all groups. Returns `(0.0, 1.0)` if no data.
     pub fn y_range(&self) -> (f64, f64) {
-        let all_y: Vec<f64> = self.groups.iter()
-            .flat_map(|g| g.y_values())
-            .collect();
-        if all_y.is_empty() { return (0.0, 1.0); }
+        let all_y: Vec<f64> = self.groups.iter().flat_map(|g| g.y_values()).collect();
+        if all_y.is_empty() {
+            return (0.0, 1.0);
+        }
         let min = all_y.iter().cloned().fold(f64::INFINITY, f64::min);
         let max = all_y.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        if (max - min).abs() < 1e-12 { (min - 1.0, max + 1.0) } else { (min, max) }
+        if (max - min).abs() < 1e-12 {
+            (min - 1.0, max + 1.0)
+        } else {
+            (min, max)
+        }
     }
 }

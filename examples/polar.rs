@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/polar/`.
 
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::polar::{PolarMode, PolarPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use kuva::TickFormat;
 
 const OUT: &str = "docs/src/assets/polar";
@@ -65,7 +65,8 @@ fn basic() {
 fn marker_density() {
     let mut seed: u64 = 3_141_592_653;
     let mut lcg = || -> f64 {
-        seed = seed.wrapping_mul(6_364_136_223_846_793_005)
+        seed = seed
+            .wrapping_mul(6_364_136_223_846_793_005)
             .wrapping_add(1_442_695_040_888_963_407);
         (seed >> 33) as f64 / ((1u64 << 31) as f64)
     };
@@ -127,28 +128,26 @@ fn theta_labels() {
     let plots = vec![Plot::Polar(plot1), Plot::Polar(plot2)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Polar Plot with custom theta ticks")
-        .with_x_tick_format(TickFormat::Custom(std::sync::Arc::new(
-            |v| {
-                let div = 360.0 / 8.0;
-                if v < div {
-                    "eventful".to_string()
-                } else if v < 2.0 * div {
-                    "exciting".to_string()
-                } else if v < 3.0 * div {
-                    "pleasant".to_string()
-                } else if v < 4.0 * div {
-                    "calm".to_string()
-                } else if v < 5.0 * div {
-                    "uneventful".to_string()
-                } else if v < 6.0 * div {
-                    "monotonous".to_string()
-                } else if v < 7.0 * div {
-                    "unpleasant".to_string()
-                } else {
-                    "chaotic".to_string()
-                }
+        .with_x_tick_format(TickFormat::Custom(std::sync::Arc::new(|v| {
+            let div = 360.0 / 8.0;
+            if v < div {
+                "eventful".to_string()
+            } else if v < 2.0 * div {
+                "exciting".to_string()
+            } else if v < 3.0 * div {
+                "pleasant".to_string()
+            } else if v < 4.0 * div {
+                "calm".to_string()
+            } else if v < 5.0 * div {
+                "uneventful".to_string()
+            } else if v < 6.0 * div {
+                "monotonous".to_string()
+            } else if v < 7.0 * div {
+                "unpleasant".to_string()
+            } else {
+                "chaotic".to_string()
             }
-        )));
+        })));
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/custom_x_ticks.svg"), svg).unwrap();
@@ -162,12 +161,15 @@ fn r_min_antenna() {
 
     // Main lobe centred at 0°: 0 dBi. Back-lobes and nulls drop to -20 dBi.
     // Pattern: 0 dBi * |cos(θ/2)|^4 + secondary lobe * |cos(θ - 180°)|^2 - 20
-    let r: Vec<f64> = theta.iter().map(|&t| {
-        let rad = t.to_radians();
-        let main  = (rad / 2.0).cos().powi(4);
-        let back  = (rad - std::f64::consts::PI).cos().abs().powi(2) * 0.15;
-        ((main + back) * 20.0 - 20.0).clamp(-20.0, 0.0)
-    }).collect();
+    let r: Vec<f64> = theta
+        .iter()
+        .map(|&t| {
+            let rad = t.to_radians();
+            let main = (rad / 2.0).cos().powi(4);
+            let back = (rad - std::f64::consts::PI).cos().abs().powi(2) * 0.15;
+            ((main + back) * 20.0 - 20.0).clamp(-20.0, 0.0)
+        })
+        .collect();
 
     let plot = PolarPlot::new()
         .with_series_line(r, theta)
@@ -177,8 +179,7 @@ fn r_min_antenna() {
         .with_r_grid_lines(4);
 
     let plots = vec![Plot::Polar(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Antenna Radiation Pattern (dBi)");
+    let layout = Layout::auto_from_plots(&plots).with_title("Antenna Radiation Pattern (dBi)");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/r_min_antenna.svg"), svg).unwrap();

@@ -1,10 +1,12 @@
-use crate::render::render::Scene;
 use crate::backend::svg::SvgBackend;
+use crate::render::render::Scene;
 
 pub struct PdfBackend;
 
 impl Default for PdfBackend {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PdfBackend {
@@ -23,8 +25,7 @@ impl PdfBackend {
             ..Default::default()
         };
 
-        let tree = svg2pdf::usvg::Tree::from_str(&svg_str, &options)
-            .map_err(|e| e.to_string())?;
+        let tree = svg2pdf::usvg::Tree::from_str(&svg_str, &options).map_err(|e| e.to_string())?;
 
         svg2pdf::to_pdf(
             &tree,

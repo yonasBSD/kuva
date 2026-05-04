@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Ternary (simplex) scatter plot with barycentric coordinate system.
@@ -67,7 +67,11 @@ pub fn run(args: TernaryArgs) -> Result<(), String> {
     )?;
 
     let mut plot = TernaryPlot::new()
-        .with_corner_labels(args.a_label.clone(), args.b_label.clone(), args.c_label.clone())
+        .with_corner_labels(
+            args.a_label.clone(),
+            args.b_label.clone(),
+            args.c_label.clone(),
+        )
         .with_normalize(args.normalize)
         .with_grid_lines(args.grid_lines)
         .with_legend(args.legend);

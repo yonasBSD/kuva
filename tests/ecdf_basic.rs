@@ -1,9 +1,9 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::EcdfPlot;
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
-use kuva::backend::svg::SvgBackend;
 use std::fs;
 
 fn render_svg(plots: Vec<Plot>, layout: Layout) -> String {
@@ -43,8 +43,14 @@ fn test_ecdf_step_function_shape() {
     let layout = Layout::auto_from_plots(&plots);
     let svg = render_svg(plots, layout);
     fs::write("test_outputs/ecdf_step.svg", &svg).unwrap();
-    assert!(svg.contains('V'), "step function should use V (vertical) path commands");
-    assert!(svg.contains('H'), "step function should use H (horizontal) path commands");
+    assert!(
+        svg.contains('V'),
+        "step function should use V (vertical) path commands"
+    );
+    assert!(
+        svg.contains('H'),
+        "step function should use H (horizontal) path commands"
+    );
 }
 
 #[test]
@@ -68,8 +74,10 @@ fn test_ecdf_complementary() {
 #[test]
 fn test_ecdf_confidence_band() {
     outdir();
-    let data: Vec<f64> = vec![0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
-                               1.2, 2.2, 3.2, 1.8, 2.8, 3.8, 0.8, 4.2, 2.4, 3.6];
+    let data: Vec<f64> = vec![
+        0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 1.2, 2.2, 3.2, 1.8, 2.8, 3.8, 0.8, 4.2,
+        2.4, 3.6,
+    ];
     let plot = EcdfPlot::new()
         .with_data("Sample", data)
         .with_color("steelblue")
@@ -81,7 +89,10 @@ fn test_ecdf_confidence_band() {
     assert!(svg.contains("<svg"));
     // Band is a filled path; main line is unfilled
     let path_count = svg.matches("<path").count();
-    assert!(path_count >= 2, "expected band + line paths, got {path_count}");
+    assert!(
+        path_count >= 2,
+        "expected band + line paths, got {path_count}"
+    );
 }
 
 #[test]
@@ -133,10 +144,16 @@ fn test_ecdf_markers() {
     let svg = render_svg(plots, layout);
     fs::write("test_outputs/ecdf_markers.svg", &svg).unwrap();
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("<circle"), "markers should produce circle elements");
+    assert!(
+        svg.contains("<circle"),
+        "markers should produce circle elements"
+    );
     // 5 data points → 5 markers
     let circle_count = svg.matches("<circle").count();
-    assert_eq!(circle_count, 5, "expected 5 circle markers, got {circle_count}");
+    assert_eq!(
+        circle_count, 5,
+        "expected 5 circle markers, got {circle_count}"
+    );
 }
 
 #[test]
@@ -154,8 +171,10 @@ fn test_ecdf_smooth() {
     assert!(svg.contains("<svg"));
     assert!(svg.contains("<path"));
     // Smooth should not contain H/V (it uses L commands)
-    assert!(!svg.contains(" V ") || !svg.contains(" H "),
-        "smooth mode should not produce H/V step commands in isolation");
+    assert!(
+        !svg.contains(" V ") || !svg.contains(" H "),
+        "smooth mode should not produce H/V step commands in isolation"
+    );
 }
 
 #[test]
@@ -176,7 +195,10 @@ fn test_ecdf_multigroup() {
     fs::write("test_outputs/ecdf_multigroup.svg", &svg).unwrap();
     assert!(svg.contains("<svg"));
     let path_count = svg.matches("<path").count();
-    assert!(path_count >= 2, "two groups should produce at least 2 paths, got {path_count}");
+    assert!(
+        path_count >= 2,
+        "two groups should produce at least 2 paths, got {path_count}"
+    );
     assert!(svg.contains("Control"), "legend should contain 'Control'");
     assert!(svg.contains("Treated"), "legend should contain 'Treated'");
 }
@@ -200,7 +222,10 @@ fn test_ecdf_multigroup_with_bands() {
     assert!(svg.contains("<svg"));
     // 2 bands + 2 step lines = 4 paths minimum
     let path_count = svg.matches("<path").count();
-    assert!(path_count >= 4, "expected band+line per group, got {path_count}");
+    assert!(
+        path_count >= 4,
+        "expected band+line per group, got {path_count}"
+    );
 }
 
 #[test]
@@ -208,8 +233,8 @@ fn test_ecdf_complementary_rug() {
     outdir();
     // Simulated nanopore read-length-like distribution
     let data: Vec<f64> = vec![
-        500.0, 800.0, 1200.0, 2000.0, 3500.0, 5000.0, 8000.0, 12000.0, 500.0,
-        1000.0, 1500.0, 2500.0, 4000.0, 6000.0, 10000.0, 800.0, 1100.0, 3000.0,
+        500.0, 800.0, 1200.0, 2000.0, 3500.0, 5000.0, 8000.0, 12000.0, 500.0, 1000.0, 1500.0,
+        2500.0, 4000.0, 6000.0, 10000.0, 800.0, 1100.0, 3000.0,
     ];
     let plot = EcdfPlot::new()
         .with_data("Sample", data)
@@ -255,11 +280,16 @@ fn test_ecdf_empty() {
     let plots = vec![Plot::Ecdf(plot)];
     // Empty plot has no bounds — provide explicit range
     let layout = Layout::auto_from_plots(&plots)
-        .with_x_axis_min(0.0).with_x_axis_max(1.0)
-        .with_y_axis_min(0.0).with_y_axis_max(1.0);
+        .with_x_axis_min(0.0)
+        .with_x_axis_max(1.0)
+        .with_y_axis_min(0.0)
+        .with_y_axis_max(1.0);
     let svg = render_svg(plots, layout);
     fs::write("test_outputs/ecdf_empty.svg", &svg).unwrap();
-    assert!(svg.contains("<svg"), "empty ECDF should still produce valid SVG");
+    assert!(
+        svg.contains("<svg"),
+        "empty ECDF should still produce valid SVG"
+    );
 }
 
 #[test]
@@ -270,7 +300,10 @@ fn test_ecdf_single_point() {
     let layout = Layout::auto_from_plots(&plots).with_title("Single Point ECDF");
     let svg = render_svg(plots, layout);
     fs::write("test_outputs/ecdf_single.svg", &svg).unwrap();
-    assert!(svg.contains("<svg"), "single-point ECDF should produce valid SVG");
+    assert!(
+        svg.contains("<svg"),
+        "single-point ECDF should produce valid SVG"
+    );
 }
 
 #[test]

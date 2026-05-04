@@ -28,8 +28,7 @@ use std::sync::OnceLock;
 use flate2::read::GzDecoder;
 
 /// Gzip-compressed bytes of DejaVu Sans Regular, embedded at compile time.
-const DEJAVU_SANS_GZ: &[u8] =
-    include_bytes!("../assets/fonts/DejaVuSans.ttf.gz");
+const DEJAVU_SANS_GZ: &[u8] = include_bytes!("../assets/fonts/DejaVuSans.ttf.gz");
 
 /// Returns the inflated DejaVu Sans TTF bytes. Inflated once and cached.
 pub(crate) fn dejavu_sans() -> &'static [u8] {
@@ -44,18 +43,33 @@ pub(crate) fn dejavu_sans() -> &'static [u8] {
 }
 
 fn base64_encode(data: &[u8]) -> String {
-    const TABLE: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
         let b0 = chunk[0] as usize;
-        let b1 = if chunk.len() > 1 { chunk[1] as usize } else { 0 };
-        let b2 = if chunk.len() > 2 { chunk[2] as usize } else { 0 };
+        let b1 = if chunk.len() > 1 {
+            chunk[1] as usize
+        } else {
+            0
+        };
+        let b2 = if chunk.len() > 2 {
+            chunk[2] as usize
+        } else {
+            0
+        };
         let n = (b0 << 16) | (b1 << 8) | b2;
         out.push(TABLE[(n >> 18) & 0x3f] as char);
         out.push(TABLE[(n >> 12) & 0x3f] as char);
-        out.push(if chunk.len() > 1 { TABLE[(n >> 6) & 0x3f] as char } else { '=' });
-        out.push(if chunk.len() > 2 { TABLE[n & 0x3f] as char } else { '=' });
+        out.push(if chunk.len() > 1 {
+            TABLE[(n >> 6) & 0x3f] as char
+        } else {
+            '='
+        });
+        out.push(if chunk.len() > 2 {
+            TABLE[n & 0x3f] as char
+        } else {
+            '='
+        });
     }
     out
 }

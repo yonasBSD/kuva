@@ -2,12 +2,14 @@ use clap::Args;
 
 use kuva::plot::DensityPlot;
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, LogArgs, apply_base_args, apply_axis_args, apply_log_args};
+use crate::layout_args::{
+    apply_axis_args, apply_base_args, apply_log_args, AxisArgs, BaseArgs, LogArgs,
+};
 use crate::output::write_output;
 
 /// Kernel density estimate curve from a numeric column.
@@ -67,8 +69,12 @@ pub fn run(args: DensityArgs) -> Result<(), String> {
                 if let Some(bw) = args.bandwidth {
                     dp = dp.with_bandwidth(bw);
                 }
-                if let Some(lo) = args.axis.x_min { dp = dp.with_x_lo(lo); }
-                if let Some(hi) = args.axis.x_max { dp = dp.with_x_hi(hi); }
+                if let Some(lo) = args.axis.x_min {
+                    dp = dp.with_x_lo(lo);
+                }
+                if let Some(hi) = args.axis.x_max {
+                    dp = dp.with_x_hi(hi);
+                }
                 Ok(Plot::Density(dp))
             })
             .collect::<Result<Vec<_>, String>>()?

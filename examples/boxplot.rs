@@ -9,13 +9,13 @@
 //!
 //! SVGs are written to `docs/src/assets/boxplot/`.
 
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal};
-use kuva::plot::BoxPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::BoxPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
+use rand::SeedableRng;
+use rand_distr::{Distribution, Normal};
 
 const OUT: &str = "docs/src/assets/boxplot";
 
@@ -32,7 +32,8 @@ fn main() {
 
 fn samples(mean: f64, std: f64, n: usize, seed: u64) -> Vec<f64> {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
-    Normal::new(mean, std).unwrap()
+    Normal::new(mean, std)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(n)
         .collect()
@@ -41,7 +42,7 @@ fn samples(mean: f64, std: f64, n: usize, seed: u64) -> Vec<f64> {
 /// Four groups of normally-distributed data.
 fn basic() {
     let plot = BoxPlot::new()
-        .with_group("Control",    samples(5.0, 1.0, 60, 1))
+        .with_group("Control", samples(5.0, 1.0, 60, 1))
         .with_group("Treatment A", samples(6.5, 1.2, 60, 2))
         .with_group("Treatment B", samples(4.2, 0.9, 60, 3))
         .with_group("Treatment C", samples(7.1, 1.5, 60, 4))
@@ -59,13 +60,13 @@ fn basic() {
 /// Boxes with a jittered strip overlay showing individual points.
 fn strip_overlay() {
     let plot = BoxPlot::new()
-        .with_group("Control",    samples(5.0, 1.0, 60, 1))
+        .with_group("Control", samples(5.0, 1.0, 60, 1))
         .with_group("Treatment A", samples(6.5, 1.2, 60, 2))
         .with_group("Treatment B", samples(4.2, 0.9, 60, 3))
         .with_group("Treatment C", samples(7.1, 1.5, 60, 4))
         .with_color("steelblue")
-        .with_strip(0.2)                        // jitter width
-        .with_overlay_color("rgba(0,0,0,0.4)")  // semi-transparent points
+        .with_strip(0.2) // jitter width
+        .with_overlay_color("rgba(0,0,0,0.4)") // semi-transparent points
         .with_overlay_size(3.0);
 
     let plots = vec![Plot::Box(plot)];
@@ -80,7 +81,7 @@ fn strip_overlay() {
 /// Four groups each with a distinct fill color.
 fn group_colors() {
     let plot = BoxPlot::new()
-        .with_group("Control",     samples(5.0, 1.0, 60, 1))
+        .with_group("Control", samples(5.0, 1.0, 60, 1))
         .with_group("Treatment A", samples(6.5, 1.2, 60, 2))
         .with_group("Treatment B", samples(4.2, 0.9, 60, 3))
         .with_group("Treatment C", samples(7.1, 1.5, 60, 4))
@@ -98,7 +99,7 @@ fn group_colors() {
 /// Boxes with a beeswarm overlay — points spread to avoid overlap.
 fn swarm_overlay() {
     let plot = BoxPlot::new()
-        .with_group("Control",    samples(5.0, 1.0, 60, 1))
+        .with_group("Control", samples(5.0, 1.0, 60, 1))
         .with_group("Treatment A", samples(6.5, 1.2, 60, 2))
         .with_group("Treatment B", samples(4.2, 0.9, 60, 3))
         .with_group("Treatment C", samples(7.1, 1.5, 60, 4))

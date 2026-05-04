@@ -5,8 +5,10 @@ use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
-use crate::data::{ColSpec, DataTable, InputArgs, parse_colormap};
-use crate::layout_args::{BaseArgs, AxisArgs, LogArgs, apply_base_args, apply_axis_args, apply_log_args};
+use crate::data::{parse_colormap, ColSpec, DataTable, InputArgs};
+use crate::layout_args::{
+    apply_axis_args, apply_base_args, apply_log_args, AxisArgs, BaseArgs, LogArgs,
+};
 use crate::output::write_output;
 
 /// Hexbin density plot — aggregate scatter points into hexagonal bins.
@@ -84,15 +86,14 @@ pub enum CliZReduce {
 
 fn cli_to_z_reduce(c: &CliZReduce) -> ZReduce {
     match c {
-        CliZReduce::Count  => ZReduce::Count,
-        CliZReduce::Mean   => ZReduce::Mean,
-        CliZReduce::Sum    => ZReduce::Sum,
+        CliZReduce::Count => ZReduce::Count,
+        CliZReduce::Mean => ZReduce::Mean,
+        CliZReduce::Sum => ZReduce::Sum,
         CliZReduce::Median => ZReduce::Median,
-        CliZReduce::Min    => ZReduce::Min,
-        CliZReduce::Max    => ZReduce::Max,
+        CliZReduce::Min => ZReduce::Min,
+        CliZReduce::Max => ZReduce::Max,
     }
 }
-
 
 pub fn run(args: HexbinArgs) -> Result<(), String> {
     let table = DataTable::parse(
@@ -119,7 +120,9 @@ pub fn run(args: HexbinArgs) -> Result<(), String> {
         .with_normalize(args.normalize)
         .with_flat_top(args.flat_top)
         .with_colorbar(!args.no_colorbar)
-        .with_color_map(parse_colormap(args.colormap.as_deref().unwrap_or("viridis")));
+        .with_color_map(parse_colormap(
+            args.colormap.as_deref().unwrap_or("viridis"),
+        ));
 
     if let Some(ref stroke) = args.stroke {
         plot = plot.with_stroke(stroke.clone());

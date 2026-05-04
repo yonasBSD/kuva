@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Population pyramid — mirrored horizontal bars for two groups across age/category bands.
@@ -81,7 +81,9 @@ pub fn run(args: PyramidArgs) -> Result<(), String> {
     if lefts.len() != n || rights.len() != n {
         return Err(format!(
             "column length mismatch: label={}, left={}, right={}",
-            n, lefts.len(), rights.len()
+            n,
+            lefts.len(),
+            rights.len()
         ));
     }
 

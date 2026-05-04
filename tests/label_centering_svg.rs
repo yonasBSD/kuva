@@ -1,10 +1,10 @@
-use kuva::plot::scatter::ScatterPlot;
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::line::LinePlot;
-use kuva::plot::{PiePlot, PieLabelPosition};
-use kuva::render::layout::{Layout, ComputedLayout};
+use kuva::plot::scatter::ScatterPlot;
+use kuva::plot::{PieLabelPosition, PiePlot};
+use kuva::render::layout::{ComputedLayout, Layout};
 use kuva::render::plots::Plot;
 use kuva::render::render::{render_multiple, render_twin_y};
-use kuva::backend::svg::SvgBackend;
 
 /// Extract the `x` attribute value from the SVG `<text>` element whose content
 /// matches `text`. Finds `>text<`, walks back to the nearest `x="..."`.
@@ -33,9 +33,7 @@ fn extract_text_y(svg: &str, text: &str) -> Option<f64> {
 #[test]
 fn test_title_centred_with_legend() {
     let data = vec![(1.0f64, 2.0f64), (3.0, 4.0), (5.0, 6.0)];
-    let plot = ScatterPlot::new()
-        .with_data(data)
-        .with_legend("Group A");
+    let plot = ScatterPlot::new().with_data(data).with_legend("Group A");
     let plots = vec![Plot::Scatter(plot)];
 
     let layout = Layout::auto_from_plots(&plots)
@@ -51,10 +49,8 @@ fn test_title_centred_with_legend() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/label_centering_legend.svg", &svg).unwrap();
 
-    let title_x = extract_text_x(&svg, "MyTitle")
-        .expect("title element not found in SVG");
-    let label_x = extract_text_x(&svg, "MyLabel")
-        .expect("x-label element not found in SVG");
+    let title_x = extract_text_x(&svg, "MyTitle").expect("title element not found in SVG");
+    let label_x = extract_text_x(&svg, "MyLabel").expect("x-label element not found in SVG");
 
     assert!(
         (title_x - expected_title_x).abs() < 1.0,
@@ -92,10 +88,8 @@ fn test_title_centred_twin_y() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/label_centering_twin_y.svg", &svg).unwrap();
 
-    let title_x = extract_text_x(&svg, "TwinTitle")
-        .expect("title element not found in SVG");
-    let label_x = extract_text_x(&svg, "X")
-        .expect("x-label element not found in SVG");
+    let title_x = extract_text_x(&svg, "TwinTitle").expect("title element not found in SVG");
+    let label_x = extract_text_x(&svg, "X").expect("x-label element not found in SVG");
 
     assert!(
         (title_x - expected_title_x).abs() < 1.0,
@@ -143,8 +137,7 @@ fn test_title_centred_pie_outside_labels() {
     let expected_x = canvas_width / 2.0;
     let _ = (margin_left, margin_right); // retained for context
 
-    let title_x = extract_text_x(&svg, "PieTitle")
-        .expect("title element not found in SVG");
+    let title_x = extract_text_x(&svg, "PieTitle").expect("title element not found in SVG");
 
     assert!(
         (title_x - expected_x).abs() < 1.0,
@@ -161,12 +154,16 @@ fn make_scatter_plots() -> Vec<Plot> {
 }
 
 fn make_twin_y_plots() -> (Vec<Plot>, Vec<Plot>) {
-    let primary = vec![Plot::Line(
-        LinePlot::new().with_data(vec![(1.0f64, 5.0f64), (2.0, 8.0), (3.0, 14.0)]),
-    )];
-    let secondary = vec![Plot::Line(
-        LinePlot::new().with_data(vec![(1.0f64, 80.0f64), (2.0, 60.0), (3.0, 45.0)]),
-    )];
+    let primary = vec![Plot::Line(LinePlot::new().with_data(vec![
+        (1.0f64, 5.0f64),
+        (2.0, 8.0),
+        (3.0, 14.0),
+    ]))];
+    let secondary = vec![Plot::Line(LinePlot::new().with_data(vec![
+        (1.0f64, 80.0f64),
+        (2.0, 60.0),
+        (3.0, 45.0),
+    ]))];
     (primary, secondary)
 }
 
@@ -190,16 +187,20 @@ fn test_x_label_offset() {
 
     let base_x = extract_text_x(&svg_base, "XLbl").expect("base x-label not found");
     let base_y = extract_text_y(&svg_base, "XLbl").expect("base y not found");
-    let off_x  = extract_text_x(&svg_off,  "XLbl").expect("offset x-label not found");
-    let off_y  = extract_text_y(&svg_off,  "XLbl").expect("offset y not found");
+    let off_x = extract_text_x(&svg_off, "XLbl").expect("offset x-label not found");
+    let off_y = extract_text_y(&svg_off, "XLbl").expect("offset y not found");
 
     assert!(
         (off_x - base_x - dx).abs() < 0.5,
-        "x-label x: expected shift {dx}, got {:.1} → {:.1}", base_x, off_x
+        "x-label x: expected shift {dx}, got {:.1} → {:.1}",
+        base_x,
+        off_x
     );
     assert!(
         (off_y - base_y - dy).abs() < 0.5,
-        "x-label y: expected shift {dy}, got {:.1} → {:.1}", base_y, off_y
+        "x-label y: expected shift {dy}, got {:.1} → {:.1}",
+        base_y,
+        off_y
     );
 }
 
@@ -223,16 +224,20 @@ fn test_y_label_offset() {
 
     let base_x = extract_text_x(&svg_base, "YLbl").expect("base y-label x not found");
     let base_y = extract_text_y(&svg_base, "YLbl").expect("base y-label y not found");
-    let off_x  = extract_text_x(&svg_off,  "YLbl").expect("offset y-label x not found");
-    let off_y  = extract_text_y(&svg_off,  "YLbl").expect("offset y-label y not found");
+    let off_x = extract_text_x(&svg_off, "YLbl").expect("offset y-label x not found");
+    let off_y = extract_text_y(&svg_off, "YLbl").expect("offset y-label y not found");
 
     assert!(
         (off_x - base_x - dx).abs() < 0.5,
-        "y-label x: expected shift {dx}, got {:.1} → {:.1}", base_x, off_x
+        "y-label x: expected shift {dx}, got {:.1} → {:.1}",
+        base_x,
+        off_x
     );
     assert!(
         (off_y - base_y - dy).abs() < 0.5,
-        "y-label y: expected shift {dy}, got {:.1} → {:.1}", base_y, off_y
+        "y-label y: expected shift {dy}, got {:.1} → {:.1}",
+        base_y,
+        off_y
     );
 }
 
@@ -242,8 +247,7 @@ fn test_y2_label_offset() {
 
     // Baseline
     let (primary, secondary) = make_twin_y_plots();
-    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
-        .with_y2_label("Y2Lbl");
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary).with_y2_label("Y2Lbl");
     let svg_base = SvgBackend.render_scene(&render_twin_y(primary, secondary, layout));
 
     // With offset
@@ -257,15 +261,19 @@ fn test_y2_label_offset() {
 
     let base_x = extract_text_x(&svg_base, "Y2Lbl").expect("base y2-label x not found");
     let base_y = extract_text_y(&svg_base, "Y2Lbl").expect("base y2-label y not found");
-    let off_x  = extract_text_x(&svg_off,  "Y2Lbl").expect("offset y2-label x not found");
-    let off_y  = extract_text_y(&svg_off,  "Y2Lbl").expect("offset y2-label y not found");
+    let off_x = extract_text_x(&svg_off, "Y2Lbl").expect("offset y2-label x not found");
+    let off_y = extract_text_y(&svg_off, "Y2Lbl").expect("offset y2-label y not found");
 
     assert!(
         (off_x - base_x - dx).abs() < 0.5,
-        "y2-label x: expected shift {dx}, got {:.1} → {:.1}", base_x, off_x
+        "y2-label x: expected shift {dx}, got {:.1} → {:.1}",
+        base_x,
+        off_x
     );
     assert!(
         (off_y - base_y - dy).abs() < 0.5,
-        "y2-label y: expected shift {dy}, got {:.1} → {:.1}", base_y, off_y
+        "y2-label y: expected shift {dy}, got {:.1} → {:.1}",
+        base_y,
+        off_y
     );
 }

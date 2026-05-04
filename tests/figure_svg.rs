@@ -1,5 +1,5 @@
-use kuva::plot::{ScatterPlot, LinePlot, LegendEntry, LegendShape, LegendPlot};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::{LegendEntry, LegendPlot, LegendShape, LinePlot, ScatterPlot};
 use kuva::render::figure::{Figure, FigureLegendPosition};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
@@ -22,13 +22,12 @@ fn line_plot(color: &str) -> Vec<Plot> {
 
 #[test]
 fn figure_basic_2x2() {
-    let figure = Figure::new(2, 2)
-        .with_plots(vec![
-            scatter_plot("blue"),
-            scatter_plot("red"),
-            line_plot("green"),
-            line_plot("purple"),
-        ]);
+    let figure = Figure::new(2, 2).with_plots(vec![
+        scatter_plot("blue"),
+        scatter_plot("red"),
+        line_plot("green"),
+        line_plot("purple"),
+    ]);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -45,10 +44,7 @@ fn figure_basic_2x2() {
 fn figure_merged_cells() {
     // 2x3 grid: 3 top cells + 1 wide bottom spanning all 3 columns
     let figure = Figure::new(2, 3)
-        .with_structure(vec![
-            vec![0], vec![1], vec![2],
-            vec![3, 4, 5],
-        ])
+        .with_structure(vec![vec![0], vec![1], vec![2], vec![3, 4, 5]])
         .with_plots(vec![
             scatter_plot("blue"),
             scatter_plot("red"),
@@ -153,13 +149,12 @@ fn figure_panel_labels() {
 #[test]
 fn figure_fewer_plots_than_slots() {
     // 2x2 grid with only 3 plots, 4th cell blank
-    let figure = Figure::new(2, 2)
-        .with_plots(vec![
-            scatter_plot("blue"),
-            scatter_plot("red"),
-            line_plot("green"),
-            // 4th slot empty
-        ]);
+    let figure = Figure::new(2, 2).with_plots(vec![
+        scatter_plot("blue"),
+        scatter_plot("red"),
+        line_plot("green"),
+        // 4th slot empty
+    ]);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -172,10 +167,7 @@ fn figure_fewer_plots_than_slots() {
 
 #[test]
 fn figure_title_and_subplot_titles() {
-    let plots: Vec<Vec<Plot>> = vec![
-        scatter_plot("blue"),
-        scatter_plot("red"),
-    ];
+    let plots: Vec<Vec<Plot>> = vec![scatter_plot("blue"), scatter_plot("red")];
 
     let layouts = vec![
         Layout::auto_from_plots(&plots[0]).with_title("Subplot A"),
@@ -201,12 +193,12 @@ fn figure_title_and_subplot_titles() {
 fn figure_shared_y_row_slice() {
     // 2x3 grid, share y only for columns 1-2 in row 0
     let plots: Vec<Vec<Plot>> = vec![
-        scatter_plot("blue"),   // row 0, col 0 — independent
-        scatter_plot("red"),    // row 0, col 1 — shared
-        scatter_plot("green"),  // row 0, col 2 — shared
-        line_plot("purple"),    // row 1, col 0
-        line_plot("orange"),    // row 1, col 1
-        line_plot("teal"),      // row 1, col 2
+        scatter_plot("blue"),  // row 0, col 0 — independent
+        scatter_plot("red"),   // row 0, col 1 — shared
+        scatter_plot("green"), // row 0, col 2 — shared
+        line_plot("purple"),   // row 1, col 0
+        line_plot("orange"),   // row 1, col 1
+        line_plot("teal"),     // row 1, col 2
     ];
 
     let layouts = vec![
@@ -244,8 +236,8 @@ fn figure_shared_y_row_slice() {
 fn figure_shared_x_column() {
     // 2x1 vertical stack with shared x axis (e.g. stacked time series)
     let plots: Vec<Vec<Plot>> = vec![
-        scatter_plot("blue"),   // top
-        line_plot("red"),       // bottom
+        scatter_plot("blue"), // top
+        line_plot("red"),     // bottom
     ];
 
     let layouts = vec![
@@ -279,16 +271,13 @@ fn figure_shared_x_column() {
 #[test]
 fn figure_negative_y_only() {
     // Y spans negative, X stays positive — y-axis should pad below zero
-    let plots: Vec<Vec<Plot>> = vec![
-        vec![Plot::Scatter(
-            ScatterPlot::new()
-                .with_data(vec![(1.0, -3.0), (3.0, 2.0), (5.0, -7.0), (7.0, 4.0)])
-                .with_color("blue"),
-        )],
-    ];
+    let plots: Vec<Vec<Plot>> = vec![vec![Plot::Scatter(
+        ScatterPlot::new()
+            .with_data(vec![(1.0, -3.0), (3.0, 2.0), (5.0, -7.0), (7.0, 4.0)])
+            .with_color("blue"),
+    )]];
 
-    let figure = Figure::new(1, 1)
-        .with_plots(plots);
+    let figure = Figure::new(1, 1).with_plots(plots);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -305,16 +294,13 @@ fn figure_negative_y_only() {
 #[test]
 fn figure_negative_x_only() {
     // X spans negative, Y stays positive
-    let plots: Vec<Vec<Plot>> = vec![
-        vec![Plot::Scatter(
-            ScatterPlot::new()
-                .with_data(vec![(-6.0, 1.0), (-2.0, 5.0), (3.0, 3.0), (8.0, 7.0)])
-                .with_color("red"),
-        )],
-    ];
+    let plots: Vec<Vec<Plot>> = vec![vec![Plot::Scatter(
+        ScatterPlot::new()
+            .with_data(vec![(-6.0, 1.0), (-2.0, 5.0), (3.0, 3.0), (8.0, 7.0)])
+            .with_color("red"),
+    )]];
 
-    let figure = Figure::new(1, 1)
-        .with_plots(plots);
+    let figure = Figure::new(1, 1).with_plots(plots);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -331,16 +317,13 @@ fn figure_negative_x_only() {
 #[test]
 fn figure_both_axes_negative() {
     // Both axes span negative ranges
-    let plots: Vec<Vec<Plot>> = vec![
-        vec![Plot::Line(
-            LinePlot::new()
-                .with_data(vec![(-5.0, -4.0), (-1.0, -8.0), (3.0, -2.0), (6.0, -6.0)])
-                .with_color("green"),
-        )],
-    ];
+    let plots: Vec<Vec<Plot>> = vec![vec![Plot::Line(
+        LinePlot::new()
+            .with_data(vec![(-5.0, -4.0), (-1.0, -8.0), (3.0, -2.0), (6.0, -6.0)])
+            .with_color("green"),
+    )]];
 
-    let figure = Figure::new(1, 1)
-        .with_plots(plots);
+    let figure = Figure::new(1, 1).with_plots(plots);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -351,25 +334,27 @@ fn figure_both_axes_negative() {
     // generate_ticks(-6, 8, 5) → step=2.5 → ticks: -5, -2.5, 0, 2.5, 5, 7.5
     // y: ticks=5 → auto_nice_range(-8.06, -1.94, 5) → step=1 → (-9, -1) range.
     // generate_ticks(-9, -1, 5) → step=2 → ticks: -8, -6, -4, -2
-    assert!(svg.contains(">-6<"));   // y tick: confirms negative y range
-    assert!(svg.contains(">7.5<"));  // max x tick (was ">7<")
-    assert!(svg.contains(">-8<"));   // most-negative y tick
-    assert!(svg.contains(">-5<"));   // first negative x tick (was ">-1<")
+    assert!(svg.contains(">-6<")); // y tick: confirms negative y range
+    assert!(svg.contains(">7.5<")); // max x tick (was ">7<")
+    assert!(svg.contains(">-8<")); // most-negative y tick
+    assert!(svg.contains(">-5<")); // first negative x tick (was ">-1<")
 }
 
 #[test]
 fn figure_large_negative_values() {
     // Values below -10 should use the 5% rule
-    let plots: Vec<Vec<Plot>> = vec![
-        vec![Plot::Scatter(
-            ScatterPlot::new()
-                .with_data(vec![(-50.0, -20.0), (-10.0, 30.0), (40.0, -40.0), (80.0, 60.0)])
-                .with_color("purple"),
-        )],
-    ];
+    let plots: Vec<Vec<Plot>> = vec![vec![Plot::Scatter(
+        ScatterPlot::new()
+            .with_data(vec![
+                (-50.0, -20.0),
+                (-10.0, 30.0),
+                (40.0, -40.0),
+                (80.0, 60.0),
+            ])
+            .with_color("purple"),
+    )]];
 
-    let figure = Figure::new(1, 1)
-        .with_plots(plots);
+    let figure = Figure::new(1, 1).with_plots(plots);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -388,7 +373,10 @@ fn figure_large_negative_values() {
 /// Parse `width="NNN"` or `height="NNN"` from an SVG string.
 fn svg_dim(svg: &str, attr: &str) -> f64 {
     let needle = format!(r#"{attr}=""#);
-    let start = svg.find(&needle).unwrap_or_else(|| panic!("no {attr} in SVG")) + needle.len();
+    let start = svg
+        .find(&needle)
+        .unwrap_or_else(|| panic!("no {attr} in SVG"))
+        + needle.len();
     let end = svg[start..].find('"').unwrap() + start;
     svg[start..end].parse().unwrap()
 }
@@ -422,8 +410,16 @@ fn figure_size_basic() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/figure_size_basic.svg", &svg).unwrap();
 
-    assert_eq!(svg_dim(&svg, "width"),  800.0, "SVG width should match requested figure width");
-    assert_eq!(svg_dim(&svg, "height"), 600.0, "SVG height should match requested figure height");
+    assert_eq!(
+        svg_dim(&svg, "width"),
+        800.0,
+        "SVG width should match requested figure width"
+    );
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        600.0,
+        "SVG height should match requested figure height"
+    );
 }
 
 #[test]
@@ -453,7 +449,7 @@ fn figure_size_with_title() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/figure_size_with_title.svg", &svg).unwrap();
 
-    assert_eq!(svg_dim(&svg, "width"),  900.0);
+    assert_eq!(svg_dim(&svg, "width"), 900.0);
     assert_eq!(svg_dim(&svg, "height"), 400.0);
     assert!(svg.contains("Figure with title"));
 }
@@ -464,11 +460,16 @@ fn figure_size_with_shared_legend() {
     // Legend width (~87px) + legend_spacing(20) is deducted from cell width budget.
     let plots: Vec<Vec<Plot>> = vec![
         scatter_with_legend("steelblue", "Control"),
-        scatter_with_legend("crimson",   "Treatment"),
+        scatter_with_legend("crimson", "Treatment"),
     ];
     let layouts = vec![
-        Layout::auto_from_plots(&plots[0]).with_title("Experiment 1").with_x_label("Time").with_y_label("Response"),
-        Layout::auto_from_plots(&plots[1]).with_title("Experiment 2").with_x_label("Time"),
+        Layout::auto_from_plots(&plots[0])
+            .with_title("Experiment 1")
+            .with_x_label("Time")
+            .with_y_label("Response"),
+        Layout::auto_from_plots(&plots[1])
+            .with_title("Experiment 2")
+            .with_x_label("Time"),
     ];
 
     let scene = Figure::new(1, 2)
@@ -481,7 +482,7 @@ fn figure_size_with_shared_legend() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/figure_size_with_legend.svg", &svg).unwrap();
 
-    assert_eq!(svg_dim(&svg, "width"),  760.0);
+    assert_eq!(svg_dim(&svg, "width"), 760.0);
     assert_eq!(svg_dim(&svg, "height"), 380.0);
     assert!(svg.contains("Control"));
     assert!(svg.contains("Treatment"));
@@ -499,11 +500,10 @@ fn scatter_with_legend(color: &str, label: &str) -> Vec<Plot> {
 #[test]
 fn figure_panel_legends() {
     // 1x2 figure where each subplot has its own legend
-    let figure = Figure::new(1, 2)
-        .with_plots(vec![
-            scatter_with_legend("blue", "Blue data"),
-            scatter_with_legend("red", "Red data"),
-        ]);
+    let figure = Figure::new(1, 2).with_plots(vec![
+        scatter_with_legend("blue", "Blue data"),
+        scatter_with_legend("red", "Red data"),
+    ]);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -538,7 +538,10 @@ fn figure_shared_legend_right() {
     // Count occurrences of "Blue" legend label — should appear once (deduplicated)
     // in the shared legend, not in per-panel legends (suppressed)
     let blue_count = svg.matches(">Blue<").count();
-    assert_eq!(blue_count, 1, "Expected 1 occurrence of Blue in shared legend, got {blue_count}");
+    assert_eq!(
+        blue_count, 1,
+        "Expected 1 occurrence of Blue in shared legend, got {blue_count}"
+    );
 }
 
 #[test]
@@ -561,22 +564,32 @@ fn figure_shared_legend_bottom() {
     // Shared legend should increase the figure height (bottom position)
     // Per-panel legends should be suppressed
     let a_count = svg.matches(">Sample A<").count();
-    assert_eq!(a_count, 1, "Expected 1 occurrence of Sample A, got {a_count}");
+    assert_eq!(
+        a_count, 1,
+        "Expected 1 occurrence of Sample A, got {a_count}"
+    );
 }
 
 #[test]
 fn figure_shared_legend_manual_entries() {
     // Provide custom legend entries manually
     let manual_entries = vec![
-        LegendEntry { label: "Custom 1".into(), color: "orange".into(), shape: LegendShape::Circle, dasharray: None },
-        LegendEntry { label: "Custom 2".into(), color: "purple".into(), shape: LegendShape::Line, dasharray: None },
+        LegendEntry {
+            label: "Custom 1".into(),
+            color: "orange".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Custom 2".into(),
+            color: "purple".into(),
+            shape: LegendShape::Line,
+            dasharray: None,
+        },
     ];
 
     let figure = Figure::new(1, 2)
-        .with_plots(vec![
-            scatter_plot("blue"),
-            scatter_plot("red"),
-        ])
+        .with_plots(vec![scatter_plot("blue"), scatter_plot("red")])
         .with_shared_legend()
         .with_shared_legend_entries(manual_entries);
 
@@ -608,17 +621,17 @@ fn figure_keep_panel_legends() {
     // Both shared legend and per-panel legends should render
     // "Blue" appears in shared legend + panel legend = at least 2
     let blue_count = svg.matches(">Blue<").count();
-    assert!(blue_count >= 2, "Expected Blue in both shared and panel legends, got {blue_count}");
+    assert!(
+        blue_count >= 2,
+        "Expected Blue in both shared and panel legends, got {blue_count}"
+    );
 }
 
 #[test]
 fn figure_explicit_axis_bounds_preserved() {
     // Regression: clone_layout must carry x_axis_{min,max} and y_axis_{min,max}
     // so that explicit bounds survive into the rendered subplot.
-    let plots: Vec<Vec<Plot>> = vec![
-        scatter_plot("blue"),
-        scatter_plot("red"),
-    ];
+    let plots: Vec<Vec<Plot>> = vec![scatter_plot("blue"), scatter_plot("red")];
 
     let layouts = vec![
         Layout::auto_from_plots(&plots[0])
@@ -629,9 +642,7 @@ fn figure_explicit_axis_bounds_preserved() {
             .with_x_axis_max(20.0),
     ];
 
-    let figure = Figure::new(1, 2)
-        .with_plots(plots)
-        .with_layouts(layouts);
+    let figure = Figure::new(1, 2).with_plots(plots).with_layouts(layouts);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -639,8 +650,14 @@ fn figure_explicit_axis_bounds_preserved() {
 
     assert!(svg.contains("<svg"));
     // Panel 0: y range forced to [-10, 20] → ticks at -10 and 20
-    assert!(svg.contains(">-10<"), "y_axis_min=-10 should produce a -10 tick");
-    assert!(svg.contains(">20<"),  "y_axis_max=20 should produce a 20 tick");
+    assert!(
+        svg.contains(">-10<"),
+        "y_axis_min=-10 should produce a -10 tick"
+    );
+    assert!(
+        svg.contains(">20<"),
+        "y_axis_max=20 should produce a 20 tick"
+    );
     // Panel 1: x range forced to [-10, 20] → same boundary ticks
     // (both panels share the -10 / 20 assertions above, which is fine)
 }
@@ -662,7 +679,7 @@ fn figure_twin_y_cell() {
     )];
 
     let figure = Figure::new(1, 2)
-        .with_plots(vec![scatter_plot("green")])   // cell 0: regular
+        .with_plots(vec![scatter_plot("green")]) // cell 0: regular
         .with_twin_y_plots(1, primary, secondary); // cell 1: twin-Y
 
     let scene = figure.render();
@@ -688,8 +705,7 @@ fn figure_twin_y_auto_layout() {
             .with_color("crimson"),
     )];
 
-    let figure = Figure::new(1, 1)
-        .with_twin_y_plots(0, primary, secondary);
+    let figure = Figure::new(1, 1).with_twin_y_plots(0, primary, secondary);
 
     let scene = figure.render();
     let svg = SvgBackend.render_scene(&scene);
@@ -748,7 +764,7 @@ fn figure_twin_y_with_layout() {
 fn legend_plots() -> Vec<Vec<Plot>> {
     vec![
         scatter_with_legend("steelblue", "Alpha"),
-        scatter_with_legend("crimson",   "Beta"),
+        scatter_with_legend("crimson", "Beta"),
     ]
 }
 
@@ -768,25 +784,38 @@ fn render_legend_pos(pos: FigureLegendPosition, name: &str) -> String {
 #[test]
 fn figure_legend_right_top() {
     let svg = render_legend_pos(FigureLegendPosition::RightTop, "figure_legend_right_top");
-    assert!(svg.contains("Alpha") && svg.contains("Beta"), "legend entries missing");
-    assert_eq!(svg_dim(&svg, "width"),  1135.0, "right legend expands width");
-    assert_eq!(svg_dim(&svg, "height"),  400.0, "right legend does not expand height");
+    assert!(
+        svg.contains("Alpha") && svg.contains("Beta"),
+        "legend entries missing"
+    );
+    assert_eq!(svg_dim(&svg, "width"), 1135.0, "right legend expands width");
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        400.0,
+        "right legend does not expand height"
+    );
 }
 
 #[test]
 fn figure_legend_right_middle() {
-    let svg = render_legend_pos(FigureLegendPosition::RightMiddle, "figure_legend_right_middle");
+    let svg = render_legend_pos(
+        FigureLegendPosition::RightMiddle,
+        "figure_legend_right_middle",
+    );
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1135.0);
-    assert_eq!(svg_dim(&svg, "height"),  400.0);
+    assert_eq!(svg_dim(&svg, "width"), 1135.0);
+    assert_eq!(svg_dim(&svg, "height"), 400.0);
 }
 
 #[test]
 fn figure_legend_right_bottom() {
-    let svg = render_legend_pos(FigureLegendPosition::RightBottom, "figure_legend_right_bottom");
+    let svg = render_legend_pos(
+        FigureLegendPosition::RightBottom,
+        "figure_legend_right_bottom",
+    );
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1135.0);
-    assert_eq!(svg_dim(&svg, "height"),  400.0);
+    assert_eq!(svg_dim(&svg, "width"), 1135.0);
+    assert_eq!(svg_dim(&svg, "height"), 400.0);
 }
 
 // ── Left side ────────────────────────────────────────────────────────────────
@@ -794,25 +823,38 @@ fn figure_legend_right_bottom() {
 #[test]
 fn figure_legend_left_top() {
     let svg = render_legend_pos(FigureLegendPosition::LeftTop, "figure_legend_left_top");
-    assert!(svg.contains("Alpha") && svg.contains("Beta"), "legend entries missing");
-    assert_eq!(svg_dim(&svg, "width"),  1135.0, "left legend expands width");
-    assert_eq!(svg_dim(&svg, "height"),  400.0, "left legend does not expand height");
+    assert!(
+        svg.contains("Alpha") && svg.contains("Beta"),
+        "legend entries missing"
+    );
+    assert_eq!(svg_dim(&svg, "width"), 1135.0, "left legend expands width");
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        400.0,
+        "left legend does not expand height"
+    );
 }
 
 #[test]
 fn figure_legend_left_middle() {
-    let svg = render_legend_pos(FigureLegendPosition::LeftMiddle, "figure_legend_left_middle");
+    let svg = render_legend_pos(
+        FigureLegendPosition::LeftMiddle,
+        "figure_legend_left_middle",
+    );
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1135.0);
-    assert_eq!(svg_dim(&svg, "height"),  400.0);
+    assert_eq!(svg_dim(&svg, "width"), 1135.0);
+    assert_eq!(svg_dim(&svg, "height"), 400.0);
 }
 
 #[test]
 fn figure_legend_left_bottom() {
-    let svg = render_legend_pos(FigureLegendPosition::LeftBottom, "figure_legend_left_bottom");
+    let svg = render_legend_pos(
+        FigureLegendPosition::LeftBottom,
+        "figure_legend_left_bottom",
+    );
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1135.0);
-    assert_eq!(svg_dim(&svg, "height"),  400.0);
+    assert_eq!(svg_dim(&svg, "width"), 1135.0);
+    assert_eq!(svg_dim(&svg, "height"), 400.0);
 }
 
 // ── Top edge ─────────────────────────────────────────────────────────────────
@@ -820,51 +862,78 @@ fn figure_legend_left_bottom() {
 #[test]
 fn figure_legend_top_left() {
     let svg = render_legend_pos(FigureLegendPosition::TopLeft, "figure_legend_top_left");
-    assert!(svg.contains("Alpha") && svg.contains("Beta"), "legend entries missing");
-    assert_eq!(svg_dim(&svg, "width"),  1035.0, "top legend does not expand width");
-    assert_eq!(svg_dim(&svg, "height"),  476.0, "top legend expands height");
+    assert!(
+        svg.contains("Alpha") && svg.contains("Beta"),
+        "legend entries missing"
+    );
+    assert_eq!(
+        svg_dim(&svg, "width"),
+        1035.0,
+        "top legend does not expand width"
+    );
+    assert_eq!(svg_dim(&svg, "height"), 476.0, "top legend expands height");
 }
 
 #[test]
 fn figure_legend_top_center() {
     let svg = render_legend_pos(FigureLegendPosition::TopCenter, "figure_legend_top_center");
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1035.0);
-    assert_eq!(svg_dim(&svg, "height"),  476.0);
+    assert_eq!(svg_dim(&svg, "width"), 1035.0);
+    assert_eq!(svg_dim(&svg, "height"), 476.0);
 }
 
 #[test]
 fn figure_legend_top_right() {
     let svg = render_legend_pos(FigureLegendPosition::TopRight, "figure_legend_top_right");
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1035.0);
-    assert_eq!(svg_dim(&svg, "height"),  476.0);
+    assert_eq!(svg_dim(&svg, "width"), 1035.0);
+    assert_eq!(svg_dim(&svg, "height"), 476.0);
 }
 
 // ── Bottom edge ───────────────────────────────────────────────────────────────
 
 #[test]
 fn figure_legend_bottom_left() {
-    let svg = render_legend_pos(FigureLegendPosition::BottomLeft, "figure_legend_bottom_left");
-    assert!(svg.contains("Alpha") && svg.contains("Beta"), "legend entries missing");
-    assert_eq!(svg_dim(&svg, "width"),  1035.0, "bottom legend does not expand width");
-    assert_eq!(svg_dim(&svg, "height"),  476.0, "bottom legend expands height");
+    let svg = render_legend_pos(
+        FigureLegendPosition::BottomLeft,
+        "figure_legend_bottom_left",
+    );
+    assert!(
+        svg.contains("Alpha") && svg.contains("Beta"),
+        "legend entries missing"
+    );
+    assert_eq!(
+        svg_dim(&svg, "width"),
+        1035.0,
+        "bottom legend does not expand width"
+    );
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        476.0,
+        "bottom legend expands height"
+    );
 }
 
 #[test]
 fn figure_legend_bottom_center() {
-    let svg = render_legend_pos(FigureLegendPosition::BottomCenter, "figure_legend_bottom_center");
+    let svg = render_legend_pos(
+        FigureLegendPosition::BottomCenter,
+        "figure_legend_bottom_center",
+    );
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1035.0);
-    assert_eq!(svg_dim(&svg, "height"),  476.0);
+    assert_eq!(svg_dim(&svg, "width"), 1035.0);
+    assert_eq!(svg_dim(&svg, "height"), 476.0);
 }
 
 #[test]
 fn figure_legend_bottom_right() {
-    let svg = render_legend_pos(FigureLegendPosition::BottomRight, "figure_legend_bottom_right");
+    let svg = render_legend_pos(
+        FigureLegendPosition::BottomRight,
+        "figure_legend_bottom_right",
+    );
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1035.0);
-    assert_eq!(svg_dim(&svg, "height"),  476.0);
+    assert_eq!(svg_dim(&svg, "width"), 1035.0);
+    assert_eq!(svg_dim(&svg, "height"), 476.0);
 }
 
 // ── Backward-compat aliases still work ───────────────────────────────────────
@@ -874,8 +943,8 @@ fn figure_legend_right_compat() {
     // `Right` is a backward-compat alias for `RightMiddle` — same dimensions and entries.
     let svg = render_legend_pos(FigureLegendPosition::Right, "figure_legend_right_compat");
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1135.0);
-    assert_eq!(svg_dim(&svg, "height"),  400.0);
+    assert_eq!(svg_dim(&svg, "width"), 1135.0);
+    assert_eq!(svg_dim(&svg, "height"), 400.0);
 }
 
 #[test]
@@ -883,8 +952,8 @@ fn figure_legend_bottom_compat() {
     // `Bottom` is a backward-compat alias for `BottomCenter` — same dimensions and entries.
     let svg = render_legend_pos(FigureLegendPosition::Bottom, "figure_legend_bottom_compat");
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  1035.0);
-    assert_eq!(svg_dim(&svg, "height"),  476.0);
+    assert_eq!(svg_dim(&svg, "width"), 1035.0);
+    assert_eq!(svg_dim(&svg, "height"), 476.0);
 }
 
 // ── Left/Top offsets actually shift the grid ─────────────────────────────────
@@ -901,27 +970,43 @@ fn figure_legend_bottom_compat() {
 
 #[test]
 fn figure_legend_left_grid_offset() {
-    let svg = render_legend_pos(FigureLegendPosition::LeftMiddle, "figure_legend_left_offset_check");
+    let svg = render_legend_pos(
+        FigureLegendPosition::LeftMiddle,
+        "figure_legend_left_offset_check",
+    );
     // Cell 0 translate: x = cell_x_offset(100) + padding(10) + col(0)*(500+15) = 110
-    assert!(svg.contains("translate(110,"), "left legend should shift grid cells right by 100px");
+    assert!(
+        svg.contains("translate(110,"),
+        "left legend should shift grid cells right by 100px"
+    );
 }
 
 #[test]
 fn figure_legend_top_grid_offset() {
-    let svg = render_legend_pos(FigureLegendPosition::TopCenter, "figure_legend_top_offset_check");
+    let svg = render_legend_pos(
+        FigureLegendPosition::TopCenter,
+        "figure_legend_top_offset_check",
+    );
     // Cell 0 translate: x=10, y = cell_y_offset(76) + padding(10) + figure_title(0) = 86
-    assert!(svg.contains(",86)"), "top legend should shift grid cells down by 76px");
+    assert!(
+        svg.contains(",86)"),
+        "top legend should shift grid cells down by 76px"
+    );
 }
 
 // ── Per-row / per-col sizing ─────────────────────────────────────────────────
 
 fn make_legend_entries(labels: &[&str], colors: &[&str]) -> Vec<LegendEntry> {
-    labels.iter().zip(colors.iter()).map(|(&label, &color)| LegendEntry {
-        label: label.into(),
-        color: color.into(),
-        shape: LegendShape::Circle,
-        dasharray: None,
-    }).collect()
+    labels
+        .iter()
+        .zip(colors.iter())
+        .map(|(&label, &color)| LegendEntry {
+            label: label.into(),
+            color: color.into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        })
+        .collect()
 }
 
 #[test]
@@ -935,8 +1020,11 @@ fn figure_per_row_height() {
     let entries = make_legend_entries(&["Control", "Treatment"], &["steelblue", "crimson"]);
     let data_plots: Vec<Plot> = vec![
         scatter_with_legend("steelblue", "Control"),
-        scatter_with_legend("crimson",   "Treatment"),
-    ].into_iter().flatten().collect();
+        scatter_with_legend("crimson", "Treatment"),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
     let mut layout = Layout::auto_from_plots(&data_plots)
         .with_title("Response over time")
         .with_x_label("Time")
@@ -957,9 +1045,20 @@ fn figure_per_row_height() {
     std::fs::write("test_outputs/figure_per_row_height.svg", &svg).unwrap();
 
     assert!(svg.contains("<circle"), "scatter points should be present");
-    assert!(svg.contains("Control") && svg.contains("Treatment"), "legend labels should appear");
-    assert_eq!(svg_dim(&svg, "width"),  520.0, "width should be cell_width + 2*padding");
-    assert_eq!(svg_dim(&svg, "height"), 415.0, "height should reflect explicit row heights");
+    assert!(
+        svg.contains("Control") && svg.contains("Treatment"),
+        "legend labels should appear"
+    );
+    assert_eq!(
+        svg_dim(&svg, "width"),
+        520.0,
+        "width should be cell_width + 2*padding"
+    );
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        415.0,
+        "height should reflect explicit row heights"
+    );
 }
 
 #[test]
@@ -968,19 +1067,40 @@ fn figure_per_col_width() {
     // Expected total width:
     //   (600 + 300) + 1*spacing + 2*padding = 935
     // Height: cell_height(380) + 0*spacing + 2*padding = 400
-    let scatter_data = vec![(1.0,2.0),(2.0,3.5),(3.0,2.8),(4.0,4.1),(5.0,5.0),(6.0,4.6)];
-    let line_data = vec![(0.0,0.0),(1.0,1.2),(2.0,2.5),(3.0,2.0),(4.0,3.8),(5.0,4.5)];
+    let scatter_data = vec![
+        (1.0, 2.0),
+        (2.0, 3.5),
+        (3.0, 2.8),
+        (4.0, 4.1),
+        (5.0, 5.0),
+        (6.0, 4.6),
+    ];
+    let line_data = vec![
+        (0.0, 0.0),
+        (1.0, 1.2),
+        (2.0, 2.5),
+        (3.0, 2.0),
+        (4.0, 3.8),
+        (5.0, 4.5),
+    ];
 
     let sp = vec![Plot::Scatter(
-        ScatterPlot::new().with_data(scatter_data).with_color("steelblue"),
+        ScatterPlot::new()
+            .with_data(scatter_data)
+            .with_color("steelblue"),
     )];
     let lp = vec![Plot::Line(
         LinePlot::new().with_data(line_data).with_color("crimson"),
     )];
 
     let layouts = vec![
-        Layout::auto_from_plots(&sp).with_title("Wide panel").with_x_label("X").with_y_label("Y"),
-        Layout::auto_from_plots(&lp).with_title("Compact panel").with_x_label("X"),
+        Layout::auto_from_plots(&sp)
+            .with_title("Wide panel")
+            .with_x_label("X")
+            .with_y_label("Y"),
+        Layout::auto_from_plots(&lp)
+            .with_title("Compact panel")
+            .with_x_label("X"),
     ];
 
     let figure = Figure::new(1, 2)
@@ -994,10 +1114,18 @@ fn figure_per_col_width() {
     std::fs::write("test_outputs/figure_per_col_width.svg", &svg).unwrap();
 
     assert!(svg.contains("<circle"), "scatter points should render");
-    assert!(svg.contains("<path"),   "line path should render");
+    assert!(svg.contains("<path"), "line path should render");
     assert!(svg.contains("Wide panel") && svg.contains("Compact panel"));
-    assert_eq!(svg_dim(&svg, "width"),  935.0, "width should reflect explicit col widths");
-    assert_eq!(svg_dim(&svg, "height"), 400.0, "height should be cell_height + 2*padding");
+    assert_eq!(
+        svg_dim(&svg, "width"),
+        935.0,
+        "width should reflect explicit col widths"
+    );
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        400.0,
+        "height should be cell_height + 2*padding"
+    );
 }
 
 #[test]
@@ -1006,23 +1134,24 @@ fn figure_per_row_col_mixed() {
     // both columns; col 0 is narrower (250 px), col 1 uses default (500 px).
     // Width:  (250 + 500) + 1*15 + 2*10 = 785
     // Height: (380 +  80) + 1*15 + 2*10 = 495
-    let entries = make_legend_entries(
-        &["Alpha", "Beta"],
-        &["steelblue", "crimson"],
-    );
+    let entries = make_legend_entries(&["Alpha", "Beta"], &["steelblue", "crimson"]);
     let plots_a = scatter_with_legend("steelblue", "Alpha");
-    let plots_b = scatter_with_legend("crimson",   "Beta");
+    let plots_b = scatter_with_legend("crimson", "Beta");
     let mut layout_a = Layout::auto_from_plots(&plots_a)
-        .with_title("Group A").with_x_label("X").with_y_label("Y");
+        .with_title("Group A")
+        .with_x_label("X")
+        .with_y_label("Y");
     layout_a.show_legend = false;
     let mut layout_b = Layout::auto_from_plots(&plots_b)
-        .with_title("Group B").with_x_label("X");
+        .with_title("Group B")
+        .with_x_label("X");
     layout_b.show_legend = false;
 
     let figure = Figure::new(2, 2)
         .with_structure(vec![
-            vec![0], vec![1],   // row 0: two data panels
-            vec![2, 3],         // row 1: legend spans both cols
+            vec![0],
+            vec![1],    // row 0: two data panels
+            vec![2, 3], // row 1: legend spans both cols
         ])
         .with_plots(vec![
             plots_a,
@@ -1039,22 +1168,30 @@ fn figure_per_row_col_mixed() {
 
     assert!(svg.contains("Group A") && svg.contains("Group B"));
     assert!(svg.contains("Alpha") && svg.contains("Beta"));
-    assert_eq!(svg_dim(&svg, "width"),  785.0, "col 0 explicit + col 1 default");
-    assert_eq!(svg_dim(&svg, "height"), 495.0, "row 0 default + row 1 explicit");
+    assert_eq!(
+        svg_dim(&svg, "width"),
+        785.0,
+        "col 0 explicit + col 1 default"
+    );
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        495.0,
+        "row 0 default + row 1 explicit"
+    );
 }
 
 #[test]
 fn figure_figure_size_with_explicit_row() {
     // 2×1 grid: scatter plot in row 0, LegendPlot in row 1 (60 px).
     // with_figure_size forces total 800×600; row 0 absorbs the remaining height.
-    let entries = make_legend_entries(
-        &["Series A", "Series B"],
-        &["steelblue", "crimson"],
-    );
+    let entries = make_legend_entries(&["Series A", "Series B"], &["steelblue", "crimson"]);
     let data_plots: Vec<Plot> = vec![
         scatter_with_legend("steelblue", "Series A"),
-        scatter_with_legend("crimson",   "Series B"),
-    ].into_iter().flatten().collect();
+        scatter_with_legend("crimson", "Series B"),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
     let mut layout = Layout::auto_from_plots(&data_plots)
         .with_title("Experiment results")
         .with_x_label("Time")
@@ -1076,8 +1213,16 @@ fn figure_figure_size_with_explicit_row() {
 
     assert!(svg.contains("Experiment results"));
     assert!(svg.contains("Series A") && svg.contains("Series B"));
-    assert_eq!(svg_dim(&svg, "width"),  800.0, "figure_size width must be honoured");
-    assert_eq!(svg_dim(&svg, "height"), 600.0, "figure_size height must be honoured");
+    assert_eq!(
+        svg_dim(&svg, "width"),
+        800.0,
+        "figure_size width must be honoured"
+    );
+    assert_eq!(
+        svg_dim(&svg, "height"),
+        600.0,
+        "figure_size height must be honoured"
+    );
 }
 
 // ── LegendPlot auto-sizing ────────────────────────────────────────────────────
@@ -1087,23 +1232,48 @@ fn figure_legend_plot_fits_short_cell() {
     // 2×1 grid: scatter data in row 0 (default height), LegendPlot in row 1 (120 px).
     // The legend has 12 entries; at 18 px/row a single column would need 216 px > 120 px,
     // so the renderer must bump up columns until all rows fit.
-    let colors = ["steelblue","crimson","seagreen","darkorange",
-                  "mediumpurple","teal","coral","goldenrod",
-                  "slateblue","peru","cadetblue","indianred"];
+    let colors = [
+        "steelblue",
+        "crimson",
+        "seagreen",
+        "darkorange",
+        "mediumpurple",
+        "teal",
+        "coral",
+        "goldenrod",
+        "slateblue",
+        "peru",
+        "cadetblue",
+        "indianred",
+    ];
     let labels: Vec<String> = (1..=12).map(|i| format!("Group {i}")).collect();
-    let entries: Vec<LegendEntry> = labels.iter().zip(colors.iter()).map(|(l, c)| LegendEntry {
-        label: l.clone(), color: (*c).into(), shape: LegendShape::Circle, dasharray: None,
-    }).collect();
+    let entries: Vec<LegendEntry> = labels
+        .iter()
+        .zip(colors.iter())
+        .map(|(l, c)| LegendEntry {
+            label: l.clone(),
+            color: (*c).into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        })
+        .collect();
 
     // Data panel: one scatter series per color so the plot area is non-empty.
     // No .with_legend() calls — the LegendPlot row below carries the labels.
-    let data_plots: Vec<Plot> = colors.iter().map(|&c| {
-        Plot::Scatter(ScatterPlot::new()
-            .with_data(vec![(1.0, 2.0), (3.0, 4.0), (5.0, 3.0)])
-            .with_color(c))
-    }).collect();
+    let data_plots: Vec<Plot> = colors
+        .iter()
+        .map(|&c| {
+            Plot::Scatter(
+                ScatterPlot::new()
+                    .with_data(vec![(1.0, 2.0), (3.0, 4.0), (5.0, 3.0)])
+                    .with_color(c),
+            )
+        })
+        .collect();
     let layout = Layout::auto_from_plots(&data_plots)
-        .with_title("12-group scatter").with_x_label("X").with_y_label("Y");
+        .with_title("12-group scatter")
+        .with_x_label("X")
+        .with_y_label("Y");
 
     let figure = Figure::new(2, 1)
         .with_plots(vec![
@@ -1118,9 +1288,15 @@ fn figure_legend_plot_fits_short_cell() {
     std::fs::write("test_outputs/figure_legend_plot_fits.svg", &svg).unwrap();
 
     assert!(svg.contains("<circle"), "scatter points should render");
-    assert!(svg.contains("12-group scatter"), "panel title should appear");
+    assert!(
+        svg.contains("12-group scatter"),
+        "panel title should appear"
+    );
     for i in 1..=12 {
-        assert!(svg.contains(&format!("Group {i}")), "legend entry Group {i} missing");
+        assert!(
+            svg.contains(&format!("Group {i}")),
+            "legend entry Group {i} missing"
+        );
     }
 }
 
@@ -1130,17 +1306,32 @@ fn figure_legend_plot_single_col_when_tall_enough() {
     // 4 entries × 18 px = 72 px < 200 px available — should stay in 1 column.
     let colors = ["steelblue", "crimson", "seagreen", "darkorange"];
     let labels = ["Alpha", "Beta", "Gamma", "Delta"];
-    let entries: Vec<LegendEntry> = labels.iter().zip(colors.iter()).map(|(&l, &c)| LegendEntry {
-        label: l.into(), color: c.into(), shape: LegendShape::Rect, dasharray: None,
-    }).collect();
+    let entries: Vec<LegendEntry> = labels
+        .iter()
+        .zip(colors.iter())
+        .map(|(&l, &c)| LegendEntry {
+            label: l.into(),
+            color: c.into(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        })
+        .collect();
 
     // No .with_legend() — the LegendPlot row carries the labels.
-    let data_plots: Vec<Plot> = colors.iter().enumerate().map(|(k, &c)| {
-        let data: Vec<(f64,f64)> = (0..6).map(|i| (i as f64, i as f64 * 0.8 + k as f64)).collect();
-        Plot::Line(LinePlot::new().with_data(data).with_color(c))
-    }).collect();
+    let data_plots: Vec<Plot> = colors
+        .iter()
+        .enumerate()
+        .map(|(k, &c)| {
+            let data: Vec<(f64, f64)> = (0..6)
+                .map(|i| (i as f64, i as f64 * 0.8 + k as f64))
+                .collect();
+            Plot::Line(LinePlot::new().with_data(data).with_color(c))
+        })
+        .collect();
     let layout = Layout::auto_from_plots(&data_plots)
-        .with_title("Four series").with_x_label("Time").with_y_label("Value");
+        .with_title("Four series")
+        .with_x_label("Time")
+        .with_y_label("Value");
 
     let figure = Figure::new(2, 1)
         .with_plots(vec![
@@ -1154,8 +1345,12 @@ fn figure_legend_plot_single_col_when_tall_enough() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/figure_legend_plot_single_col.svg", &svg).unwrap();
 
-    assert!(svg.contains("<path"),  "line paths should render");
+    assert!(svg.contains("<path"), "line paths should render");
     assert!(svg.contains("Four series"), "panel title should appear");
-    assert!(svg.contains("Alpha") && svg.contains("Beta")
-        && svg.contains("Gamma") && svg.contains("Delta"));
+    assert!(
+        svg.contains("Alpha")
+            && svg.contains("Beta")
+            && svg.contains("Gamma")
+            && svg.contains("Delta")
+    );
 }

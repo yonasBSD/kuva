@@ -1,8 +1,10 @@
-use kuva::plot::pr::{PrPlot, PrGroup, compute_pr_points, auc_pr_trapz, optimal_f1_idx, compute_pr_group};
+use kuva::backend::svg::SvgBackend;
+use kuva::plot::pr::{
+    auc_pr_trapz, compute_pr_group, compute_pr_points, optimal_f1_idx, PrGroup, PrPlot,
+};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use std::fs;
 
 fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
@@ -28,9 +30,15 @@ fn logistic_dataset(n: usize, mu: f64, scale: f64) -> Vec<(f64, bool)> {
     data
 }
 
-fn good_classifier() -> Vec<(f64, bool)> { logistic_dataset(100, 1.0, 0.5) }
-fn moderate_classifier() -> Vec<(f64, bool)> { logistic_dataset(100, 0.5, 0.5) }
-fn poor_classifier() -> Vec<(f64, bool)> { logistic_dataset(100, 0.2, 0.5) }
+fn good_classifier() -> Vec<(f64, bool)> {
+    logistic_dataset(100, 1.0, 0.5)
+}
+fn moderate_classifier() -> Vec<(f64, bool)> {
+    logistic_dataset(100, 0.5, 0.5)
+}
+fn poor_classifier() -> Vec<(f64, bool)> {
+    logistic_dataset(100, 0.2, 0.5)
+}
 
 fn perfect_classifier() -> Vec<(f64, bool)> {
     let mut data: Vec<(f64, bool)> = (0..50).map(|i| (0.51 + i as f64 * 0.009, true)).collect();
@@ -67,57 +75,88 @@ fn test_pr_single_group() {
 fn test_pr_auc_values() {
     let (pts_good, _) = compute_pr_points(&good_classifier());
     let auc_good = auc_pr_trapz(&pts_good);
-    assert!(auc_good > 0.80, "Good classifier AUC-PR too low: {auc_good}");
+    assert!(
+        auc_good > 0.80,
+        "Good classifier AUC-PR too low: {auc_good}"
+    );
     assert!(auc_good <= 1.0, "AUC-PR cannot exceed 1.0");
 
     let (pts_mod, _) = compute_pr_points(&moderate_classifier());
     let auc_mod = auc_pr_trapz(&pts_mod);
     assert!(auc_mod > 0.60, "Moderate AUC-PR too low: {auc_mod}");
-    assert!(auc_mod < auc_good, "Moderate AUC-PR should be lower than good: {auc_mod} vs {auc_good}");
+    assert!(
+        auc_mod < auc_good,
+        "Moderate AUC-PR should be lower than good: {auc_mod} vs {auc_good}"
+    );
 
     let (pts_poor, _) = compute_pr_points(&poor_classifier());
     let auc_poor = auc_pr_trapz(&pts_poor);
-    assert!(auc_poor < auc_mod, "Poor AUC-PR should be lower than moderate: {auc_poor} vs {auc_mod}");
+    assert!(
+        auc_poor < auc_mod,
+        "Poor AUC-PR should be lower than moderate: {auc_poor} vs {auc_mod}"
+    );
 }
 
 #[test]
 fn test_pr_prevalence() {
     let (_, prevalence) = compute_pr_points(&good_classifier());
     // good_classifier: equal positives and negatives → prevalence = 0.5
-    assert!((prevalence - 0.5).abs() < 1e-9, "Expected prevalence 0.5, got {prevalence}");
+    assert!(
+        (prevalence - 0.5).abs() < 1e-9,
+        "Expected prevalence 0.5, got {prevalence}"
+    );
 
     let (_, prev_imb) = compute_pr_points(&imbalanced_dataset());
     // imbalanced: 10 positives out of 100 → prevalence ≈ 0.1
-    assert!((prev_imb - 0.1).abs() < 1e-9, "Expected prevalence 0.1, got {prev_imb}");
+    assert!(
+        (prev_imb - 0.1).abs() < 1e-9,
+        "Expected prevalence 0.1, got {prev_imb}"
+    );
 }
 
 #[test]
 fn test_pr_curve_starts_at_recall_zero() {
     let (pts, _) = compute_pr_points(&good_classifier());
     assert!(!pts.is_empty(), "PR points should not be empty");
-    assert!((pts[0].recall - 0.0).abs() < 1e-9, "First point should have recall=0");
-    assert!((pts[0].precision - 1.0).abs() < 1e-9, "First point should have precision=1");
+    assert!(
+        (pts[0].recall - 0.0).abs() < 1e-9,
+        "First point should have recall=0"
+    );
+    assert!(
+        (pts[0].precision - 1.0).abs() < 1e-9,
+        "First point should have precision=1"
+    );
 }
 
 #[test]
 fn test_pr_curve_ends_at_recall_one() {
     let (pts, _) = compute_pr_points(&good_classifier());
     let last = pts.last().unwrap();
-    assert!((last.recall - 1.0).abs() < 1e-9, "Last point should have recall=1, got {}", last.recall);
+    assert!(
+        (last.recall - 1.0).abs() < 1e-9,
+        "Last point should have recall=1, got {}",
+        last.recall
+    );
 }
 
 #[test]
 fn test_pr_perfect_classifier() {
     let (pts, _) = compute_pr_points(&perfect_classifier());
     let auc = auc_pr_trapz(&pts);
-    assert!(auc > 0.99, "Perfect classifier AUC-PR should be > 0.99, got {auc}");
+    assert!(
+        auc > 0.99,
+        "Perfect classifier AUC-PR should be > 0.99, got {auc}"
+    );
 }
 
 #[test]
 fn test_pr_two_groups() {
     let g1 = PrGroup::new("Good classifier").with_raw(good_classifier());
     let g2 = PrGroup::new("Moderate classifier").with_raw(moderate_classifier());
-    let pr = PrPlot::new().with_group(g1).with_group(g2).with_legend("Model");
+    let pr = PrPlot::new()
+        .with_group(g1)
+        .with_group(g2)
+        .with_legend("Model");
     let plots = vec![Plot::Pr(pr)];
     let layout = Layout::auto_from_plots(&plots).with_title("PR Curve Comparison");
     let svg = write_svg("pr_two_groups", plots, layout);
@@ -130,7 +169,11 @@ fn test_pr_three_groups() {
     let g1 = PrGroup::new("Good").with_raw(good_classifier());
     let g2 = PrGroup::new("Moderate").with_raw(moderate_classifier());
     let g3 = PrGroup::new("Poor").with_raw(poor_classifier());
-    let pr = PrPlot::new().with_group(g1).with_group(g2).with_group(g3).with_legend("Classifier");
+    let pr = PrPlot::new()
+        .with_group(g1)
+        .with_group(g2)
+        .with_group(g3)
+        .with_legend("Classifier");
     let plots = vec![Plot::Pr(pr)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Three-model PR Comparison")
@@ -174,7 +217,9 @@ fn test_pr_precomputed() {
             (recall, precision)
         })
         .collect();
-    let group = PrGroup::new("Linear curve").with_points(pts).with_prevalence(0.3);
+    let group = PrGroup::new("Linear curve")
+        .with_points(pts)
+        .with_prevalence(0.3);
     let pr = PrPlot::new().with_group(group);
     let plots = vec![Plot::Pr(pr)];
     let layout = Layout::auto_from_plots(&plots).with_title("Precomputed PR Curve");
@@ -184,7 +229,9 @@ fn test_pr_precomputed() {
 
 #[test]
 fn test_pr_auc_label_in_svg() {
-    let group = PrGroup::new("Classifier").with_raw(good_classifier()).with_auc_label(true);
+    let group = PrGroup::new("Classifier")
+        .with_raw(good_classifier())
+        .with_auc_label(true);
     let pr = PrPlot::new().with_group(group).with_legend("Model");
     let plots = vec![Plot::Pr(pr)];
     let layout = Layout::auto_from_plots(&plots).with_title("PR AUC Label");
@@ -194,12 +241,17 @@ fn test_pr_auc_label_in_svg() {
 
 #[test]
 fn test_pr_auc_label_off() {
-    let group = PrGroup::new("Classifier").with_raw(good_classifier()).with_auc_label(false);
+    let group = PrGroup::new("Classifier")
+        .with_raw(good_classifier())
+        .with_auc_label(false);
     let pr = PrPlot::new().with_group(group).with_legend("Model");
     let plots = vec![Plot::Pr(pr)];
     let layout = Layout::auto_from_plots(&plots).with_title("PR No AUC Label");
     let svg = write_svg("pr_auc_label_off", plots, layout);
-    assert!(!svg.contains("AUC-PR"), "AUC-PR should be absent when show_auc_label=false");
+    assert!(
+        !svg.contains("AUC-PR"),
+        "AUC-PR should be absent when show_auc_label=false"
+    );
 }
 
 #[test]

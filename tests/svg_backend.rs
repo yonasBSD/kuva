@@ -1,9 +1,17 @@
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::{Scene, Primitive, TextAnchor};
+use kuva::render::render::{Primitive, Scene, TextAnchor};
 
 fn minimal_scene() -> Scene {
     let mut scene = Scene::new(200.0, 100.0);
-    scene.add(Primitive::Circle { cx: 50.0, cy: 50.0, r: 10.0, fill: "red".into(), fill_opacity: None, stroke: None, stroke_width: None });
+    scene.add(Primitive::Circle {
+        cx: 50.0,
+        cy: 50.0,
+        r: 10.0,
+        fill: "red".into(),
+        fill_opacity: None,
+        stroke: None,
+        stroke_width: None,
+    });
     scene.add(Primitive::Text {
         x: 100.0,
         y: 50.0,
@@ -50,16 +58,37 @@ fn test_svg_pretty() {
 fn test_svg_pretty_groups() {
     // Verify that GroupStart increments depth and GroupEnd decrements it.
     let mut scene = Scene::new(200.0, 100.0);
-    scene.add(Primitive::GroupStart { transform: Some("translate(10,10)".to_string()), title: None, extra_attrs: None });
-    scene.add(Primitive::Circle { cx: 5.0, cy: 5.0, r: 3.0, fill: "blue".into(), fill_opacity: None, stroke: None, stroke_width: None });
+    scene.add(Primitive::GroupStart {
+        transform: Some("translate(10,10)".to_string()),
+        title: None,
+        extra_attrs: None,
+    });
+    scene.add(Primitive::Circle {
+        cx: 5.0,
+        cy: 5.0,
+        r: 3.0,
+        fill: "blue".into(),
+        fill_opacity: None,
+        stroke: None,
+        stroke_width: None,
+    });
     scene.add(Primitive::GroupEnd);
 
     let svg = SvgBackend::new().with_pretty(true).render_scene(&scene);
 
     // Outer <g> is at depth 1 (2 spaces); child circle is at depth 2 (4 spaces).
-    assert!(svg.contains("\n  <g "), "group open must be indented at depth 1");
-    assert!(svg.contains("\n    <circle"), "child of group must be indented at depth 2");
-    assert!(svg.contains("\n  </g>"), "group close must be indented at depth 1");
+    assert!(
+        svg.contains("\n  <g "),
+        "group open must be indented at depth 1"
+    );
+    assert!(
+        svg.contains("\n    <circle"),
+        "child of group must be indented at depth 2"
+    );
+    assert!(
+        svg.contains("\n  </g>"),
+        "group close must be indented at depth 1"
+    );
 }
 
 #[test]
@@ -69,6 +98,6 @@ fn test_svg_compat_shim() {
     let scene = minimal_scene();
     #[allow(non_upper_case_globals)]
     let svg_via_shim = SvgBackend.render_scene(&scene);
-    let svg_via_new  = SvgBackend::new().render_scene(&scene);
+    let svg_via_new = SvgBackend::new().render_scene(&scene);
     assert_eq!(svg_via_shim, svg_via_new);
 }

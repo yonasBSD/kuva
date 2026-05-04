@@ -1,10 +1,9 @@
-use kuva::plot::{Heatmap, ColorMap, PhyloTree};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::{ColorMap, Heatmap, PhyloTree};
 use kuva::render::figure::Figure;
-use kuva::render::render::render_multiple;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_heatmap_colorbar_values() {
@@ -15,17 +14,16 @@ fn test_heatmap_colorbar_values() {
     ];
 
     let heatmap = Heatmap::new()
-                        .with_data(data)
-                        .with_values()
-                        // .with_color_map(ColorMap::Grayscale);
-                        .with_color_map(ColorMap::Viridis);
-                        // .with_color_map(ColorMap::Inferno);
+        .with_data(data)
+        .with_values()
+        // .with_color_map(ColorMap::Grayscale);
+        .with_color_map(ColorMap::Viridis);
+    // .with_color_map(ColorMap::Inferno);
 
     let plots = vec![Plot::Heatmap(heatmap)];
 
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Heatmap");
-        // .with_x_categories(x_labels);
+    let layout = Layout::auto_from_plots(&plots).with_title("Heatmap");
+    // .with_x_categories(x_labels);
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -49,8 +47,7 @@ fn test_heatmap_colorbar() {
 
     let plots = vec![Plot::Heatmap(heatmap)];
 
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Heatmap with Colorbar");
+    let layout = Layout::auto_from_plots(&plots).with_title("Heatmap with Colorbar");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -68,15 +65,16 @@ fn test_heatmap_with_y_categories_reorders_data() {
     // Row labels in original order: A, B, C
     // Row A is distinctive: first column value is 99.0
     let data = vec![
-        vec![99.0, 1.0, 2.0],  // row A
-        vec![3.0,  4.0, 5.0],  // row B
-        vec![6.0,  7.0, 8.0],  // row C
+        vec![99.0, 1.0, 2.0], // row A
+        vec![3.0, 4.0, 5.0],  // row B
+        vec![6.0, 7.0, 8.0],  // row C
     ];
     let row_labels: Vec<String> = ["A", "B", "C"].iter().map(|s| s.to_string()).collect();
     let col_labels: Vec<String> = ["x", "y", "z"].iter().map(|s| s.to_string()).collect();
 
     // Desired top-to-bottom order: C (top), B (mid), A (bottom)
-    let desired_top_to_bottom: Vec<String> = ["C", "B", "A"].iter().map(|s| s.to_string()).collect();
+    let desired_top_to_bottom: Vec<String> =
+        ["C", "B", "A"].iter().map(|s| s.to_string()).collect();
 
     let heatmap = Heatmap::new()
         .with_data(data)
@@ -85,11 +83,14 @@ fn test_heatmap_with_y_categories_reorders_data() {
 
     // Internally stored bottom-to-top: row 0 = A (bottom), row 1 = B, row 2 = C (top)
     assert_eq!(heatmap.data[0][0], 99.0, "data row 0 (bottom) should be A");
-    assert_eq!(heatmap.data[1][0], 3.0,  "data row 1 should be B");
-    assert_eq!(heatmap.data[2][0], 6.0,  "data row 2 (top) should be C");
+    assert_eq!(heatmap.data[1][0], 3.0, "data row 1 should be B");
+    assert_eq!(heatmap.data[2][0], 6.0, "data row 2 (top) should be C");
 
     // row_labels is bottom-to-top — can be passed directly to Layout::with_y_categories
-    let expected_row_labels: &[String] = &["A", "B", "C"].iter().map(|s| s.to_string()).collect::<Vec<_>>();
+    let expected_row_labels: &[String] = &["A", "B", "C"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<_>>();
     assert_eq!(heatmap.row_labels.as_deref(), Some(expected_row_labels));
 
     // Render to SVG for visual inspection (C at top, A at bottom)
@@ -125,9 +126,18 @@ fn test_heatmap_with_x_categories_reorders_data() {
         .with_x_categories(desired.clone());
 
     // After reordering, column 0 should be z (10, 20, 30)
-    assert_eq!(heatmap.data[0][0], 10.0, "col 0 row 0 should be z-value for A");
-    assert_eq!(heatmap.data[1][0], 20.0, "col 0 row 1 should be z-value for B");
-    assert_eq!(heatmap.data[2][0], 30.0, "col 0 row 2 should be z-value for C");
+    assert_eq!(
+        heatmap.data[0][0], 10.0,
+        "col 0 row 0 should be z-value for A"
+    );
+    assert_eq!(
+        heatmap.data[1][0], 20.0,
+        "col 0 row 1 should be z-value for B"
+    );
+    assert_eq!(
+        heatmap.data[2][0], 30.0,
+        "col 0 row 2 should be z-value for C"
+    );
     assert_eq!(heatmap.col_labels.as_deref(), Some(desired.as_slice()));
 
     let plots = vec![Plot::Heatmap(heatmap)];
@@ -168,8 +178,7 @@ fn test_phylo_heatmap_alignment() {
 
     // The last leaf (bottom of tree) should be in data row 0 (bottom of heatmap).
     let last_leaf = leaf_order.last().unwrap().as_str();
-    let last_leaf_idx_in_original = labels_str
-        .iter().position(|&s| s == last_leaf).unwrap();
+    let last_leaf_idx_in_original = labels_str.iter().position(|&s| s == last_leaf).unwrap();
     assert_eq!(
         heatmap.data[0][last_leaf_idx_in_original], 0.0,
         "diagonal must be 0.0: bottom-of-tree leaf should be in data row 0"
@@ -181,8 +190,7 @@ fn test_phylo_heatmap_alignment() {
     let tree_plots = vec![Plot::PhyloTree(tree)];
     let heatmap_plots = vec![Plot::Heatmap(heatmap)];
 
-    let tree_layout = Layout::auto_from_plots(&tree_plots)
-        .with_title("UPGMA Tree");
+    let tree_layout = Layout::auto_from_plots(&tree_plots).with_title("UPGMA Tree");
     let heatmap_layout = Layout::auto_from_plots(&heatmap_plots)
         .with_title("Distance Matrix")
         .with_y_categories(layout_cats);
@@ -200,10 +208,7 @@ fn test_phylo_heatmap_alignment() {
 
 #[test]
 fn test_heatmap_x_range() {
-    let data = vec![
-        vec![1.0, 2.0, 3.0],
-        vec![4.0, 5.0, 6.0],
-    ];
+    let data = vec![vec![1.0, 2.0, 3.0], vec![4.0, 5.0, 6.0]];
     let hm = Heatmap::new().with_data(data).with_x_range(-10.0, 10.0);
     let plots = vec![Plot::Heatmap(hm)];
     let layout = Layout::auto_from_plots(&plots).with_x_label("X");
@@ -215,11 +220,7 @@ fn test_heatmap_x_range() {
 
 #[test]
 fn test_heatmap_y_range() {
-    let data = vec![
-        vec![1.0, 2.0],
-        vec![3.0, 4.0],
-        vec![5.0, 6.0],
-    ];
+    let data = vec![vec![1.0, 2.0], vec![3.0, 4.0], vec![5.0, 6.0]];
     let hm = Heatmap::new().with_data(data).with_y_range(-4.0, 4.0);
     let plots = vec![Plot::Heatmap(hm)];
     let layout = Layout::auto_from_plots(&plots).with_y_label("Y");
@@ -276,17 +277,24 @@ fn test_heatmap_custom_range_bounds() {
 #[test]
 fn test_heatmap_cell_size_default() {
     let hm = Heatmap::new().with_data(vec![vec![1.0, 2.0], vec![3.0, 4.0]]);
-    assert!((hm.cell_size - 0.99).abs() < 1e-9, "default cell_size should be 0.99");
+    assert!(
+        (hm.cell_size - 0.99).abs() < 1e-9,
+        "default cell_size should be 0.99"
+    );
 }
 
 /// Parse all (x, width) pairs from SVG `<rect>` elements.
 fn parse_rect_xw(svg: &str) -> Vec<(f64, f64)> {
     let mut out = Vec::new();
     for chunk in svg.split("<rect ") {
-        let x = chunk.split("x=\"").nth(1)
+        let x = chunk
+            .split("x=\"")
+            .nth(1)
             .and_then(|s| s.split('"').next())
             .and_then(|s| s.parse::<f64>().ok());
-        let w = chunk.split("width=\"").nth(1)
+        let w = chunk
+            .split("width=\"")
+            .nth(1)
             .and_then(|s| s.split('"').next())
             .and_then(|s| s.parse::<f64>().ok());
         if let (Some(x), Some(w)) = (x, w) {
@@ -303,7 +311,8 @@ fn extract_cell_rects_n(rects: &[(f64, f64)], n: usize) -> Vec<(f64, f64)> {
     let mut i = 0;
     while i + n <= rects.len() {
         let w0 = rects[i].1;
-        let run: Vec<_> = rects[i..].iter()
+        let run: Vec<_> = rects[i..]
+            .iter()
             .take_while(|&&(_, w)| (w - w0).abs() < 1.0)
             .copied()
             .collect();
@@ -337,8 +346,10 @@ fn test_heatmap_cell_size_gap_default() {
     for w in sorted.windows(2) {
         let right = w[0].0 + w[0].1;
         let next_left = w[1].0;
-        assert!(right < next_left + 1e-3,
-            "default cell_size=0.99: right edge {right:.3} should be < next left {next_left:.3}");
+        assert!(
+            right < next_left + 1e-3,
+            "default cell_size=0.99: right edge {right:.3} should be < next left {next_left:.3}"
+        );
     }
 }
 
@@ -364,15 +375,27 @@ fn test_heatmap_cell_size_flush() {
     for w in sorted.windows(2) {
         let right = w[0].0 + w[0].1;
         let next_left = w[1].0;
-        assert!(right > next_left,
-            "cell_size=1.0: right edge {right:.3} should overlap next left {next_left:.3}");
+        assert!(
+            right > next_left,
+            "cell_size=1.0: right edge {right:.3} should overlap next left {next_left:.3}"
+        );
     }
 }
 
 #[test]
 fn test_heatmap_cell_size_clamp() {
-    let hm = Heatmap::new().with_data(vec![vec![1.0]]).with_cell_size(2.0);
-    assert!((hm.cell_size - 1.0).abs() < 1e-9, "cell_size should be clamped to 1.0");
-    let hm2 = Heatmap::new().with_data(vec![vec![1.0]]).with_cell_size(0.1);
-    assert!((hm2.cell_size - 0.5).abs() < 1e-9, "cell_size should be clamped to 0.5");
+    let hm = Heatmap::new()
+        .with_data(vec![vec![1.0]])
+        .with_cell_size(2.0);
+    assert!(
+        (hm.cell_size - 1.0).abs() < 1e-9,
+        "cell_size should be clamped to 1.0"
+    );
+    let hm2 = Heatmap::new()
+        .with_data(vec![vec![1.0]])
+        .with_cell_size(0.1);
+    assert!(
+        (hm2.cell_size - 0.5).abs() < 1e-9,
+        "cell_size should be clamped to 0.5"
+    );
 }

@@ -12,7 +12,12 @@ pub struct ForestRow {
 
 impl ForestRow {
     /// Create a row with the required fields; weight and color default to `None`.
-    pub fn new<S: Into<String>>(label: S, estimate: impl Into<f64>, ci_lower: impl Into<f64>, ci_upper: impl Into<f64>) -> Self {
+    pub fn new<S: Into<String>>(
+        label: S,
+        estimate: impl Into<f64>,
+        ci_lower: impl Into<f64>,
+        ci_upper: impl Into<f64>,
+    ) -> Self {
         Self {
             label: label.into(),
             estimate: estimate.into(),
@@ -71,7 +76,9 @@ pub struct ForestPlot {
 }
 
 impl Default for ForestPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ForestPlot {
@@ -102,8 +109,15 @@ impl ForestPlot {
     ///     .with_row("Study A", 0.50, 0.10, 0.90)
     ///     .with_row("Study B", -0.30, -0.80, 0.20);
     /// ```
-    pub fn with_row<S: Into<String>>(mut self, label: S, estimate: impl Into<f64>, ci_lower: impl Into<f64>, ci_upper: impl Into<f64>) -> Self {
-        self.rows.push(ForestRow::new(label, estimate, ci_lower, ci_upper));
+    pub fn with_row<S: Into<String>>(
+        mut self,
+        label: S,
+        estimate: impl Into<f64>,
+        ci_lower: impl Into<f64>,
+        ci_upper: impl Into<f64>,
+    ) -> Self {
+        self.rows
+            .push(ForestRow::new(label, estimate, ci_lower, ci_upper));
         self
     }
 
@@ -115,7 +129,14 @@ impl ForestPlot {
     ///     .with_weighted_row("Study A", 0.50, 0.10, 0.90, 5.2)
     ///     .with_weighted_row("Study B", -0.30, -0.80, 0.20, 3.8);
     /// ```
-    pub fn with_weighted_row<S: Into<String>>(mut self, label: S, estimate: impl Into<f64>, ci_lower: impl Into<f64>, ci_upper: impl Into<f64>, weight: impl Into<f64>) -> Self {
+    pub fn with_weighted_row<S: Into<String>>(
+        mut self,
+        label: S,
+        estimate: impl Into<f64>,
+        ci_lower: impl Into<f64>,
+        ci_upper: impl Into<f64>,
+        weight: impl Into<f64>,
+    ) -> Self {
         let mut row = ForestRow::new(label, estimate, ci_lower, ci_upper);
         row.weight = Some(weight.into());
         self.rows.push(row);
@@ -130,7 +151,14 @@ impl ForestPlot {
     ///     .with_colored_row("Favours treatment", 0.50, 0.10, 0.90, "seagreen")
     ///     .with_colored_row("Favours control",  -0.30, -0.80, 0.20, "tomato");
     /// ```
-    pub fn with_colored_row<S: Into<String>, C: Into<String>>(mut self, label: S, estimate: impl Into<f64>, ci_lower: impl Into<f64>, ci_upper: impl Into<f64>, color: C) -> Self {
+    pub fn with_colored_row<S: Into<String>, C: Into<String>>(
+        mut self,
+        label: S,
+        estimate: impl Into<f64>,
+        ci_lower: impl Into<f64>,
+        ci_upper: impl Into<f64>,
+        color: C,
+    ) -> Self {
         let mut row = ForestRow::new(label, estimate, ci_lower, ci_upper);
         row.color = Some(color.into());
         self.rows.push(row);
@@ -139,7 +167,13 @@ impl ForestPlot {
 
     /// Add a row with both a weight and a per-row color override.
     pub fn with_weighted_colored_row<S: Into<String>, C: Into<String>>(
-        mut self, label: S, estimate: impl Into<f64>, ci_lower: impl Into<f64>, ci_upper: impl Into<f64>, weight: impl Into<f64>, color: C,
+        mut self,
+        label: S,
+        estimate: impl Into<f64>,
+        ci_lower: impl Into<f64>,
+        ci_upper: impl Into<f64>,
+        weight: impl Into<f64>,
+        color: C,
     ) -> Self {
         let mut row = ForestRow::new(label, estimate, ci_lower, ci_upper);
         row.weight = Some(weight.into());

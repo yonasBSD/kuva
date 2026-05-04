@@ -1,11 +1,11 @@
+use crate::data::{ColSpec, DataTable, InputArgs};
+use crate::layout_args::{apply_base_args, BaseArgs};
+use crate::output::write_output;
 use clap::Args;
 use kuva::plot::rose::{RoseEncoding, RoseMode, RosePlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
-use crate::output::write_output;
 
 /// Nightingale rose / coxcomb chart from a tabular file.
 #[derive(Args, Debug)]
@@ -104,11 +104,21 @@ pub fn run(args: RoseArgs) -> Result<(), String> {
         .with_show_labels(!args.no_labels)
         .with_show_values(args.show_values);
 
-    if let Some(ir) = args.inner_radius { plot = plot.with_inner_radius(ir); }
-    if let Some(g)  = args.gap          { plot = plot.with_gap(g); }
-    if let Some(sa) = args.start_angle  { plot = plot.with_start_angle(sa); }
-    if let Some(gl) = args.grid_lines   { plot = plot.with_grid_lines(gl); }
-    if let Some(ref lbl) = args.legend  { plot = plot.with_legend(lbl.clone()); }
+    if let Some(ir) = args.inner_radius {
+        plot = plot.with_inner_radius(ir);
+    }
+    if let Some(g) = args.gap {
+        plot = plot.with_gap(g);
+    }
+    if let Some(sa) = args.start_angle {
+        plot = plot.with_start_angle(sa);
+    }
+    if let Some(gl) = args.grid_lines {
+        plot = plot.with_grid_lines(gl);
+    }
+    if let Some(ref lbl) = args.legend {
+        plot = plot.with_legend(lbl.clone());
+    }
 
     if let Some(ref gcol) = args.group_by {
         // Multi-series: group by (label, group) columns
@@ -120,21 +130,31 @@ pub fn run(args: RoseArgs) -> Result<(), String> {
         let mut ordered_labels: Vec<String> = vec![];
         let mut ordered_groups: Vec<String> = vec![];
         for l in &labels_col {
-            if !ordered_labels.contains(l) { ordered_labels.push(l.clone()); }
+            if !ordered_labels.contains(l) {
+                ordered_labels.push(l.clone());
+            }
         }
         for g in &groups_col {
-            if !ordered_groups.contains(g) { ordered_groups.push(g.clone()); }
+            if !ordered_groups.contains(g) {
+                ordered_groups.push(g.clone());
+            }
         }
 
         plot = plot.with_x_labels(ordered_labels.iter().cloned());
 
         for grp in &ordered_groups {
-            let vals: Vec<f64> = ordered_labels.iter().map(|lbl| {
-                labels_col.iter().zip(groups_col.iter()).zip(values_col.iter())
-                    .filter(|((l, g), _)| *l == lbl && *g == grp)
-                    .map(|((_, _), v)| *v)
-                    .sum::<f64>()
-            }).collect();
+            let vals: Vec<f64> = ordered_labels
+                .iter()
+                .map(|lbl| {
+                    labels_col
+                        .iter()
+                        .zip(groups_col.iter())
+                        .zip(values_col.iter())
+                        .filter(|((l, g), _)| *l == lbl && *g == grp)
+                        .map(|((_, _), v)| *v)
+                        .sum::<f64>()
+                })
+                .collect();
             plot = match mode {
                 RoseMode::Grouped => plot.with_group(grp.clone(), vals),
                 RoseMode::Stacked => plot.with_stack(grp.clone(), vals),

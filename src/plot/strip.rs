@@ -95,7 +95,9 @@ pub struct StripPlot {
 }
 
 impl Default for StripPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StripPlot {
@@ -206,10 +208,8 @@ impl StripPlot {
         I: IntoIterator<Item = (V, super::MarkerShape)>,
         V: Into<f64>,
     {
-        let (values, shapes): (Vec<f64>, Vec<super::MarkerShape>) = points
-            .into_iter()
-            .map(|(v, s)| (v.into(), s))
-            .unzip();
+        let (values, shapes): (Vec<f64>, Vec<super::MarkerShape>) =
+            points.into_iter().map(|(v, s)| (v.into(), s)).unzip();
         self.groups.push(StripGroup {
             label: label.into(),
             values,
@@ -382,7 +382,10 @@ impl StripPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

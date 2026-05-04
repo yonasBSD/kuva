@@ -1,8 +1,8 @@
-use kuva::plot::WaterfallPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::WaterfallPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_waterfall_basic() {
@@ -65,15 +65,14 @@ fn test_waterfall_connectors_and_values() {
         .with_values();
 
     let plots = vec![Plot::Waterfall(wf)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Connectors and Values");
+    let layout = Layout::auto_from_plots(&plots).with_title("Connectors and Values");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/waterfall_connectors_values.svg", svg.clone()).unwrap();
 
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("4,3"));  // dasharray from connectors
+    assert!(svg.contains("4,3")); // dasharray from connectors
 }
 
 #[test]
@@ -88,7 +87,7 @@ fn test_waterfall_difference() {
     let layout = Layout::auto_from_plots(&plots).with_title("Difference +5");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/waterfall_difference_pos.svg", svg.clone()).unwrap();
-    assert!(svg.contains("#44aa44"));  // green
+    assert!(svg.contains("#44aa44")); // green
 
     let wf_neg = WaterfallPlot::new()
         .with_delta("Start", 50.0)
@@ -98,7 +97,7 @@ fn test_waterfall_difference() {
     let layout2 = Layout::auto_from_plots(&plots2).with_title("Difference -10");
     let svg2 = SvgBackend.render_scene(&render_multiple(plots2, layout2));
     std::fs::write("test_outputs/waterfall_difference_neg.svg", svg2.clone()).unwrap();
-    assert!(svg2.contains("#cc4444"));  // red
+    assert!(svg2.contains("#cc4444")); // red
 }
 
 #[test]
@@ -112,8 +111,7 @@ fn test_waterfall_custom_colors() {
         .with_color_total("navy");
 
     let plots = vec![Plot::Waterfall(wf)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Custom Colors");
+    let layout = Layout::auto_from_plots(&plots).with_title("Custom Colors");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -164,10 +162,10 @@ fn test_waterfall_with_gap() {
     }
 
     let svg_narrow = render_gap(0.6); // bar_width = 0.4  → narrow bars
-    let svg_wide   = render_gap(0.1); // bar_width = 0.9  → wide bars
+    let svg_wide = render_gap(0.1); // bar_width = 0.9  → wide bars
 
     std::fs::write("test_outputs/waterfall_bar_narrow.svg", &svg_narrow).unwrap();
-    std::fs::write("test_outputs/waterfall_bar_wide.svg",   &svg_wide).unwrap();
+    std::fs::write("test_outputs/waterfall_bar_wide.svg", &svg_wide).unwrap();
 
     // Extract the width of the first <rect> element that looks like a bar:
     // > 10px (not a tick artifact) and < 300px (not the clip/background rect).
@@ -176,7 +174,9 @@ fn test_waterfall_with_gap() {
             if let Some(after) = rect_chunk.split("width=\"").nth(1) {
                 let s = after.split('"').next().unwrap_or("");
                 if let Ok(v) = s.parse::<f64>() {
-                    if v > 10.0 && v < 300.0 { return v; }
+                    if v > 10.0 && v < 300.0 {
+                        return v;
+                    }
                 }
             }
         }
@@ -184,7 +184,7 @@ fn test_waterfall_with_gap() {
     }
 
     let w_narrow = first_rect_width(&svg_narrow);
-    let w_wide   = first_rect_width(&svg_wide);
+    let w_wide = first_rect_width(&svg_wide);
 
     assert!(
         w_wide > w_narrow,

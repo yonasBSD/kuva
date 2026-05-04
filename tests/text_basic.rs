@@ -1,9 +1,9 @@
-use kuva::plot::{TextPlot, TextAlign, ScatterPlot, Histogram};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{Histogram, ScatterPlot, TextAlign, TextPlot};
+use kuva::render::figure::Figure;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-use kuva::render::figure::Figure;
+use kuva::render::render::render_multiple;
 
 fn svg(plots: Vec<Plot>, layout: Layout) -> String {
     SvgBackend.render_scene(&render_multiple(plots, layout))
@@ -12,7 +12,8 @@ fn svg(plots: Vec<Plot>, layout: Layout) -> String {
 fn text_svg(tp: TextPlot) -> String {
     let plots = vec![Plot::Text(tp)];
     let layout = Layout::auto_from_plots(&plots)
-        .with_width(400.0).with_height(200.0);
+        .with_width(400.0)
+        .with_height(200.0);
     svg(plots, layout)
 }
 
@@ -151,17 +152,14 @@ fn test_text_right_align() {
 
 #[test]
 fn test_text_custom_font_size() {
-    let t = TextPlot::new()
-        .with_body("Big text.")
-        .with_font_size(20);
+    let t = TextPlot::new().with_body("Big text.").with_font_size(20);
     let out = text_svg(t);
     assert!(out.contains("Big text."));
 }
 
 #[test]
 fn test_text_multiline_body() {
-    let t = TextPlot::new()
-        .with_body("Line one.\n\nLine two after a blank line.\nLine three.");
+    let t = TextPlot::new().with_body("Line one.\n\nLine two after a blank line.\nLine three.");
     let out = text_svg(t);
     assert!(out.contains("Line one."));
     assert!(out.contains("Line two after a blank line."));
@@ -172,30 +170,54 @@ fn test_text_multiline_body() {
 fn test_text_in_figure_with_scatter_and_histogram() {
     std::fs::create_dir_all("test_outputs").unwrap();
 
-    let data_a: Vec<(f64, f64)> = (0..15).map(|i| (i as f64 * 0.5, i as f64 * 0.8 + 1.0)).collect();
-    let data_b: Vec<(f64, f64)> = (0..15).map(|i| (i as f64 * 0.5 + 2.0, i as f64 * 0.5 + 3.0)).collect();
+    let data_a: Vec<(f64, f64)> = (0..15)
+        .map(|i| (i as f64 * 0.5, i as f64 * 0.8 + 1.0))
+        .collect();
+    let data_b: Vec<(f64, f64)> = (0..15)
+        .map(|i| (i as f64 * 0.5 + 2.0, i as f64 * 0.5 + 3.0))
+        .collect();
 
     let scatter_plots = vec![
-        Plot::Scatter(ScatterPlot::new().with_data(data_a).with_color("steelblue").with_legend("A")),
-        Plot::Scatter(ScatterPlot::new().with_data(data_b).with_color("crimson").with_legend("B")),
+        Plot::Scatter(
+            ScatterPlot::new()
+                .with_data(data_a)
+                .with_color("steelblue")
+                .with_legend("A"),
+        ),
+        Plot::Scatter(
+            ScatterPlot::new()
+                .with_data(data_b)
+                .with_color("crimson")
+                .with_legend("B"),
+        ),
     ];
     let scatter_layout = Layout::auto_from_plots(&scatter_plots)
         .with_title("Scatter")
-        .with_x_label("X").with_y_label("Y");
+        .with_x_label("X")
+        .with_y_label("Y");
 
     let bar = kuva::plot::BarPlot::new()
         .with_group("Alpha", vec![(42.0, "steelblue")])
-        .with_group("Beta",  vec![(28.0, "crimson")])
+        .with_group("Beta", vec![(28.0, "crimson")])
         .with_group("Gamma", vec![(15.0, "seagreen")]);
     let bar_plots = vec![Plot::Bar(bar)];
     let bar_layout = Layout::auto_from_plots(&bar_plots)
-        .with_title("Group Counts").with_x_label("Group").with_y_label("n");
+        .with_title("Group Counts")
+        .with_x_label("Group")
+        .with_y_label("n");
 
-    let vals: Vec<f64> = (0..40).map(|i| (i as f64 * 0.3).sin() * 5.0 + 10.0).collect();
-    let hist = Histogram::new().with_data(vals).with_bins(8).with_range((5.0, 15.5));
+    let vals: Vec<f64> = (0..40)
+        .map(|i| (i as f64 * 0.3).sin() * 5.0 + 10.0)
+        .collect();
+    let hist = Histogram::new()
+        .with_data(vals)
+        .with_bins(8)
+        .with_range((5.0, 15.5));
     let hist_plots = vec![Plot::Histogram(hist)];
     let hist_layout = Layout::auto_from_plots(&hist_plots)
-        .with_title("Value Distribution").with_x_label("Value").with_y_label("Count");
+        .with_title("Value Distribution")
+        .with_x_label("Value")
+        .with_y_label("Count");
 
     let note = TextPlot::new()
         .with_body(

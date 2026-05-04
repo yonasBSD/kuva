@@ -46,10 +46,10 @@
 //! This bakes DejaVu Sans as a base64 `@font-face` block into the SVG at the cost
 //! of roughly 1 MB of added file size.
 
-pub mod plot;
 pub mod backend;
-pub mod render;
+pub mod plot;
 pub mod prelude;
+pub mod render;
 
 pub(crate) mod fonts;
 
@@ -64,15 +64,15 @@ pub use backend::raster::RasterBackend;
 #[cfg(feature = "pdf")]
 pub use backend::pdf::PdfBackend;
 
-pub use render::theme::Theme;
-pub use render::palette::Palette;
+pub use render::datetime::{ymd, ymd_hms, DateTimeAxis, DateUnit};
 pub use render::layout::TickFormat;
-pub use render::render::render_twin_y;
-pub use render::render::render_sankey;
-pub use render::render::render_phylo_tree;
-pub use render::render::render_synteny;
+pub use render::palette::Palette;
 pub use render::render::render_calendar;
-pub use render::datetime::{DateTimeAxis, DateUnit, ymd, ymd_hms};
+pub use render::render::render_phylo_tree;
+pub use render::render::render_sankey;
+pub use render::render::render_synteny;
+pub use render::render::render_twin_y;
+pub use render::theme::Theme;
 
 /// Render a collection of plots to an SVG string in one call.
 ///
@@ -115,7 +115,9 @@ pub fn render_to_png(
     scale: f32,
 ) -> Result<Vec<u8>, String> {
     let scene = render::render::render_multiple(plots, layout);
-    backend::png::PngBackend::new().with_scale(scale).render_scene(&scene)
+    backend::png::PngBackend::new()
+        .with_scale(scale)
+        .render_scene(&scene)
 }
 
 /// Render a collection of plots directly to a PNG byte vector via `tiny_skia`,
@@ -134,7 +136,9 @@ pub fn render_to_raster(
     scale: f32,
 ) -> Result<Vec<u8>, String> {
     let scene = render::render::render_multiple(plots, layout);
-    backend::raster::RasterBackend::new().with_scale(scale).render_scene(&scene)
+    backend::raster::RasterBackend::new()
+        .with_scale(scale)
+        .render_scene(&scene)
 }
 
 /// Render a collection of plots to a PDF byte vector in one call (requires feature `pdf`).

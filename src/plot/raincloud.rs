@@ -109,7 +109,10 @@ impl RaincloudPlot {
     ///
     /// Groups are rendered left-to-right in the order added.
     pub fn with_group(mut self, label: impl Into<String>, values: Vec<f64>) -> Self {
-        self.groups.push(RaincloudGroup { label: label.into(), values });
+        self.groups.push(RaincloudGroup {
+            label: label.into(),
+            values,
+        });
         self
     }
 
@@ -119,7 +122,10 @@ impl RaincloudPlot {
         groups: impl IntoIterator<Item = (impl Into<String>, Vec<f64>)>,
     ) -> Self {
         for (label, values) in groups {
-            self.groups.push(RaincloudGroup { label: label.into(), values });
+            self.groups.push(RaincloudGroup {
+                label: label.into(),
+                values,
+            });
         }
         self
     }

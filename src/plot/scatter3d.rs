@@ -1,6 +1,6 @@
 use crate::plot::colormap::ColorMap;
+use crate::plot::plot3d::{Box3DConfig, DataRanges3D, View3D};
 use crate::plot::scatter::MarkerShape;
-use crate::plot::plot3d::{DataRanges3D, Box3DConfig, View3D};
 
 /// A single 3D data point.
 #[derive(Debug, Clone, Copy)]
@@ -65,7 +65,9 @@ pub struct Scatter3DPlot {
 }
 
 impl Default for Scatter3DPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Scatter3DPlot {
@@ -89,7 +91,9 @@ impl Scatter3DPlot {
 
     /// Compute axis-aligned data ranges. Returns `None` if data is empty.
     pub fn data_ranges(&self) -> Option<DataRanges3D> {
-        if self.data.is_empty() { return None; }
+        if self.data.is_empty() {
+            return None;
+        }
         let mut x_min = f64::INFINITY;
         let mut x_max = f64::NEG_INFINITY;
         let mut y_min = f64::INFINITY;
@@ -97,47 +101,143 @@ impl Scatter3DPlot {
         let mut z_min = f64::INFINITY;
         let mut z_max = f64::NEG_INFINITY;
         for p in &self.data {
-            if p.x.is_finite() { x_min = x_min.min(p.x); x_max = x_max.max(p.x); }
-            if p.y.is_finite() { y_min = y_min.min(p.y); y_max = y_max.max(p.y); }
-            if p.z.is_finite() { z_min = z_min.min(p.z); z_max = z_max.max(p.z); }
+            if p.x.is_finite() {
+                x_min = x_min.min(p.x);
+                x_max = x_max.max(p.x);
+            }
+            if p.y.is_finite() {
+                y_min = y_min.min(p.y);
+                y_max = y_max.max(p.y);
+            }
+            if p.z.is_finite() {
+                z_min = z_min.min(p.z);
+                z_max = z_max.max(p.z);
+            }
         }
-        if !x_min.is_finite() || !y_min.is_finite() || !z_min.is_finite() { return None; }
-        if (x_max - x_min).abs() < 1e-12 { x_min -= 0.5; x_max += 0.5; }
-        if (y_max - y_min).abs() < 1e-12 { y_min -= 0.5; y_max += 0.5; }
-        if (z_max - z_min).abs() < 1e-12 { z_min -= 0.5; z_max += 0.5; }
-        Some(DataRanges3D { x: (x_min, x_max), y: (y_min, y_max), z: (z_min, z_max) })
+        if !x_min.is_finite() || !y_min.is_finite() || !z_min.is_finite() {
+            return None;
+        }
+        if (x_max - x_min).abs() < 1e-12 {
+            x_min -= 0.5;
+            x_max += 0.5;
+        }
+        if (y_max - y_min).abs() < 1e-12 {
+            y_min -= 0.5;
+            y_max += 0.5;
+        }
+        if (z_max - z_min).abs() < 1e-12 {
+            z_min -= 0.5;
+            z_max += 0.5;
+        }
+        Some(DataRanges3D {
+            x: (x_min, x_max),
+            y: (y_min, y_max),
+            z: (z_min, z_max),
+        })
     }
 
     pub fn with_data<I>(mut self, data: I) -> Self
-    where I: IntoIterator<Item = (f64, f64, f64)> {
-        self.data = data.into_iter().map(|(x, y, z)| Scatter3DPoint { x, y, z }).collect();
+    where
+        I: IntoIterator<Item = (f64, f64, f64)>,
+    {
+        self.data = data
+            .into_iter()
+            .map(|(x, y, z)| Scatter3DPoint { x, y, z })
+            .collect();
         self
     }
-    pub fn with_points(mut self, points: Vec<Scatter3DPoint>) -> Self { self.data = points; self }
-    pub fn with_color<S: Into<String>>(mut self, color: S) -> Self { self.color = color.into(); self }
-    pub fn with_size(mut self, size: f64) -> Self { self.size = size; self }
-    pub fn with_legend<S: Into<String>>(mut self, label: S) -> Self { self.legend_label = Some(label.into()); self }
-    pub fn with_marker(mut self, marker: MarkerShape) -> Self { self.marker = marker; self }
-    pub fn with_sizes(mut self, sizes: Vec<f64>) -> Self { self.sizes = Some(sizes); self }
-    pub fn with_colors<I, S>(mut self, colors: I) -> Self
-    where I: IntoIterator<Item = S>, S: Into<String> {
-        self.colors = Some(colors.into_iter().map(Into::into).collect()); self
+    pub fn with_points(mut self, points: Vec<Scatter3DPoint>) -> Self {
+        self.data = points;
+        self
     }
-    pub fn with_marker_opacity(mut self, opacity: f64) -> Self { self.marker_opacity = Some(opacity); self }
-    pub fn with_marker_stroke_width(mut self, width: f64) -> Self { self.marker_stroke_width = Some(width); self }
-    pub fn with_depth_shade(mut self) -> Self { self.depth_shade = true; self }
-    pub fn with_z_colormap(mut self, cmap: ColorMap) -> Self { self.z_colormap = Some(cmap); self }
+    pub fn with_color<S: Into<String>>(mut self, color: S) -> Self {
+        self.color = color.into();
+        self
+    }
+    pub fn with_size(mut self, size: f64) -> Self {
+        self.size = size;
+        self
+    }
+    pub fn with_legend<S: Into<String>>(mut self, label: S) -> Self {
+        self.legend_label = Some(label.into());
+        self
+    }
+    pub fn with_marker(mut self, marker: MarkerShape) -> Self {
+        self.marker = marker;
+        self
+    }
+    pub fn with_sizes(mut self, sizes: Vec<f64>) -> Self {
+        self.sizes = Some(sizes);
+        self
+    }
+    pub fn with_colors<I, S>(mut self, colors: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.colors = Some(colors.into_iter().map(Into::into).collect());
+        self
+    }
+    pub fn with_marker_opacity(mut self, opacity: f64) -> Self {
+        self.marker_opacity = Some(opacity);
+        self
+    }
+    pub fn with_marker_stroke_width(mut self, width: f64) -> Self {
+        self.marker_stroke_width = Some(width);
+        self
+    }
+    pub fn with_depth_shade(mut self) -> Self {
+        self.depth_shade = true;
+        self
+    }
+    pub fn with_z_colormap(mut self, cmap: ColorMap) -> Self {
+        self.z_colormap = Some(cmap);
+        self
+    }
 
     // Delegate 3D box/axes config through Box3DConfig methods
-    pub fn with_azimuth(mut self, deg: f64) -> Self { self.box3d = self.box3d.with_azimuth(deg); self }
-    pub fn with_elevation(mut self, deg: f64) -> Self { self.box3d = self.box3d.with_elevation(deg); self }
-    pub fn with_view(mut self, v: View3D) -> Self { self.box3d = self.box3d.with_view(v); self }
-    pub fn with_x_label<S: Into<String>>(mut self, l: S) -> Self { self.box3d = self.box3d.with_x_label(l); self }
-    pub fn with_y_label<S: Into<String>>(mut self, l: S) -> Self { self.box3d = self.box3d.with_y_label(l); self }
-    pub fn with_z_label<S: Into<String>>(mut self, l: S) -> Self { self.box3d = self.box3d.with_z_label(l); self }
-    pub fn with_no_grid(mut self) -> Self { self.box3d = self.box3d.with_no_grid(); self }
-    pub fn with_no_box(mut self) -> Self { self.box3d = self.box3d.with_no_box(); self }
-    pub fn with_grid_lines(mut self, n: usize) -> Self { self.box3d = self.box3d.with_grid_lines(n); self }
-    pub fn with_z_axis_right(mut self, r: bool) -> Self { self.box3d = self.box3d.with_z_axis_right(r); self }
-    pub fn with_z_axis_auto(mut self) -> Self { self.box3d = self.box3d.with_z_axis_auto(); self }
+    pub fn with_azimuth(mut self, deg: f64) -> Self {
+        self.box3d = self.box3d.with_azimuth(deg);
+        self
+    }
+    pub fn with_elevation(mut self, deg: f64) -> Self {
+        self.box3d = self.box3d.with_elevation(deg);
+        self
+    }
+    pub fn with_view(mut self, v: View3D) -> Self {
+        self.box3d = self.box3d.with_view(v);
+        self
+    }
+    pub fn with_x_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.box3d = self.box3d.with_x_label(l);
+        self
+    }
+    pub fn with_y_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.box3d = self.box3d.with_y_label(l);
+        self
+    }
+    pub fn with_z_label<S: Into<String>>(mut self, l: S) -> Self {
+        self.box3d = self.box3d.with_z_label(l);
+        self
+    }
+    pub fn with_no_grid(mut self) -> Self {
+        self.box3d = self.box3d.with_no_grid();
+        self
+    }
+    pub fn with_no_box(mut self) -> Self {
+        self.box3d = self.box3d.with_no_box();
+        self
+    }
+    pub fn with_grid_lines(mut self, n: usize) -> Self {
+        self.box3d = self.box3d.with_grid_lines(n);
+        self
+    }
+    pub fn with_z_axis_right(mut self, r: bool) -> Self {
+        self.box3d = self.box3d.with_z_axis_right(r);
+        self
+    }
+    pub fn with_z_axis_auto(mut self) -> Self {
+        self.box3d = self.box3d.with_z_axis_auto();
+        self
+    }
 }

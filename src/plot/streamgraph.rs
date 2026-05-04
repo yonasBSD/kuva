@@ -53,7 +53,11 @@ pub struct StreamGeometry {
 fn inside_out_order(totals: &[f64]) -> Vec<usize> {
     let n = totals.len();
     let mut order: Vec<usize> = (0..n).collect();
-    order.sort_by(|&a, &b| totals[b].partial_cmp(&totals[a]).unwrap_or(std::cmp::Ordering::Equal));
+    order.sort_by(|&a, &b| {
+        totals[b]
+            .partial_cmp(&totals[a])
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     let mut top_sum = 0.0_f64;
     let mut bottom_sum = 0.0_f64;
@@ -149,13 +153,24 @@ pub struct StreamgraphPlot {
 }
 
 const STREAM_PALETTE: &[&str] = &[
-    "steelblue", "tomato", "orange", "mediumseagreen",
-    "mediumpurple", "goldenrod", "cornflowerblue", "coral",
-    "mediumaquamarine", "orchid", "peru", "lightslategray",
+    "steelblue",
+    "tomato",
+    "orange",
+    "mediumseagreen",
+    "mediumpurple",
+    "goldenrod",
+    "cornflowerblue",
+    "coral",
+    "mediumaquamarine",
+    "orchid",
+    "peru",
+    "lightslategray",
 ];
 
 impl Default for StreamgraphPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StreamgraphPlot {
@@ -182,7 +197,10 @@ impl StreamgraphPlot {
 
     /// Set the shared x-axis values.
     pub fn with_x<T, I>(mut self, x: I) -> Self
-    where I: IntoIterator<Item = T>, T: Into<f64> {
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<f64>,
+    {
         self.x = x.into_iter().map(Into::into).collect();
         self
     }
@@ -190,7 +208,10 @@ impl StreamgraphPlot {
     /// Append a new series.  Chain `.with_label()` and `.with_color()` to
     /// configure it.
     pub fn with_series<T, I>(mut self, y: I) -> Self
-    where I: IntoIterator<Item = T>, T: Into<f64> {
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<f64>,
+    {
         self.series.push(y.into_iter().map(Into::into).collect());
         self.colors.push(None);
         self.labels.push(None);
@@ -199,70 +220,85 @@ impl StreamgraphPlot {
 
     /// Set the fill color of the most recently added series.
     pub fn with_color<S: Into<String>>(mut self, color: S) -> Self {
-        if let Some(last) = self.colors.last_mut() { *last = Some(color.into()); }
+        if let Some(last) = self.colors.last_mut() {
+            *last = Some(color.into());
+        }
         self
     }
 
     /// Set the inline label of the most recently added series.
     pub fn with_label<S: Into<String>>(mut self, label: S) -> Self {
-        if let Some(last) = self.labels.last_mut() { *last = Some(label.into()); }
+        if let Some(last) = self.labels.last_mut() {
+            *last = Some(label.into());
+        }
         self
     }
 
     /// Set the baseline algorithm.
     pub fn with_baseline(mut self, b: StreamBaseline) -> Self {
-        self.baseline = b; self
+        self.baseline = b;
+        self
     }
 
     /// Set the layer ordering.
     pub fn with_order(mut self, o: StreamOrder) -> Self {
-        self.order = o; self
+        self.order = o;
+        self
     }
 
     /// Disable Catmull-Rom smoothing (use straight line segments).
     pub fn with_linear(mut self) -> Self {
-        self.smooth = false; self
+        self.smooth = false;
+        self
     }
 
     /// Set fill opacity (default `0.85`).
     pub fn with_fill_opacity(mut self, opacity: f64) -> Self {
-        self.fill_opacity = opacity; self
+        self.fill_opacity = opacity;
+        self
     }
 
     /// Draw a thin stroke between adjacent streams.
     pub fn with_stroke(mut self) -> Self {
-        self.stroke_between = true; self
+        self.stroke_between = true;
+        self
     }
 
     /// Set the stroke width when `.with_stroke()` is enabled.
     pub fn with_stroke_width(mut self, width: f64) -> Self {
-        self.stroke_width = width; self
+        self.stroke_width = width;
+        self
     }
 
     /// Show or hide inline stream labels (default `true`).
     pub fn with_stream_labels(mut self, show: bool) -> Self {
-        self.show_labels = show; self
+        self.show_labels = show;
+        self
     }
 
     /// Minimum pixel height a band must reach to display its inline label
     /// (default `14.0`).
     pub fn with_min_label_height(mut self, h: f64) -> Self {
-        self.min_label_height = h; self
+        self.min_label_height = h;
+        self
     }
 
     /// Normalise each column to sum to 100 %.
     pub fn with_normalized(mut self) -> Self {
-        self.normalized = true; self
+        self.normalized = true;
+        self
     }
 
     /// Enable the legend box.  Pass `""` for no title.
     pub fn with_legend<S: Into<String>>(mut self, title: S) -> Self {
-        self.legend_label = Some(title.into()); self
+        self.legend_label = Some(title.into());
+        self
     }
 
     /// Set the legend position.
     pub fn with_legend_position(mut self, pos: LegendPosition) -> Self {
-        self.legend_position = pos; self
+        self.legend_position = pos;
+        self
     }
 
     /// Resolve the display color for series `k`.
@@ -277,25 +313,42 @@ impl StreamgraphPlot {
     /// Compute the full stream geometry (baseline + per-stream lower/upper
     /// edges).  Used by both `bounds()` and the renderer.
     pub fn compute_geometry(&self) -> Option<StreamGeometry> {
-        if self.x.is_empty() || self.series.is_empty() { return None; }
+        if self.x.is_empty() || self.series.is_empty() {
+            return None;
+        }
         let n_pts = self.x.len();
         let n_series = self.series.len();
 
         // Normalise if requested
         let values: Vec<Vec<f64>> = if self.normalized {
-            let totals: Vec<f64> = (0..n_pts).map(|i|
-                self.series.iter().map(|s| s.get(i).copied().unwrap_or(0.0)).sum::<f64>()
-            ).collect();
-            self.series.iter().map(|s| {
-                (0..n_pts).map(|i| {
-                    let t = totals[i].max(f64::EPSILON);
-                    s.get(i).copied().unwrap_or(0.0) / t * 100.0
-                }).collect()
-            }).collect()
+            let totals: Vec<f64> = (0..n_pts)
+                .map(|i| {
+                    self.series
+                        .iter()
+                        .map(|s| s.get(i).copied().unwrap_or(0.0))
+                        .sum::<f64>()
+                })
+                .collect();
+            self.series
+                .iter()
+                .map(|s| {
+                    (0..n_pts)
+                        .map(|i| {
+                            let t = totals[i].max(f64::EPSILON);
+                            s.get(i).copied().unwrap_or(0.0) / t * 100.0
+                        })
+                        .collect()
+                })
+                .collect()
         } else {
-            self.series.iter().map(|s| {
-                (0..n_pts).map(|i| s.get(i).copied().unwrap_or(0.0)).collect()
-            }).collect()
+            self.series
+                .iter()
+                .map(|s| {
+                    (0..n_pts)
+                        .map(|i| s.get(i).copied().unwrap_or(0.0))
+                        .collect()
+                })
+                .collect()
         };
 
         // Column totals
@@ -304,16 +357,16 @@ impl StreamgraphPlot {
             .collect();
 
         // Render order
-        let series_totals: Vec<f64> = values.iter()
-            .map(|s| s.iter().sum::<f64>())
-            .collect();
+        let series_totals: Vec<f64> = values.iter().map(|s| s.iter().sum::<f64>()).collect();
         let render_order: Vec<usize> = match self.order {
             StreamOrder::InsideOut => inside_out_order(&series_totals),
             StreamOrder::ByTotal => {
                 let mut o: Vec<usize> = (0..n_series).collect();
-                o.sort_by(|&a, &b|
-                    series_totals[b].partial_cmp(&series_totals[a])
-                        .unwrap_or(std::cmp::Ordering::Equal));
+                o.sort_by(|&a, &b| {
+                    series_totals[b]
+                        .partial_cmp(&series_totals[a])
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
                 o
             }
             StreamOrder::Original => (0..n_series).collect(),
@@ -322,29 +375,38 @@ impl StreamgraphPlot {
         // Baseline
         let mut baseline: Vec<f64> = match self.baseline {
             StreamBaseline::Zero => vec![0.0; n_pts],
-            StreamBaseline::Symmetric => {
-                (0..n_pts).map(|i| -0.5 * totals[i]).collect()
-            }
+            StreamBaseline::Symmetric => (0..n_pts).map(|i| -0.5 * totals[i]).collect(),
             StreamBaseline::Wiggle => {
                 let n = n_series as f64;
-                let mut b: Vec<f64> = (0..n_pts).map(|i| {
-                    let sum: f64 = render_order.iter().enumerate()
-                        .map(|(k, &j)| (n - k as f64) * values[j][i])
-                        .sum();
-                    -sum / (n + 1.0)
-                }).collect();
+                let mut b: Vec<f64> = (0..n_pts)
+                    .map(|i| {
+                        let sum: f64 = render_order
+                            .iter()
+                            .enumerate()
+                            .map(|(k, &j)| (n - k as f64) * values[j][i])
+                            .sum();
+                        -sum / (n + 1.0)
+                    })
+                    .collect();
                 // Shift so the mean stream centre sits at y = 0
-                let mean_centre: f64 = b.iter().zip(totals.iter())
+                let mean_centre: f64 = b
+                    .iter()
+                    .zip(totals.iter())
                     .map(|(&bi, &ti)| bi + 0.5 * ti)
-                    .sum::<f64>() / n_pts as f64;
-                for bi in &mut b { *bi -= mean_centre; }
+                    .sum::<f64>()
+                    / n_pts as f64;
+                for bi in &mut b {
+                    *bi -= mean_centre;
+                }
                 b
             }
         };
 
         // Clamp baseline so the minimum is always at most 0 for Zero mode
         if self.baseline == StreamBaseline::Zero {
-            for bi in &mut baseline { *bi = bi.max(0.0); }
+            for bi in &mut baseline {
+                *bi = bi.max(0.0);
+            }
         }
 
         // Build per-stream lower/upper edges
@@ -361,6 +423,11 @@ impl StreamgraphPlot {
             current_lower = upper;
         }
 
-        Some(StreamGeometry { baseline, lowers, uppers, render_order })
+        Some(StreamGeometry {
+            baseline,
+            lowers,
+            uppers,
+            render_order,
+        })
     }
 }

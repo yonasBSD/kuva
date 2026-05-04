@@ -1,10 +1,10 @@
-use std::f64::consts::PI;
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::polar::{PolarMode, PolarPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 use kuva::TickFormat;
+use std::f64::consts::PI;
 
 fn render(plot: PolarPlot) -> String {
     let plots = vec![Plot::Polar(plot)];
@@ -65,7 +65,10 @@ fn test_polar_grid() {
 #[test]
 fn test_polar_clockwise() {
     let theta: Vec<f64> = (0..36).map(|i| i as f64 * 10.0).collect();
-    let r: Vec<f64> = theta.iter().map(|&t| 1.0 + 0.5 * t.to_radians().cos()).collect();
+    let r: Vec<f64> = theta
+        .iter()
+        .map(|&t| 1.0 + 0.5 * t.to_radians().cos())
+        .collect();
 
     let plot = PolarPlot::new()
         .with_series(r, theta)
@@ -81,9 +84,7 @@ fn test_polar_r_max_override() {
     let theta: Vec<f64> = (0..36).map(|i| i as f64 * 10.0).collect();
     let r: Vec<f64> = vec![0.5; 36];
 
-    let plot = PolarPlot::new()
-        .with_series(r, theta)
-        .with_r_max(2.0);
+    let plot = PolarPlot::new().with_series(r, theta).with_r_max(2.0);
     let svg = render(plot);
     assert!(svg.contains("<svg"));
     write("polar_r_max", &svg);
@@ -113,8 +114,7 @@ fn test_polar_legend() {
         .with_series_labeled(r, theta, "Wind speed", PolarMode::Scatter)
         .with_legend(true);
     let plots = vec![Plot::Polar(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Polar Legend Test");
+    let layout = Layout::auto_from_plots(&plots).with_title("Polar Legend Test");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<svg"));
     assert!(svg.contains("Wind speed"));
@@ -132,27 +132,25 @@ fn test_polar_x_tick_format() {
         .with_legend(true);
     let plots = vec![Plot::Polar(plot)];
     let layout = Layout::auto_from_plots(&plots)
-        .with_x_tick_format(TickFormat::Custom(std::sync::Arc::new(
-            |v| {
-                if v < 45.0 {
-                    "N".to_string()
-                } else if v < 90.0 {
-                    "NE".to_string()
-                } else if v < 135.0 {
-                    "E".to_string()
-                } else if v < 180.0 {
-                    "SE".to_string()
-                } else if v < 225.0 {
-                    "S".to_string()
-                } else if v < 270.0 {
-                    "SW".to_string()
-                } else if v < 315.0 {
-                    "W".to_string()
-                } else {
-                    "NW".to_string()
-                }
-            },
-        )))
+        .with_x_tick_format(TickFormat::Custom(std::sync::Arc::new(|v| {
+            if v < 45.0 {
+                "N".to_string()
+            } else if v < 90.0 {
+                "NE".to_string()
+            } else if v < 135.0 {
+                "E".to_string()
+            } else if v < 180.0 {
+                "SE".to_string()
+            } else if v < 225.0 {
+                "S".to_string()
+            } else if v < 270.0 {
+                "SW".to_string()
+            } else if v < 315.0 {
+                "W".to_string()
+            } else {
+                "NW".to_string()
+            }
+        })))
         .with_title("Polar Custom X Ticks Test");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<svg"));
@@ -181,7 +179,9 @@ fn test_polar_cardioid_with_observations() {
     // Sparse noisy observations sampled every 15°
     let mut state: u64 = 77777;
     let mut lcg = || -> f64 {
-        state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (state >> 33) as f64 / (u64::MAX >> 33) as f64
     };
     let theta_obs: Vec<f64> = (0..24).map(|i| i as f64 * 15.0).collect();
@@ -204,8 +204,7 @@ fn test_polar_cardioid_with_observations() {
         .with_legend(true);
 
     let plots = vec![Plot::Polar(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Cardioid r = 1 + cos(θ)");
+    let layout = Layout::auto_from_plots(&plots).with_title("Cardioid r = 1 + cos(θ)");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
     assert!(svg.contains("<svg"));
@@ -237,11 +236,16 @@ fn test_polar_three_curves() {
     let r_circle: Vec<f64> = vec![1.0; n];
 
     let plot = PolarPlot::new()
-        .with_series_labeled(r_rose,       theta.clone(), "Rose |cos 3θ|",       PolarMode::Line)
+        .with_series_labeled(r_rose, theta.clone(), "Rose |cos 3θ|", PolarMode::Line)
         .with_color("#e41a1c")
-        .with_series_labeled(r_lemniscate, theta.clone(), "Lemniscate √|cos 2θ|", PolarMode::Line)
+        .with_series_labeled(
+            r_lemniscate,
+            theta.clone(),
+            "Lemniscate √|cos 2θ|",
+            PolarMode::Line,
+        )
         .with_color("#377eb8")
-        .with_series_labeled(r_circle,     theta,         "Unit circle",           PolarMode::Line)
+        .with_series_labeled(r_circle, theta, "Unit circle", PolarMode::Line)
         .with_color("#4daf4a")
         .with_r_max(1.0)
         .with_r_grid_lines(4)
@@ -249,8 +253,7 @@ fn test_polar_three_curves() {
         .with_legend(true);
 
     let plots = vec![Plot::Polar(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Polar Curves");
+    let layout = Layout::auto_from_plots(&plots).with_title("Polar Curves");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
     assert!(svg.contains("<svg"));
@@ -296,13 +299,20 @@ fn test_polar_spiral_math_convention() {
 fn test_polar_wind_rose_style() {
     let mut state: u64 = 31415;
     let mut lcg = || -> f64 {
-        state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (state >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
     // Four directional clusters: N=0°, E=90°, S=180°, W=270°
-    let centers = [("North", 0.0_f64), ("East", 90.0), ("South", 180.0), ("West", 270.0)];
-    let colors  = ["#e41a1c", "#377eb8", "#4daf4a", "#ff7f00"];
+    let centers = [
+        ("North", 0.0_f64),
+        ("East", 90.0),
+        ("South", 180.0),
+        ("West", 270.0),
+    ];
+    let colors = ["#e41a1c", "#377eb8", "#4daf4a", "#ff7f00"];
 
     let mut plot = PolarPlot::new()
         .with_r_max(2.5)
@@ -333,8 +343,7 @@ fn test_polar_wind_rose_style() {
         .with_color("#aaaaaa");
 
     let plots = vec![Plot::Polar(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Wind Rose (Compass Convention)");
+    let layout = Layout::auto_from_plots(&plots).with_title("Wind Rose (Compass Convention)");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
     assert!(svg.contains("<svg"));
@@ -363,8 +372,8 @@ fn test_polar_wind_rose_style() {
 //      still appear when no custom format is set.
 #[test]
 fn test_polar_custom_tick_overrides_zero_degree() {
-    use std::sync::Arc;
     use kuva::TickFormat;
+    use std::sync::Arc;
 
     // 4-spoke polar with custom compass labels.
     let r: Vec<f64> = vec![1.0, 2.0, 1.5, 0.5, 1.0]; // closed
@@ -375,29 +384,33 @@ fn test_polar_custom_tick_overrides_zero_degree() {
         .with_theta_divisions(4);
 
     let plots = vec![Plot::Polar(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_x_tick_format(TickFormat::Custom(Arc::new(|v| {
-            match v as u32 {
-                0   => "North".to_string(),
-                90  => "East".to_string(),
-                180 => "South".to_string(),
-                270 => "West".to_string(),
-                _   => format!("{v}°"),
-            }
-        })));
+    let layout = Layout::auto_from_plots(&plots).with_x_tick_format(TickFormat::Custom(Arc::new(
+        |v| match v as u32 {
+            0 => "North".to_string(),
+            90 => "East".to_string(),
+            180 => "South".to_string(),
+            270 => "West".to_string(),
+            _ => format!("{v}°"),
+        },
+    )));
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     write("polar_custom_tick_zero", &svg);
 
     // Custom labels must appear at all four spokes.
-    assert!(svg.contains(">North<"), "θ=0° spoke must show custom label 'North'");
-    assert!(svg.contains(">East<"),  "θ=90° spoke must show 'East'");
+    assert!(
+        svg.contains(">North<"),
+        "θ=0° spoke must show custom label 'North'"
+    );
+    assert!(svg.contains(">East<"), "θ=90° spoke must show 'East'");
     assert!(svg.contains(">South<"), "θ=180° spoke must show 'South'");
-    assert!(svg.contains(">West<"),  "θ=270° spoke must show 'West'");
+    assert!(svg.contains(">West<"), "θ=270° spoke must show 'West'");
 
     // The old hardcoded "0°" must NOT appear — that would mean the bug is back.
-    assert!(!svg.contains(">0°<"),
-        "θ=0° spoke must not show hardcoded '0°' when a custom format is set");
+    assert!(
+        !svg.contains(">0°<"),
+        "θ=0° spoke must not show hardcoded '0°' when a custom format is set"
+    );
 }
 
 #[test]
@@ -414,10 +427,22 @@ fn test_polar_default_degree_format() {
     let svg = render(plot);
     write("polar_default_degree_format", &svg);
 
-    assert!(svg.contains(">0°<"),   "default polar format must show '0°' at θ=0");
-    assert!(svg.contains(">90°<"),  "default polar format must show '90°'");
-    assert!(svg.contains(">180°<"), "default polar format must show '180°'");
-    assert!(svg.contains(">270°<"), "default polar format must show '270°'");
+    assert!(
+        svg.contains(">0°<"),
+        "default polar format must show '0°' at θ=0"
+    );
+    assert!(
+        svg.contains(">90°<"),
+        "default polar format must show '90°'"
+    );
+    assert!(
+        svg.contains(">180°<"),
+        "default polar format must show '180°'"
+    );
+    assert!(
+        svg.contains(">270°<"),
+        "default polar format must show '270°'"
+    );
 }
 
 // ── r_min / negative-radius tests (#54) ───────────────────────────────────────
@@ -438,8 +463,10 @@ fn test_polar_r_min_basic() {
     let svg = render(plot);
     assert!(svg.contains("<svg"));
     // Ring labels must reflect actual r values, not fractions.
-    assert!(svg.contains(">0.75<") || svg.contains(">1<") || svg.contains(">1.5<"),
-        "ring labels should show actual r values relative to r_min");
+    assert!(
+        svg.contains(">0.75<") || svg.contains(">1<") || svg.contains(">1.5<"),
+        "ring labels should show actual r values relative to r_min"
+    );
     write("polar_r_min_basic", &svg);
 }
 
@@ -450,11 +477,14 @@ fn test_polar_r_min_basic() {
 fn test_polar_r_min_negative() {
     let theta: Vec<f64> = (0..=360).map(|i| i as f64).collect();
     // Simulate an antenna pattern: main lobe near 0°, back-lobe near 180°.
-    let r: Vec<f64> = theta.iter().map(|&t| {
-        let rad = t.to_radians();
-        // Pattern: 0 dB at 0°, -20 dB at 180°, smooth in between.
-        -20.0 * (1.0 - rad.cos().abs())
-    }).collect();
+    let r: Vec<f64> = theta
+        .iter()
+        .map(|&t| {
+            let rad = t.to_radians();
+            // Pattern: 0 dB at 0°, -20 dB at 180°, smooth in between.
+            -20.0 * (1.0 - rad.cos().abs())
+        })
+        .collect();
 
     let plot = PolarPlot::new()
         .with_series_line(r, theta)
@@ -462,14 +492,18 @@ fn test_polar_r_min_negative() {
         .with_r_max(0.0)
         .with_r_grid_lines(4);
     let plots = vec![Plot::Polar(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Antenna Pattern (dB)");
+    let layout = Layout::auto_from_plots(&plots).with_title("Antenna Pattern (dB)");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("<path"), "line series should produce a path element");
+    assert!(
+        svg.contains("<path"),
+        "line series should produce a path element"
+    );
     // Ring labels should include negative values.
-    assert!(svg.contains(">-") || svg.contains(">0<"),
-        "ring labels should contain negative or zero r values");
+    assert!(
+        svg.contains(">-") || svg.contains(">0<"),
+        "ring labels should contain negative or zero r values"
+    );
     write("polar_r_min_negative", &svg);
 }
 
@@ -500,9 +534,7 @@ fn test_polar_r_min_auto_r_max() {
     // r = sin(theta) which goes negative
     let r: Vec<f64> = theta.iter().map(|&t| t.to_radians().sin()).collect();
 
-    let plot = PolarPlot::new()
-        .with_series_line(r, theta)
-        .with_r_min(-1.0);
+    let plot = PolarPlot::new().with_series_line(r, theta).with_r_min(-1.0);
     // r_max not set — should auto-derive to ~1.0
     let svg = render(plot);
     assert!(svg.contains("<svg"));
@@ -514,7 +546,9 @@ fn test_polar_r_min_auto_r_max() {
 #[test]
 fn test_polar_r_min_with_explicit_r_max() {
     let theta: Vec<f64> = (0..12).map(|i| i as f64 * 30.0).collect();
-    let r: Vec<f64> = vec![-5.0, -3.0, 0.0, 3.0, 5.0, 3.0, 0.0, -3.0, -5.0, -3.0, 0.0, 3.0];
+    let r: Vec<f64> = vec![
+        -5.0, -3.0, 0.0, 3.0, 5.0, 3.0, 0.0, -3.0, -5.0, -3.0, 0.0, 3.0,
+    ];
 
     let plot = PolarPlot::new()
         .with_series(r, theta)

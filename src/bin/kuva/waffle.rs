@@ -8,7 +8,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Waffle plot — grid of cells colored by categorical proportions.
@@ -78,7 +78,8 @@ pub fn run(args: WaffleArgs) -> Result<(), String> {
     if values.len() != n {
         return Err(format!(
             "column length mismatch: label={}, value={}",
-            n, values.len()
+            n,
+            values.len()
         ));
     }
 
@@ -86,7 +87,9 @@ pub fn run(args: WaffleArgs) -> Result<(), String> {
         table.col_str(cc)?
     } else {
         let palette = Palette::category10();
-        (0..n).map(|i| palette[i % palette.len()].to_string()).collect()
+        (0..n)
+            .map(|i| palette[i % palette.len()].to_string())
+            .collect()
     };
 
     let mut plot = WafflePlot::new();

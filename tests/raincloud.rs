@@ -1,20 +1,22 @@
-use kuva::plot::RaincloudPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::RaincloudPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 fn make_values(seed: u64, n: usize, shift: f64) -> Vec<f64> {
     // Simple deterministic pseudo-random values for tests — no rand dependency.
     let mut state = seed ^ 0x9e3779b97f4a7c15u64;
-    (0..n).map(|_| {
-        state ^= state << 13;
-        state ^= state >> 7;
-        state ^= state << 17;
-        let u = (state >> 11) as f64 * (1.0 / (1u64 << 53) as f64);
-        // Box-Muller (approximate): 2*u - 1 as a simple uniform offset
-        (u - 0.5) * 4.0 + shift
-    }).collect()
+    (0..n)
+        .map(|_| {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            let u = (state >> 11) as f64 * (1.0 / (1u64 << 53) as f64);
+            // Box-Muller (approximate): 2*u - 1 as a simple uniform offset
+            (u - 0.5) * 4.0 + shift
+        })
+        .collect()
 }
 
 // ── basic rendering ──────────────────────────────────────────────────────────
@@ -37,31 +39,47 @@ fn test_raincloud_basic() {
 
     assert!(svg.contains("<svg"), "SVG should start with svg element");
     // Cloud is a filled path
-    assert!(svg.contains("<path"), "SVG should contain path elements (clouds)");
+    assert!(
+        svg.contains("<path"),
+        "SVG should contain path elements (clouds)"
+    );
     // Box is rendered as a rect
-    assert!(svg.contains("<rect"), "SVG should contain rect elements (boxes)");
+    assert!(
+        svg.contains("<rect"),
+        "SVG should contain rect elements (boxes)"
+    );
     // Rain is rendered as circles
-    assert!(svg.contains("<circle"), "SVG should contain circle elements (rain)");
+    assert!(
+        svg.contains("<circle"),
+        "SVG should contain circle elements (rain)"
+    );
     // Group labels should appear on x-axis
-    assert!(svg.contains("Control"), "SVG should contain group label 'Control'");
-    assert!(svg.contains("Treated"), "SVG should contain group label 'Treated'");
+    assert!(
+        svg.contains("Control"),
+        "SVG should contain group label 'Control'"
+    );
+    assert!(
+        svg.contains("Treated"),
+        "SVG should contain group label 'Treated'"
+    );
 }
 
 #[test]
 fn test_raincloud_single_group() {
-    let plot = RaincloudPlot::new()
-        .with_group("Only", make_values(3, 20, 3.0));
+    let plot = RaincloudPlot::new().with_group("Only", make_values(3, 20, 3.0));
 
     let plots = vec![Plot::Raincloud(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Raincloud Single Group");
+    let layout = Layout::auto_from_plots(&plots).with_title("Raincloud Single Group");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/raincloud_single.svg", svg.clone()).unwrap();
 
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("Only"), "SVG should contain the single group label");
+    assert!(
+        svg.contains("Only"),
+        "SVG should contain the single group label"
+    );
 }
 
 // ── element toggling ─────────────────────────────────────────────────────────
@@ -74,8 +92,7 @@ fn test_raincloud_no_cloud() {
         .with_cloud(false);
 
     let plots = vec![Plot::Raincloud(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Raincloud No Cloud");
+    let layout = Layout::auto_from_plots(&plots).with_title("Raincloud No Cloud");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -96,8 +113,7 @@ fn test_raincloud_no_box() {
         .with_box(false);
 
     let plots = vec![Plot::Raincloud(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Raincloud No Box");
+    let layout = Layout::auto_from_plots(&plots).with_title("Raincloud No Box");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -117,8 +133,7 @@ fn test_raincloud_no_rain() {
         .with_rain(false);
 
     let plots = vec![Plot::Raincloud(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Raincloud No Rain");
+    let layout = Layout::auto_from_plots(&plots).with_title("Raincloud No Rain");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -142,8 +157,7 @@ fn test_raincloud_group_colors() {
         .with_group_colors(["tomato", "steelblue", "seagreen"]);
 
     let plots = vec![Plot::Raincloud(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Raincloud Group Colors");
+    let layout = Layout::auto_from_plots(&plots).with_title("Raincloud Group Colors");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -166,8 +180,7 @@ fn test_raincloud_flipped() {
         .with_flip(true);
 
     let plots = vec![Plot::Raincloud(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Raincloud Flipped");
+    let layout = Layout::auto_from_plots(&plots).with_title("Raincloud Flipped");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -186,8 +199,7 @@ fn test_raincloud_legend() {
         .with_legend("Condition");
 
     let plots = vec![Plot::Raincloud(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Raincloud With Legend");
+    let layout = Layout::auto_from_plots(&plots).with_title("Raincloud With Legend");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -195,8 +207,14 @@ fn test_raincloud_legend() {
 
     assert!(svg.contains("<svg"));
     // Legend entries are per-group: group labels appear as legend text
-    assert!(svg.contains("Control"), "SVG should contain legend entry 'Control'");
-    assert!(svg.contains("Treated"), "SVG should contain legend entry 'Treated'");
+    assert!(
+        svg.contains("Control"),
+        "SVG should contain legend entry 'Control'"
+    );
+    assert!(
+        svg.contains("Treated"),
+        "SVG should contain legend entry 'Treated'"
+    );
 }
 
 #[test]
@@ -204,7 +222,10 @@ fn test_raincloud_five_groups() {
     let labels = ["Mon", "Tue", "Wed", "Thu", "Fri"];
     let mut plot = RaincloudPlot::new();
     for (i, label) in labels.iter().enumerate() {
-        plot = plot.with_group(*label, make_values(i as u64 + 100, 40, i as f64 * 1.5 + 3.0));
+        plot = plot.with_group(
+            *label,
+            make_values(i as u64 + 100, 40, i as f64 * 1.5 + 3.0),
+        );
     }
 
     let plots = vec![Plot::Raincloud(plot)];
@@ -219,11 +240,17 @@ fn test_raincloud_five_groups() {
 
     assert!(svg.contains("<svg"));
     for label in &labels {
-        assert!(svg.contains(label), "SVG should contain group label '{label}'");
+        assert!(
+            svg.contains(label),
+            "SVG should contain group label '{label}'"
+        );
     }
     // Five groups → many circles and paths
     let circle_count = svg.matches("<circle").count();
-    assert!(circle_count >= 5, "expected at least 5 rain circles, got {circle_count}");
+    assert!(
+        circle_count >= 5,
+        "expected at least 5 rain circles, got {circle_count}"
+    );
 }
 
 #[test]
@@ -234,11 +261,11 @@ fn test_raincloud_bandwidth_scale() {
     let groups = [("A", 300u64, 5.0f64), ("B", 301, 7.5), ("C", 302, 10.0)];
 
     let mut default_plot = RaincloudPlot::new();
-    let mut tight_plot   = RaincloudPlot::new().with_bandwidth_scale(0.4);
+    let mut tight_plot = RaincloudPlot::new().with_bandwidth_scale(0.4);
     for (label, seed, shift) in &groups {
         let vals = make_values(*seed, 60, *shift);
         default_plot = default_plot.with_group(*label, vals.clone());
-        tight_plot   = tight_plot.with_group(*label, vals);
+        tight_plot = tight_plot.with_group(*label, vals);
     }
 
     for (plot, name) in [(default_plot, "default"), (tight_plot, "tight")] {
@@ -250,7 +277,10 @@ fn test_raincloud_bandwidth_scale() {
         let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
         std::fs::write(format!("test_outputs/raincloud_bw_{name}.svg"), svg.clone()).unwrap();
         assert!(svg.contains("<svg"));
-        assert!(svg.contains("<path"), "cloud path should be present ({name})");
+        assert!(
+            svg.contains("<path"),
+            "cloud path should be present ({name})"
+        );
     }
 }
 
@@ -276,5 +306,8 @@ fn test_raincloud_large_dataset() {
     assert!(svg.contains("<path"), "cloud paths present");
     assert!(svg.contains("<rect"), "box rects present");
     let circle_count = svg.matches("<circle").count();
-    assert!(circle_count >= 3000, "expected 3000+ rain circles for 3×1000 pts, got {circle_count}");
+    assert!(
+        circle_count >= 3000,
+        "expected 3000+ rain circles for 3×1000 pts, got {circle_count}"
+    );
 }

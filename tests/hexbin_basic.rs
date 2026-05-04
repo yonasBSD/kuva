@@ -1,6 +1,6 @@
-use kuva::plot::hexbin::{HexbinPlot, ZReduce, ColorMap};
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::hexbin::{ColorMap, HexbinPlot, ZReduce};
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 
 fn render_svg(plots: Vec<Plot>, layout: Layout) -> String {
     SvgBackend.render_scene(&render_multiple(plots, layout))
@@ -52,9 +52,7 @@ fn test_hexbin_basic() {
 #[test]
 fn test_hexbin_log_color() {
     let (x, y) = make_clusters(80);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_log_color(true);
+    let plot = HexbinPlot::new().with_data(x, y).with_log_color(true);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Log Color");
     let svg = render_svg(plots, layout);
@@ -66,31 +64,38 @@ fn test_hexbin_log_color() {
 fn test_hexbin_min_count() {
     // Dense cluster data ensures many bins exceed the threshold.
     let (x, y) = make_clusters(150);
-    let plot_low  = HexbinPlot::new().with_data(x.clone(), y.clone()).with_n_bins(10).with_min_count(1);
-    let plot_high = HexbinPlot::new().with_data(x, y).with_n_bins(10).with_min_count(8);
+    let plot_low = HexbinPlot::new()
+        .with_data(x.clone(), y.clone())
+        .with_n_bins(10)
+        .with_min_count(1);
+    let plot_high = HexbinPlot::new()
+        .with_data(x, y)
+        .with_n_bins(10)
+        .with_min_count(8);
 
-    let plots_low  = vec![Plot::Hexbin(plot_low)];
+    let plots_low = vec![Plot::Hexbin(plot_low)];
     let plots_high = vec![Plot::Hexbin(plot_high)];
-    let layout_low  = Layout::auto_from_plots(&plots_low).with_title("Hexbin min_count=1");
+    let layout_low = Layout::auto_from_plots(&plots_low).with_title("Hexbin min_count=1");
     let layout_high = Layout::auto_from_plots(&plots_high).with_title("Hexbin min_count=8");
 
-    let svg_low  = render_svg(plots_low,  layout_low);
+    let svg_low = render_svg(plots_low, layout_low);
     let svg_high = render_svg(plots_high, layout_high);
-    std::fs::write("test_outputs/hexbin_min_count_1.svg",  &svg_low).unwrap();
+    std::fs::write("test_outputs/hexbin_min_count_1.svg", &svg_low).unwrap();
     std::fs::write("test_outputs/hexbin_min_count_8.svg", &svg_high).unwrap();
 
-    let count_low  = svg_low.matches("<path").count();
+    let count_low = svg_low.matches("<path").count();
     let count_high = svg_high.matches("<path").count();
     assert!(count_low > 0, "min_count=1 should render some hexes");
-    assert!(count_low >= count_high, "higher min_count should produce fewer hexes");
+    assert!(
+        count_low >= count_high,
+        "higher min_count should produce fewer hexes"
+    );
 }
 
 #[test]
 fn test_hexbin_flat_top() {
     let (x, y) = make_clusters(50);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_flat_top(true);
+    let plot = HexbinPlot::new().with_data(x, y).with_flat_top(true);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Flat-Top");
     let svg = render_svg(plots, layout);
@@ -108,7 +113,10 @@ fn test_hexbin_inferno_colormap() {
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Inferno");
     let svg = render_svg(plots, layout);
     std::fs::write("test_outputs/hexbin_inferno.svg", &svg).unwrap();
-    assert!(svg.contains("<path"), "inferno colormap hexes should render");
+    assert!(
+        svg.contains("<path"),
+        "inferno colormap hexes should render"
+    );
 }
 
 #[test]
@@ -136,16 +144,17 @@ fn test_hexbin_normalize() {
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Normalized");
     let svg = render_svg(plots, layout);
     std::fs::write("test_outputs/hexbin_normalize.svg", &svg).unwrap();
-    assert!(svg.contains("Density"), "colorbar label 'Density' should appear");
+    assert!(
+        svg.contains("Density"),
+        "colorbar label 'Density' should appear"
+    );
 }
 
 #[test]
 fn test_hexbin_z_mean() {
     let (x, y) = make_clusters(60);
     let z: Vec<f64> = x.iter().zip(y.iter()).map(|(xi, yi)| xi + yi).collect();
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_z(z, ZReduce::Mean);
+    let plot = HexbinPlot::new().with_data(x, y).with_z(z, ZReduce::Mean);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Z Mean");
     let svg = render_svg(plots, layout);
@@ -158,9 +167,7 @@ fn test_hexbin_z_mean() {
 fn test_hexbin_z_median() {
     let (x, y) = make_clusters(60);
     let z: Vec<f64> = x.iter().map(|xi| xi.abs()).collect();
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_z(z, ZReduce::Median);
+    let plot = HexbinPlot::new().with_data(x, y).with_z(z, ZReduce::Median);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Z Median");
     let svg = render_svg(plots, layout);
@@ -172,9 +179,7 @@ fn test_hexbin_z_median() {
 fn test_hexbin_z_sum() {
     let (x, y) = make_clusters(60);
     let z: Vec<f64> = y.iter().map(|yi| yi.abs()).collect();
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_z(z, ZReduce::Sum);
+    let plot = HexbinPlot::new().with_data(x, y).with_z(z, ZReduce::Sum);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Z Sum");
     let svg = render_svg(plots, layout);
@@ -185,29 +190,31 @@ fn test_hexbin_z_sum() {
 #[test]
 fn test_hexbin_color_range() {
     let (x, y) = make_clusters(80);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_color_range(2.0, 8.0);
+    let plot = HexbinPlot::new().with_data(x, y).with_color_range(2.0, 8.0);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Color Range");
     let svg = render_svg(plots, layout);
     std::fs::write("test_outputs/hexbin_color_range.svg", &svg).unwrap();
-    assert!(svg.contains("<path"), "hexes should render with clamped color scale");
+    assert!(
+        svg.contains("<path"),
+        "hexes should render with clamped color scale"
+    );
 }
 
 #[test]
 fn test_hexbin_into_plot() {
     let (x, y) = make_points(50);
     let p: Plot = HexbinPlot::new().with_data(x, y).into();
-    assert!(matches!(p, Plot::Hexbin(_)), "From<HexbinPlot> should produce Plot::Hexbin");
+    assert!(
+        matches!(p, Plot::Hexbin(_)),
+        "From<HexbinPlot> should produce Plot::Hexbin"
+    );
 }
 
 #[test]
 fn test_hexbin_large() {
     let (x, y) = make_points(1000);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_n_bins(30);
+    let plot = HexbinPlot::new().with_data(x, y).with_n_bins(30);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Hexbin Large (1000 pts)")
@@ -215,16 +222,17 @@ fn test_hexbin_large() {
         .with_y_label("Y");
     let svg = render_svg(plots, layout);
     std::fs::write("test_outputs/hexbin_large.svg", &svg).unwrap();
-    assert!(svg.contains("<svg"), "large dataset should produce valid SVG");
+    assert!(
+        svg.contains("<svg"),
+        "large dataset should produce valid SVG"
+    );
     assert!(svg.contains("<path"), "should have hex paths");
 }
 
 #[test]
 fn test_hexbin_n_bins_coarse() {
     let (x, y) = make_clusters(80);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_n_bins(10);
+    let plot = HexbinPlot::new().with_data(x, y).with_n_bins(10);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin n_bins=10");
     let svg = render_svg(plots, layout);
@@ -235,9 +243,7 @@ fn test_hexbin_n_bins_coarse() {
 #[test]
 fn test_hexbin_n_bins_fine() {
     let (x, y) = make_clusters(80);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_n_bins(40);
+    let plot = HexbinPlot::new().with_data(x, y).with_n_bins(40);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin n_bins=40");
     let svg = render_svg(plots, layout);
@@ -248,22 +254,21 @@ fn test_hexbin_n_bins_fine() {
 #[test]
 fn test_hexbin_x_range() {
     let (x, y) = make_clusters(80);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_x_range(-0.5, 3.0);
+    let plot = HexbinPlot::new().with_data(x, y).with_x_range(-0.5, 3.0);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin x_range clipped");
     let svg = render_svg(plots, layout);
     std::fs::write("test_outputs/hexbin_x_range.svg", &svg).unwrap();
-    assert!(svg.contains("<svg"), "x_range clip should still produce valid SVG");
+    assert!(
+        svg.contains("<svg"),
+        "x_range clip should still produce valid SVG"
+    );
 }
 
 #[test]
 fn test_hexbin_no_colorbar() {
     let (x, y) = make_clusters(60);
-    let plot = HexbinPlot::new()
-        .with_data(x, y)
-        .with_colorbar(false);
+    let plot = HexbinPlot::new().with_data(x, y).with_colorbar(false);
     let plots = vec![Plot::Hexbin(plot)];
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin No Colorbar");
     let svg = render_svg(plots, layout);
@@ -280,9 +285,7 @@ fn test_hexbin_z_min_max() {
     let plot_min = HexbinPlot::new()
         .with_data(x.clone(), y.clone())
         .with_z(z.clone(), ZReduce::Min);
-    let plot_max = HexbinPlot::new()
-        .with_data(x, y)
-        .with_z(z, ZReduce::Max);
+    let plot_max = HexbinPlot::new().with_data(x, y).with_z(z, ZReduce::Max);
 
     let plots_min = vec![Plot::Hexbin(plot_min)];
     let plots_max = vec![Plot::Hexbin(plot_max)];
@@ -320,5 +323,8 @@ fn test_hexbin_custom_colorbar_label() {
     let layout = Layout::auto_from_plots(&plots).with_title("Hexbin Custom Label");
     let svg = render_svg(plots, layout);
     std::fs::write("test_outputs/hexbin_custom_label.svg", &svg).unwrap();
-    assert!(svg.contains("My Custom Label"), "custom colorbar label should appear");
+    assert!(
+        svg.contains("My Custom Label"),
+        "custom colorbar label should appear"
+    );
 }

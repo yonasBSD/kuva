@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/network/`.
 
-use kuva::plot::network::{NetworkPlot, NetworkLayout};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::network::{NetworkLayout, NetworkPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/network";
 
@@ -45,8 +45,7 @@ fn basic() {
         .with_labels();
 
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Gene Interaction Network");
+    let layout = Layout::auto_from_plots(&plots).with_title("Gene Interaction Network");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/basic.svg"), svg).unwrap();
@@ -71,8 +70,7 @@ fn directed() {
         .with_labels();
 
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Gene Regulatory Network");
+    let layout = Layout::auto_from_plots(&plots).with_title("Gene Regulatory Network");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/directed.svg"), svg).unwrap();
@@ -110,8 +108,7 @@ fn grouped() {
         .with_legend("Pathway");
 
     let plots = vec![Plot::Network(net)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Gene Network by Pathway");
+    let layout = Layout::auto_from_plots(&plots).with_title("Gene Network by Pathway");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/grouped.svg"), svg).unwrap();

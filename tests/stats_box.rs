@@ -1,9 +1,9 @@
+use kuva::backend::svg::SvgBackend;
+use kuva::plot::legend::LegendPosition;
 use kuva::plot::ScatterPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
-use kuva::plot::legend::LegendPosition;
 use std::fs;
 
 fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
@@ -15,8 +15,13 @@ fn write_svg(name: &str, plots: Vec<Plot>, layout: Layout) -> String {
 }
 
 fn make_scatter() -> (Vec<Plot>, Layout) {
-    let sp = ScatterPlot::new()
-        .with_data(vec![(1.0_f64, 2.0_f64), (2.0, 3.5), (3.0, 5.0), (4.0, 6.5), (5.0, 8.0)]);
+    let sp = ScatterPlot::new().with_data(vec![
+        (1.0_f64, 2.0_f64),
+        (2.0, 3.5),
+        (3.0, 5.0),
+        (4.0, 6.5),
+        (5.0, 8.0),
+    ]);
     let plots = vec![Plot::Scatter(sp)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Scatter")
@@ -28,8 +33,7 @@ fn make_scatter() -> (Vec<Plot>, Layout) {
 #[test]
 fn test_stats_box_scatter() {
     let (plots, layout) = make_scatter();
-    let layout = layout
-        .with_stats_box(vec!["R² = 0.992", "p < 0.0001", "n = 5"]);
+    let layout = layout.with_stats_box(vec!["R² = 0.992", "p < 0.0001", "n = 5"]);
     let svg = write_svg("stats_box_scatter", plots, layout);
     assert!(svg.contains("R²"));
     assert!(svg.contains("0.992"));
@@ -52,11 +56,10 @@ fn test_stats_box_with_title() {
 #[test]
 fn test_stats_box_position_inside_bottom_right() {
     let (plots, layout) = make_scatter();
-    let layout = layout
-        .with_stats_box_at(
-            LegendPosition::InsideBottomRight,
-            vec!["R² = 0.91", "RMSE = 0.32"],
-        );
+    let layout = layout.with_stats_box_at(
+        LegendPosition::InsideBottomRight,
+        vec!["R² = 0.91", "RMSE = 0.32"],
+    );
     let svg = write_svg("stats_box_position", plots, layout);
     assert!(svg.contains("RMSE = 0.32"));
 }
@@ -81,10 +84,7 @@ fn test_stats_box_with_legend_no_collision() {
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Scatter with legend and stats")
         .with_legend_position(LegendPosition::InsideTopLeft)
-        .with_stats_box_at(
-            LegendPosition::InsideTopLeft,
-            vec!["R² = 0.99"],
-        );
+        .with_stats_box_at(LegendPosition::InsideTopLeft, vec!["R² = 0.99"]);
     let svg = write_svg("stats_box_with_legend_no_collision", plots, layout);
     // Both should appear
     assert!(svg.contains("R²"));
@@ -103,12 +103,16 @@ fn test_stats_box_single_entry() {
 fn test_stats_box_survival() {
     use kuva::plot::SurvivalPlot;
     let sp = SurvivalPlot::new()
-        .with_group("Control",
+        .with_group(
+            "Control",
             vec![2.0, 4.0, 6.0, 8.0, 10.0],
-            vec![true, true, false, true, false])
-        .with_group("Treatment",
+            vec![true, true, false, true, false],
+        )
+        .with_group(
+            "Treatment",
             vec![3.0, 5.0, 7.0, 9.0, 12.0],
-            vec![true, false, true, false, true]);
+            vec![true, false, true, false, true],
+        );
     let plots = vec![Plot::Survival(sp)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Survival")

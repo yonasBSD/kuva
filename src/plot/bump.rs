@@ -84,7 +84,9 @@ pub struct BumpPlot {
 }
 
 impl Default for BumpPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BumpPlot {
@@ -110,7 +112,11 @@ impl BumpPlot {
 
     /// Add a pre-ranked series using integer or float ranks.
     /// Use `None` values (via `.with_ranked_series`) for time points where the series is absent.
-    pub fn with_series(mut self, name: impl Into<String>, ranks: impl IntoIterator<Item = impl Into<f64>>) -> Self {
+    pub fn with_series(
+        mut self,
+        name: impl Into<String>,
+        ranks: impl IntoIterator<Item = impl Into<f64>>,
+    ) -> Self {
         self.series.push(BumpSeries {
             name: name.into(),
             ranks: ranks.into_iter().map(|r| Some(r.into())).collect(),
@@ -121,7 +127,11 @@ impl BumpPlot {
 
     /// Add a pre-ranked series that may have missing time points.
     /// `None` entries cause the line to break at that position.
-    pub fn with_ranked_series(mut self, name: impl Into<String>, ranks: impl IntoIterator<Item = Option<f64>>) -> Self {
+    pub fn with_ranked_series(
+        mut self,
+        name: impl Into<String>,
+        ranks: impl IntoIterator<Item = Option<f64>>,
+    ) -> Self {
         self.series.push(BumpSeries {
             name: name.into(),
             ranks: ranks.into_iter().collect(),
@@ -135,7 +145,11 @@ impl BumpPlot {
     ///
     /// By default (`.with_rank_ascending(false)`): higher value → rank 1.
     /// Ties are handled by `.with_tie_break()` (default: average).
-    pub fn with_raw_series(mut self, name: impl Into<String>, values: impl IntoIterator<Item = impl Into<f64>>) -> Self {
+    pub fn with_raw_series(
+        mut self,
+        name: impl Into<String>,
+        values: impl IntoIterator<Item = impl Into<f64>>,
+    ) -> Self {
         self.raw_values.push((
             name.into(),
             values.into_iter().map(|v| Some(v.into())).collect(),
@@ -145,8 +159,13 @@ impl BumpPlot {
     }
 
     /// Add a raw-value series that may have missing time points.
-    pub fn with_raw_series_opt(mut self, name: impl Into<String>, values: impl IntoIterator<Item = Option<f64>>) -> Self {
-        self.raw_values.push((name.into(), values.into_iter().collect(), None));
+    pub fn with_raw_series_opt(
+        mut self,
+        name: impl Into<String>,
+        values: impl IntoIterator<Item = Option<f64>>,
+    ) -> Self {
+        self.raw_values
+            .push((name.into(), values.into_iter().collect(), None));
         self
     }
 
@@ -224,7 +243,12 @@ impl BumpPlot {
     pub(crate) fn n_time_points(&self) -> usize {
         let from_labels = self.x_labels.len();
         let from_series = self.series.iter().map(|s| s.ranks.len()).max().unwrap_or(0);
-        let from_raw = self.raw_values.iter().map(|(_, v, _)| v.len()).max().unwrap_or(0);
+        let from_raw = self
+            .raw_values
+            .iter()
+            .map(|(_, v, _)| v.len())
+            .max()
+            .unwrap_or(0);
         from_labels.max(from_series).max(from_raw)
     }
 
@@ -235,21 +259,24 @@ impl BumpPlot {
         }
 
         let n_raw = self.raw_values.len();
-        let n_time = self.raw_values.iter().map(|(_, v, _)| v.len()).max().unwrap_or(0);
+        let n_time = self
+            .raw_values
+            .iter()
+            .map(|(_, v, _)| v.len())
+            .max()
+            .unwrap_or(0);
         let mut ranked: Vec<Vec<Option<f64>>> = vec![vec![None; n_time]; n_raw];
 
         #[allow(clippy::needless_range_loop)]
         for t in 0..n_time {
             // Collect (series_idx, value) for series present at this time point
             let mut present: Vec<(usize, f64)> = (0..n_raw)
-                .filter_map(|s| {
-                    self.raw_values[s].1.get(t)
-                        .and_then(|v| *v)
-                        .map(|v| (s, v))
-                })
+                .filter_map(|s| self.raw_values[s].1.get(t).and_then(|v| *v).map(|v| (s, v)))
                 .collect();
 
-            if present.is_empty() { continue; }
+            if present.is_empty() {
+                continue;
+            }
 
             // Sort: higher value = rank 1 when !ascending
             if self.rank_ascending {
@@ -265,7 +292,9 @@ impl BumpPlot {
                 let val = present[i].1;
                 let mut j = i + 1;
                 // Find end of tie group
-                while j < n && (present[j].1 - val).abs() < f64::EPSILON * val.abs().max(1.0) * 1000.0 {
+                while j < n
+                    && (present[j].1 - val).abs() < f64::EPSILON * val.abs().max(1.0) * 1000.0
+                {
                     j += 1;
                 }
                 for k in i..j {
@@ -274,8 +303,8 @@ impl BumpPlot {
                             let sum: f64 = ((i + 1)..=(j)).map(|r| r as f64).sum();
                             sum / (j - i) as f64
                         }
-                        BumpTieBreak::Min    => (i + 1) as f64,
-                        BumpTieBreak::Max    => j as f64,
+                        BumpTieBreak::Min => (i + 1) as f64,
+                        BumpTieBreak::Max => j as f64,
                         BumpTieBreak::Stable => (k + 1) as f64,
                     };
                     ranked[present[k].0][t] = Some(rank);
@@ -285,7 +314,10 @@ impl BumpPlot {
         }
 
         // Build BumpSeries from computed ranks
-        let mut result: Vec<BumpSeries> = self.raw_values.iter().enumerate()
+        let mut result: Vec<BumpSeries> = self
+            .raw_values
+            .iter()
+            .enumerate()
             .map(|(s, (name, _, color))| BumpSeries {
                 name: name.clone(),
                 ranks: ranked[s].clone(),

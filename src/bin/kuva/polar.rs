@@ -2,12 +2,12 @@ use clap::Args;
 
 use kuva::plot::polar::{PolarMode, PolarPlot};
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Polar coordinate scatter/line plot.
@@ -64,7 +64,11 @@ pub fn run(args: PolarArgs) -> Result<(), String> {
         args.input.delimiter,
     )?;
 
-    let mode = if args.mode == "line" { PolarMode::Line } else { PolarMode::Scatter };
+    let mode = if args.mode == "line" {
+        PolarMode::Line
+    } else {
+        PolarMode::Scatter
+    };
 
     let mut plot = PolarPlot::new()
         .with_theta_divisions(args.theta_divisions)

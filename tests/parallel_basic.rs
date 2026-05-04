@@ -1,6 +1,6 @@
-use kuva::plot::parallel::ParallelPlot;
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::parallel::ParallelPlot;
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 use std::fs;
 
 fn write_parallel(name: &str, plot: ParallelPlot, title: &str) -> String {
@@ -15,34 +15,43 @@ fn write_parallel(name: &str, plot: ParallelPlot, title: &str) -> String {
 // Iris-style data (4 dimensions, 3 groups)
 fn iris_data() -> Vec<(&'static str, Vec<Vec<f64>>)> {
     vec![
-        ("setosa", vec![
-            vec![5.1, 3.5, 1.4, 0.2],
-            vec![4.9, 3.0, 1.4, 0.2],
-            vec![4.7, 3.2, 1.3, 0.2],
-            vec![4.6, 3.1, 1.5, 0.2],
-            vec![5.0, 3.6, 1.4, 0.2],
-        ]),
-        ("versicolor", vec![
-            vec![7.0, 3.2, 4.7, 1.4],
-            vec![6.4, 3.2, 4.5, 1.5],
-            vec![6.9, 3.1, 4.9, 1.5],
-            vec![5.5, 2.3, 4.0, 1.3],
-            vec![6.5, 2.8, 4.6, 1.5],
-        ]),
-        ("virginica", vec![
-            vec![6.3, 3.3, 6.0, 2.5],
-            vec![5.8, 2.7, 5.1, 1.9],
-            vec![7.1, 3.0, 5.9, 2.1],
-            vec![6.3, 2.9, 5.6, 1.8],
-            vec![6.5, 3.0, 5.8, 2.2],
-        ]),
+        (
+            "setosa",
+            vec![
+                vec![5.1, 3.5, 1.4, 0.2],
+                vec![4.9, 3.0, 1.4, 0.2],
+                vec![4.7, 3.2, 1.3, 0.2],
+                vec![4.6, 3.1, 1.5, 0.2],
+                vec![5.0, 3.6, 1.4, 0.2],
+            ],
+        ),
+        (
+            "versicolor",
+            vec![
+                vec![7.0, 3.2, 4.7, 1.4],
+                vec![6.4, 3.2, 4.5, 1.5],
+                vec![6.9, 3.1, 4.9, 1.5],
+                vec![5.5, 2.3, 4.0, 1.3],
+                vec![6.5, 2.8, 4.6, 1.5],
+            ],
+        ),
+        (
+            "virginica",
+            vec![
+                vec![6.3, 3.3, 6.0, 2.5],
+                vec![5.8, 2.7, 5.1, 1.9],
+                vec![7.1, 3.0, 5.9, 2.1],
+                vec![6.3, 2.9, 5.6, 1.8],
+                vec![6.5, 3.0, 5.8, 2.2],
+            ],
+        ),
     ]
 }
 
 #[test]
 fn test_parallel_basic() {
-    let mut plot = ParallelPlot::new()
-        .with_axis_names(["Sepal.L", "Sepal.W", "Petal.L", "Petal.W"]);
+    let mut plot =
+        ParallelPlot::new().with_axis_names(["Sepal.L", "Sepal.W", "Petal.L", "Petal.W"]);
     for (group, rows) in iris_data() {
         for row in rows {
             plot = plot.with_row_group(group, row);
@@ -106,9 +115,9 @@ fn test_parallel_no_normalize() {
 fn test_parallel_custom_colors() {
     let plot = ParallelPlot::new()
         .with_axis_names(["Sepal.L", "Sepal.W", "Petal.L", "Petal.W"])
-        .with_row_group("setosa",     vec![5.1, 3.5, 1.4, 0.2])
+        .with_row_group("setosa", vec![5.1, 3.5, 1.4, 0.2])
         .with_row_group("versicolor", vec![7.0, 3.2, 4.7, 1.4])
-        .with_row_group("virginica",  vec![6.3, 3.3, 6.0, 2.5])
+        .with_row_group("virginica", vec![6.3, 3.3, 6.0, 2.5])
         .with_group_colors(["#e41a1c", "#377eb8", "#4daf4a"]);
     let svg = write_parallel("custom_colors", plot, "Custom Colors");
     assert!(svg.contains("e41a1c"), "Expected custom color in SVG");
@@ -173,10 +182,11 @@ fn test_parallel_stroke_width() {
 #[test]
 fn test_parallel_many_axes() {
     let axis_names = (0..8).map(|i| format!("Dim{}", i + 1)).collect::<Vec<_>>();
-    let mut plot = ParallelPlot::new()
-        .with_axis_names(axis_names);
+    let mut plot = ParallelPlot::new().with_axis_names(axis_names);
     for k in 0..20 {
-        let vals: Vec<f64> = (0..8).map(|i| (k as f64 * 0.3 + i as f64 * 0.5).sin() * 5.0 + 5.0).collect();
+        let vals: Vec<f64> = (0..8)
+            .map(|i| (k as f64 * 0.3 + i as f64 * 0.5).sin() * 5.0 + 5.0)
+            .collect();
         plot = plot.with_row_group(format!("G{}", k % 3 + 1), vals);
     }
     write_parallel("many_axes", plot, "8-Dimensional Parallel Plot");
@@ -195,7 +205,10 @@ fn test_parallel_curved() {
     }
     let svg = write_parallel("curved", plot, "Iris — Curved Lines");
     // Curved paths use C (cubicBezier) commands, not just L
-    assert!(svg.contains(" C "), "Expected cubic bezier commands in curved SVG");
+    assert!(
+        svg.contains(" C "),
+        "Expected cubic bezier commands in curved SVG"
+    );
 }
 
 #[test]
@@ -213,7 +226,10 @@ fn test_parallel_mean_lines() {
     // Mean lines are drawn as paths; we should have at least n_rows + n_groups paths
     let path_count = svg.matches("<path").count();
     // 15 individual rows + 3 mean lines = 18 minimum
-    assert!(path_count >= 18, "Expected individual + mean line paths, got {path_count}");
+    assert!(
+        path_count >= 18,
+        "Expected individual + mean line paths, got {path_count}"
+    );
 }
 
 #[test]
@@ -245,8 +261,14 @@ fn test_parallel_inverted_axis() {
     }
     let svg = write_parallel("inverted_axis", plot, "Iris — Sepal.W Inverted");
     // Inverted axes get a ▼ glyph and orange fill on the axis label
-    assert!(svg.contains("▼"), "Expected ▼ indicator glyph for inverted axis");
-    assert!(svg.contains("d46000"), "Expected orange color for inverted axis");
+    assert!(
+        svg.contains("▼"),
+        "Expected ▼ indicator glyph for inverted axis"
+    );
+    assert!(
+        svg.contains("d46000"),
+        "Expected orange color for inverted axis"
+    );
 }
 
 #[test]
@@ -271,7 +293,10 @@ fn test_parallel_label_within_canvas() {
         .with_legend("Groups");
     for i in 0..6 {
         let v = i as f64;
-        plot = plot.with_row_group(format!("G{}", i % 3), vec![v, v + 1.0, v - 1.0, v * 0.5, v + 2.0]);
+        plot = plot.with_row_group(
+            format!("G{}", i % 3),
+            vec![v, v + 1.0, v - 1.0, v * 0.5, v + 2.0],
+        );
     }
     let svg = write_parallel("label_within_canvas", plot, "Label Placement With Legend");
     assert!(svg.contains("Epsilon"), "Expected last axis label in SVG");

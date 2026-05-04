@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/radar/`.
 
-use kuva::plot::radar::RadarPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::radar::RadarPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/radar";

@@ -1,9 +1,9 @@
-use kuva::plot::{LegendPlot, LegendEntry, LegendShape, ScatterPlot};
+use kuva::backend::svg::SvgBackend;
+use kuva::plot::{LegendEntry, LegendPlot, LegendShape, ScatterPlot};
+use kuva::render::figure::Figure;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render_to_svg;
-use kuva::render::figure::Figure;
-use kuva::backend::svg::SvgBackend;
 
 fn write(name: &str, svg: &str) {
     std::fs::create_dir_all("test_outputs").ok();
@@ -12,20 +12,22 @@ fn write(name: &str, svg: &str) {
 
 fn palette() -> Vec<&'static str> {
     vec![
-        "#4477AA","#EE6677","#228833","#CCBB44","#66CCEE","#AA3377","#BBBBBB",
-        "#332288","#882255","#44AA99","#DDCC77","#117733","#999933","#AA4499",
-        "#88CCEE","#CC6677","#DDDDDD","#44BB99","#AAAA00","#EE8866",
+        "#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#BBBBBB", "#332288",
+        "#882255", "#44AA99", "#DDCC77", "#117733", "#999933", "#AA4499", "#88CCEE", "#CC6677",
+        "#DDDDDD", "#44BB99", "#AAAA00", "#EE8866",
     ]
 }
 
 fn make_entries(n: usize) -> Vec<LegendEntry> {
     let pal = palette();
-    (0..n).map(|i| LegendEntry {
-        label: format!("Category {}", i + 1),
-        color: pal[i % pal.len()].to_string(),
-        shape: LegendShape::Rect,
-        dasharray: None,
-    }).collect()
+    (0..n)
+        .map(|i| LegendEntry {
+            label: format!("Category {}", i + 1),
+            color: pal[i % pal.len()].to_string(),
+            shape: LegendShape::Rect,
+            dasharray: None,
+        })
+        .collect()
 }
 
 fn scatter() -> ScatterPlot {
@@ -37,8 +39,8 @@ fn scatter() -> ScatterPlot {
 #[test]
 fn test_legend_plot_standalone_12() {
     let lp = LegendPlot::from_entries(make_entries(12));
-    let layout = Layout::new((0.0, 1.0), (0.0, 1.0))
-        .with_title("LegendPlot standalone – 12 entries");
+    let layout =
+        Layout::new((0.0, 1.0), (0.0, 1.0)).with_title("LegendPlot standalone – 12 entries");
     let plots: Vec<Plot> = vec![lp.into()];
     let svg = render_to_svg(plots, layout);
     write("legend_plot_standalone_12", &svg);
@@ -71,10 +73,7 @@ fn test_legend_plot_in_figure_below() {
     let lp = LegendPlot::from_entries(make_entries(12));
     let fig = Figure::new(2, 1)
         .with_cell_size(500.0, 300.0)
-        .with_plots(vec![
-            vec![scatter().into()],
-            vec![lp.into()],
-        ])
+        .with_plots(vec![vec![scatter().into()], vec![lp.into()]])
         .with_title("Figure with LegendPlot below");
     let scene = fig.render();
     let svg = SvgBackend::default().render_scene(&scene);
@@ -88,10 +87,7 @@ fn test_legend_plot_in_figure_right() {
     let lp = LegendPlot::from_entries(make_entries(10));
     let fig = Figure::new(1, 2)
         .with_cell_size(400.0, 380.0)
-        .with_plots(vec![
-            vec![scatter().into()],
-            vec![lp.into()],
-        ])
+        .with_plots(vec![vec![scatter().into()], vec![lp.into()]])
         .with_title("Figure with LegendPlot right");
     let scene = fig.render();
     let svg = SvgBackend::default().render_scene(&scene);

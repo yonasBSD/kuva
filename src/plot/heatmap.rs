@@ -111,9 +111,10 @@ pub struct Heatmap {
     pub cell_size: f64,
 }
 
-
 impl Default for Heatmap {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Heatmap {
@@ -215,7 +216,10 @@ impl Heatmap {
     /// let plots: Vec<Plot> = vec![Plot::Heatmap(heatmap)];
     /// let layout = Layout::auto_from_plots(&plots).with_y_categories(layout_cats);
     /// ```
-    pub fn with_y_categories(mut self, desired_order: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_y_categories(
+        mut self,
+        desired_order: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         let order: Vec<String> = desired_order.into_iter().map(|s| s.into()).collect();
         if let Some(ref current_labels) = self.row_labels.clone() {
             let label_to_idx: std::collections::HashMap<&str, usize> = current_labels
@@ -227,7 +231,11 @@ impl Heatmap {
             // the heatmap renderer's convention) and the last row = top.
             let mut new_data: Vec<Vec<f64>> = order
                 .iter()
-                .filter_map(|label| label_to_idx.get(label.as_str()).map(|&i| self.data[i].clone()))
+                .filter_map(|label| {
+                    label_to_idx
+                        .get(label.as_str())
+                        .map(|&i| self.data[i].clone())
+                })
                 .collect();
             new_data.reverse();
             self.data = new_data;
@@ -253,7 +261,10 @@ impl Heatmap {
     /// After calling this method, pass the same order to
     /// [`Layout::with_x_categories`](crate::render::layout::Layout::with_x_categories)
     /// to display the labels as axis tick marks.
-    pub fn with_x_categories(mut self, desired_order: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_x_categories(
+        mut self,
+        desired_order: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         let order: Vec<String> = desired_order.into_iter().map(|s| s.into()).collect();
         if let Some(ref current_labels) = self.col_labels.clone() {
             let label_to_idx: std::collections::HashMap<&str, usize> = current_labels
@@ -309,7 +320,10 @@ impl Heatmap {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

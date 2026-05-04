@@ -2,12 +2,14 @@ use clap::Args;
 
 use kuva::plot::EcdfPlot;
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, LogArgs, apply_base_args, apply_axis_args, apply_log_args};
+use crate::layout_args::{
+    apply_axis_args, apply_base_args, apply_log_args, AxisArgs, BaseArgs, LogArgs,
+};
 use crate::output::write_output;
 
 /// Empirical cumulative distribution function (ECDF).
@@ -70,12 +72,24 @@ pub fn run(args: EcdfArgs) -> Result<(), String> {
     )?;
 
     let mut base_plot = EcdfPlot::new();
-    if args.complementary  { base_plot = base_plot.with_complementary(); }
-    if args.confidence_band { base_plot = base_plot.with_confidence_band(); }
-    if args.rug             { base_plot = base_plot.with_rug(); }
-    if args.markers         { base_plot = base_plot.with_markers(); }
-    if args.smooth          { base_plot = base_plot.with_smooth(); }
-    if let Some(w) = args.stroke_width { base_plot = base_plot.with_stroke_width(w); }
+    if args.complementary {
+        base_plot = base_plot.with_complementary();
+    }
+    if args.confidence_band {
+        base_plot = base_plot.with_confidence_band();
+    }
+    if args.rug {
+        base_plot = base_plot.with_rug();
+    }
+    if args.markers {
+        base_plot = base_plot.with_markers();
+    }
+    if args.smooth {
+        base_plot = base_plot.with_smooth();
+    }
+    if let Some(w) = args.stroke_width {
+        base_plot = base_plot.with_stroke_width(w);
+    }
     if !args.percentile_lines.is_empty() {
         base_plot = base_plot.with_percentile_lines(args.percentile_lines.clone());
     }

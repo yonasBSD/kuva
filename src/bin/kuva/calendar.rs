@@ -1,12 +1,12 @@
 use clap::Args;
 
-use kuva::plot::calendar::{CalendarPlot, CalendarAgg};
+use kuva::plot::calendar::{CalendarAgg, CalendarPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// GitHub-style calendar heatmap from date/value data.
@@ -67,12 +67,14 @@ pub fn run(args: CalendarArgs) -> Result<(), String> {
     if let Some(agg_str) = args.agg {
         let agg = match agg_str.to_ascii_lowercase().as_str() {
             "count" => CalendarAgg::Count,
-            "sum"   => CalendarAgg::Sum,
-            "mean"  => CalendarAgg::Mean,
-            "max"   => CalendarAgg::Max,
-            other   => return Err(format!(
-                "unknown aggregation '{other}'; accepted: count, sum, mean, max"
-            )),
+            "sum" => CalendarAgg::Sum,
+            "mean" => CalendarAgg::Mean,
+            "max" => CalendarAgg::Max,
+            other => {
+                return Err(format!(
+                    "unknown aggregation '{other}'; accepted: count, sum, mean, max"
+                ))
+            }
         };
         plot = plot.with_aggregation(agg);
     }

@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
-use crate::render::render::{Scene, Primitive, TextAnchor};
 use crate::backend::interactive_js;
+use crate::render::render::{Primitive, Scene, TextAnchor};
 
 /// Fast float-to-string conversion using Ryu.
 /// This will round floats to 2 decimal places.
@@ -68,7 +68,10 @@ impl Default for SvgBackend {
 
 impl SvgBackend {
     pub const fn new() -> Self {
-        Self { pretty: false, embed_font: false }
+        Self {
+            pretty: false,
+            embed_font: false,
+        }
     }
 
     pub fn with_pretty(mut self, v: bool) -> Self {
@@ -110,7 +113,8 @@ impl SvgBackend {
         // Emit axis metadata as data-* attrs when interactive.
         if scene.interactive {
             if let Some(ref m) = scene.axis_meta {
-                let _ = write!(svg,
+                let _ = write!(
+                    svg,
                     r#" data-xmin="{xmin}" data-xmax="{xmax}" data-ymin="{ymin}" data-ymax="{ymax}" data-plot-left="{pl}" data-plot-top="{pt}" data-plot-right="{pr}" data-plot-bottom="{pb}" data-log-x="{lx}" data-log-y="{ly}""#,
                     xmin = m.x_min,
                     xmax = m.x_max,
@@ -162,9 +166,7 @@ impl SvgBackend {
                 svg.push_str(r#"#kuva-readout{pointer-events:none;font-size:11px;fill:#555;}"#);
                 svg.push_str("</style>");
             } else if scene.has_tooltips {
-                svg.push_str(
-                    r#"<style>g.tt{cursor:pointer;}g.tt:hover>*{opacity:0.75;}</style>"#,
-                );
+                svg.push_str(r#"<style>g.tt{cursor:pointer;}g.tt:hover>*{opacity:0.75;}</style>"#);
             }
             svg.push_str("</defs>");
             write_newline(&mut svg, p);
@@ -175,7 +177,15 @@ impl SvgBackend {
         let mut depth: usize = 1;
         for elem in &scene.elements {
             match elem {
-                Primitive::Circle { cx, cy, r, fill, fill_opacity, stroke, stroke_width } => {
+                Primitive::Circle {
+                    cx,
+                    cy,
+                    r,
+                    fill,
+                    fill_opacity,
+                    stroke,
+                    stroke_width,
+                } => {
                     write_indent(&mut svg, depth, p);
                     svg.push_str(r#"<circle cx=""#);
                     write_float(&mut svg, *cx);
@@ -204,7 +214,16 @@ impl SvgBackend {
                     svg.push_str(" />");
                     write_newline(&mut svg, p);
                 }
-                Primitive::Text { x, y, content, size, anchor, rotate, bold, color } => {
+                Primitive::Text {
+                    x,
+                    y,
+                    content,
+                    size,
+                    anchor,
+                    rotate,
+                    bold,
+                    color,
+                } => {
                     let anchor_str = match anchor {
                         TextAnchor::Start => "start",
                         TextAnchor::Middle => "middle",
@@ -242,7 +261,14 @@ impl SvgBackend {
                     svg.push_str("</text>");
                     write_newline(&mut svg, p);
                 }
-                Primitive::RichText { x, y, spans, size, anchor, color } => {
+                Primitive::RichText {
+                    x,
+                    y,
+                    spans,
+                    size,
+                    anchor,
+                    color,
+                } => {
                     let anchor_str = match anchor {
                         TextAnchor::Start => "start",
                         TextAnchor::Middle => "middle",
@@ -268,18 +294,34 @@ impl SvgBackend {
                         let styled = span.bold || span.italic || span.underline;
                         if styled {
                             svg.push_str("<tspan");
-                            if span.bold      { svg.push_str(r#" font-weight="bold""#); }
-                            if span.italic    { svg.push_str(r#" font-style="italic""#); }
-                            if span.underline { svg.push_str(r#" text-decoration="underline""#); }
+                            if span.bold {
+                                svg.push_str(r#" font-weight="bold""#);
+                            }
+                            if span.italic {
+                                svg.push_str(r#" font-style="italic""#);
+                            }
+                            if span.underline {
+                                svg.push_str(r#" text-decoration="underline""#);
+                            }
                             svg.push('>');
                         }
                         write_escaped(&mut svg, &span.text);
-                        if styled { svg.push_str("</tspan>"); }
+                        if styled {
+                            svg.push_str("</tspan>");
+                        }
                     }
                     svg.push_str("</text>");
                     write_newline(&mut svg, p);
                 }
-                Primitive::Line { x1, y1, x2, y2, stroke, stroke_width, stroke_dasharray } => {
+                Primitive::Line {
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    stroke,
+                    stroke_width,
+                    stroke_dasharray,
+                } => {
                     write_indent(&mut svg, depth, p);
                     svg.push_str(r#"<line x1=""#);
                     write_float(&mut svg, *x1);
@@ -331,12 +373,16 @@ impl SvgBackend {
                     svg.push_str(" />");
                     write_newline(&mut svg, p);
                 }
-                Primitive::GroupStart { transform, title, extra_attrs } => {
+                Primitive::GroupStart {
+                    transform,
+                    title,
+                    extra_attrs,
+                } => {
                     write_indent(&mut svg, depth, p);
                     svg.push_str("<g");
                     // Only add class="tt" from title if extra_attrs doesn't already supply a class.
-                    let extra_has_class = extra_attrs.as_ref()
-                        .is_some_and(|a| a.contains("class="));
+                    let extra_has_class =
+                        extra_attrs.as_ref().is_some_and(|a| a.contains("class="));
                     if title.is_some() && !extra_has_class {
                         svg.push_str(r#" class="tt""#);
                     }
@@ -383,7 +429,16 @@ impl SvgBackend {
                     svg.push_str("</g>");
                     write_newline(&mut svg, p);
                 }
-                Primitive::Rect { x, y, width, height, fill, stroke, stroke_width, opacity } => {
+                Primitive::Rect {
+                    x,
+                    y,
+                    width,
+                    height,
+                    fill,
+                    stroke,
+                    stroke_width,
+                    opacity,
+                } => {
                     write_indent(&mut svg, depth, p);
                     svg.push_str(r#"<rect x=""#);
                     write_float(&mut svg, *x);
@@ -414,7 +469,15 @@ impl SvgBackend {
                     svg.push_str(" />");
                     write_newline(&mut svg, p);
                 }
-                Primitive::CircleBatch { cx, cy, r, fill, fill_opacity, stroke, stroke_width } => {
+                Primitive::CircleBatch {
+                    cx,
+                    cy,
+                    r,
+                    fill,
+                    fill_opacity,
+                    stroke,
+                    stroke_width,
+                } => {
                     let mut fill_buf = String::with_capacity(7);
                     fill.write_svg(&mut fill_buf);
                     let mut stroke_buf = String::new();
@@ -484,7 +547,7 @@ impl SvgBackend {
         if scene.interactive {
             // Position the UI strip inside the plot at the top-right corner to avoid
             // overlapping axis labels.
-            let ui_w: f64 = 215.0;  // search + gap + save + gap + info circle
+            let ui_w: f64 = 215.0; // search + gap + save + gap + info circle
             let ui_h: f64 = 22.0;
 
             // Place the strip in the 32px reserved zone at the very bottom of the SVG,
@@ -496,12 +559,12 @@ impl SvgBackend {
                 6.0
             };
             // Layout (left to right): [search input FO] [gap] [save btn SVG] [gap] [info icon SVG]
-            let save_w: f64  = 38.0;
-            let input_fo_w   = ui_w - save_w - 3.0 - 22.0 - 4.0;  // 148px
-            let save_x       = strip_x + input_fo_w + 3.0;
-            let save_mid_x   = save_x + save_w * 0.5;
-            let mid_y        = strip_y + ui_h * 0.5;
-            let info_cx      = strip_x + ui_w - 11.0;
+            let save_w: f64 = 38.0;
+            let input_fo_w = ui_w - save_w - 3.0 - 22.0 - 4.0; // 148px
+            let save_x = strip_x + input_fo_w + 3.0;
+            let save_mid_x = save_x + save_w * 0.5;
+            let mid_y = strip_y + ui_h * 0.5;
+            let info_cx = strip_x + ui_w - 11.0;
 
             // Search input in its own foreignObject (no flex, no button).
             write_indent(&mut svg, 1, p);

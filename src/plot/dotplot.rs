@@ -73,23 +73,23 @@ pub struct DotPoint {
 /// std::fs::write("dotplot.svg", svg).unwrap();
 /// ```
 pub struct DotPlot {
-    pub points:             Vec<DotPoint>,
+    pub points: Vec<DotPoint>,
     /// X-axis category order (insertion order for `with_data`; explicit for `with_matrix`).
-    pub x_categories:       Vec<String>,
+    pub x_categories: Vec<String>,
     /// Y-axis category order (insertion order; rendered top → bottom).
-    pub y_categories:       Vec<String>,
+    pub y_categories: Vec<String>,
     /// Color map applied to the `color` field after normalisation. Default `Viridis`.
-    pub color_map:          ColorMap,
+    pub color_map: ColorMap,
     /// Maximum circle radius in pixels (default `12.0`).
-    pub max_radius:         f64,
+    pub max_radius: f64,
     /// Minimum circle radius in pixels (default `1.0`).
-    pub min_radius:         f64,
+    pub min_radius: f64,
     /// Clamp the size encoding to this range before normalising. `None` = auto (data extent).
-    pub size_range:         Option<(f64, f64)>,
+    pub size_range: Option<(f64, f64)>,
     /// Clamp the color encoding to this range before normalising. `None` = auto (data extent).
-    pub color_range:        Option<(f64, f64)>,
+    pub color_range: Option<(f64, f64)>,
     /// When `Some`, a size legend is drawn in the right margin using this label.
-    pub size_label:         Option<String>,
+    pub size_label: Option<String>,
     /// When `Some`, a colorbar is drawn in the right margin using this label.
     pub color_legend_label: Option<String>,
     pub show_tooltips: bool,
@@ -97,7 +97,9 @@ pub struct DotPlot {
 }
 
 impl Default for DotPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DotPlot {
@@ -157,7 +159,12 @@ impl DotPlot {
                 self.y_categories.push(y_cat.clone());
             }
 
-            self.points.push(DotPoint { x_cat, y_cat, size, color });
+            self.points.push(DotPoint {
+                x_cat,
+                y_cat,
+                size,
+                color,
+            });
         }
         self
     }
@@ -198,13 +205,8 @@ impl DotPlot {
         self.x_categories = x_cats.clone();
         self.y_categories = y_cats.clone();
 
-        for (y_cat, (size_row, color_row)) in y_cats.iter()
-            .zip(sizes.into_iter().zip(colors))
-        {
-            for (col_j, (size, color)) in size_row.into_iter()
-                .zip(color_row)
-                .enumerate()
-            {
+        for (y_cat, (size_row, color_row)) in y_cats.iter().zip(sizes.into_iter().zip(colors)) {
+            for (col_j, (size, color)) in size_row.into_iter().zip(color_row).enumerate() {
                 if let Some(x_cat) = x_cats.get(col_j) {
                     self.points.push(DotPoint {
                         x_cat: x_cat.clone(),
@@ -309,8 +311,16 @@ impl DotPlot {
         if self.points.is_empty() {
             return (0.0, 1.0);
         }
-        let min = self.points.iter().map(|p| p.size).fold(f64::INFINITY, f64::min);
-        let max = self.points.iter().map(|p| p.size).fold(f64::NEG_INFINITY, f64::max);
+        let min = self
+            .points
+            .iter()
+            .map(|p| p.size)
+            .fold(f64::INFINITY, f64::min);
+        let max = self
+            .points
+            .iter()
+            .map(|p| p.size)
+            .fold(f64::NEG_INFINITY, f64::max);
         (min, max)
     }
 
@@ -319,8 +329,16 @@ impl DotPlot {
         if self.points.is_empty() {
             return (0.0, 1.0);
         }
-        let min = self.points.iter().map(|p| p.color).fold(f64::INFINITY, f64::min);
-        let max = self.points.iter().map(|p| p.color).fold(f64::NEG_INFINITY, f64::max);
+        let min = self
+            .points
+            .iter()
+            .map(|p| p.color)
+            .fold(f64::INFINITY, f64::min);
+        let max = self
+            .points
+            .iter()
+            .map(|p| p.color)
+            .fold(f64::NEG_INFINITY, f64::max);
         (min, max)
     }
 
@@ -329,7 +347,10 @@ impl DotPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

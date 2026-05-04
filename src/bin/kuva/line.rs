@@ -2,12 +2,14 @@ use clap::Args;
 
 use kuva::plot::line::{LinePlot, LineStyle};
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, LogArgs, apply_base_args, apply_axis_args, apply_log_args};
+use crate::layout_args::{
+    apply_axis_args, apply_base_args, apply_log_args, AxisArgs, BaseArgs, LogArgs,
+};
 use crate::output::write_output;
 
 /// Line plot from two numeric columns.
@@ -71,7 +73,11 @@ pub fn run(args: LineArgs) -> Result<(), String> {
     )?;
 
     let x_col = args.x.unwrap_or(ColSpec::Index(0));
-    let y_cols: Vec<ColSpec> = if args.y.is_empty() { vec![ColSpec::Index(1)] } else { args.y };
+    let y_cols: Vec<ColSpec> = if args.y.is_empty() {
+        vec![ColSpec::Index(1)]
+    } else {
+        args.y
+    };
     let color = args.color.unwrap_or_else(|| "steelblue".to_string());
     let stroke_width = args.stroke_width.unwrap_or(2.0);
     let line_style = if args.dashed {
@@ -86,8 +92,11 @@ pub fn run(args: LineArgs) -> Result<(), String> {
 
     let plots: Vec<Plot> = if let Some(color_by) = args.color_by {
         if y_cols.len() > 1 {
-            return Err("--color-by and multiple --y columns are mutually exclusive. \
-                        Use one or the other to create multiple series.".to_string());
+            return Err(
+                "--color-by and multiple --y columns are mutually exclusive. \
+                        Use one or the other to create multiple series."
+                    .to_string(),
+            );
         }
         let y_col = &y_cols[0];
         let groups = table.group_by(&color_by)?;
@@ -109,8 +118,12 @@ pub fn run(args: LineArgs) -> Result<(), String> {
                     .with_stroke_width(stroke_width)
                     .with_line_style(line_style.clone());
 
-                if fill { plot = plot.with_fill(); }
-                if legend { plot = plot.with_legend(name); }
+                if fill {
+                    plot = plot.with_fill();
+                }
+                if legend {
+                    plot = plot.with_legend(name);
+                }
 
                 Ok(Plot::Line(plot))
             })
@@ -136,8 +149,12 @@ pub fn run(args: LineArgs) -> Result<(), String> {
                     .with_stroke_width(stroke_width)
                     .with_line_style(line_style.clone());
 
-                if fill { plot = plot.with_fill(); }
-                if legend { plot = plot.with_legend(series_name); }
+                if fill {
+                    plot = plot.with_fill();
+                }
+                if legend {
+                    plot = plot.with_legend(series_name);
+                }
 
                 Ok(Plot::Line(plot))
             })
@@ -155,7 +172,9 @@ pub fn run(args: LineArgs) -> Result<(), String> {
             .with_stroke_width(stroke_width)
             .with_line_style(line_style);
 
-        if fill { plot = plot.with_fill(); }
+        if fill {
+            plot = plot.with_fill();
+        }
 
         vec![Plot::Line(plot)]
     };

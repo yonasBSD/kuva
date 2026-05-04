@@ -2,12 +2,12 @@ use clap::Args;
 
 use kuva::plot::radar::RadarPlot;
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Radar / spider chart — multivariate data on radial axes.
@@ -72,10 +72,14 @@ pub fn run(args: RadarArgs) -> Result<(), String> {
     )?;
 
     // Axis names from column headers (or indices as strings).
-    let axis_names: Vec<String> = args.axes.iter().map(|cs| match cs {
-        crate::data::ColSpec::Name(n) => n.clone(),
-        crate::data::ColSpec::Index(i) => format!("axis{}", i),
-    }).collect();
+    let axis_names: Vec<String> = args
+        .axes
+        .iter()
+        .map(|cs| match cs {
+            crate::data::ColSpec::Name(n) => n.clone(),
+            crate::data::ColSpec::Index(i) => format!("axis{}", i),
+        })
+        .collect();
 
     if axis_names.len() < 3 {
         return Err("--axes requires at least 3 columns".to_string());

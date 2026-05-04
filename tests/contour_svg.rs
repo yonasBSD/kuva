@@ -1,10 +1,10 @@
 use std::fs;
 
-use kuva::plot::{ContourPlot, ColorMap};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{ColorMap, ContourPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 /// Simple 4x4 Gaussian-ish grid centred at (0,0)
 fn gaussian_grid() -> (Vec<Vec<f64>>, Vec<f64>, Vec<f64>) {
@@ -22,19 +22,19 @@ fn gaussian_grid() -> (Vec<Vec<f64>>, Vec<f64>, Vec<f64>) {
 #[test]
 fn contour_grid_basic() {
     let (z, xs, ys) = gaussian_grid();
-    let cp = ContourPlot::new()
-        .with_grid(z, xs, ys)
-        .with_n_levels(6);
+    let cp = ContourPlot::new().with_grid(z, xs, ys).with_n_levels(6);
 
     let plots = vec![Plot::Contour(cp)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Contour – grid, lines only");
+    let layout = Layout::auto_from_plots(&plots).with_title("Contour – grid, lines only");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
     fs::write("test_outputs/contour_grid_basic.svg", &svg).unwrap();
 
-    assert!(svg.contains("<path"), "Expected <path elements for iso-lines");
+    assert!(
+        svg.contains("<path"),
+        "Expected <path elements for iso-lines"
+    );
 }
 
 #[test]
@@ -46,8 +46,7 @@ fn contour_filled() {
         .with_filled();
 
     let plots = vec![Plot::Contour(cp)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Contour – filled bands");
+    let layout = Layout::auto_from_plots(&plots).with_title("Contour – filled bands");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -55,7 +54,11 @@ fn contour_filled() {
 
     // Filled mode produces at least as many paths as lines-only (bands + iso-lines)
     let path_count = svg.matches("<path").count();
-    assert!(path_count >= 6, "Expected at least 6 <path elements, got {}", path_count);
+    assert!(
+        path_count >= 6,
+        "Expected at least 6 <path elements, got {}",
+        path_count
+    );
 }
 
 #[test]
@@ -71,19 +74,19 @@ fn contour_scatter() {
         }
     }
 
-    let cp = ContourPlot::new()
-        .with_points(pts)
-        .with_n_levels(5);
+    let cp = ContourPlot::new().with_points(pts).with_n_levels(5);
 
     let plots = vec![Plot::Contour(cp)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Contour – scattered IDW input");
+    let layout = Layout::auto_from_plots(&plots).with_title("Contour – scattered IDW input");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
     fs::write("test_outputs/contour_scatter.svg", &svg).unwrap();
 
-    assert!(svg.contains("<path"), "Expected <path elements for iso-lines");
+    assert!(
+        svg.contains("<path"),
+        "Expected <path elements for iso-lines"
+    );
 }
 
 #[test]
@@ -94,8 +97,7 @@ fn contour_explicit_levels() {
         .with_levels(&[0.1, 0.3, 0.5, 0.7, 0.9]);
 
     let plots = vec![Plot::Contour(cp)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Contour – explicit iso-levels");
+    let layout = Layout::auto_from_plots(&plots).with_title("Contour – explicit iso-levels");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -115,8 +117,8 @@ fn contour_colormap_legend() {
         .with_legend("Density");
 
     let plots = vec![Plot::Contour(cp)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Contour – Inferno colormap + colorbar");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("Contour – Inferno colormap + colorbar");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -124,5 +126,8 @@ fn contour_colormap_legend() {
 
     assert!(svg.contains("<path"), "Expected <path elements");
     // Colorbar is rendered as rects
-    assert!(svg.contains("<rect"), "Expected <rect elements for colorbar");
+    assert!(
+        svg.contains("<rect"),
+        "Expected <rect elements for colorbar"
+    );
 }

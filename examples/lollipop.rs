@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/lollipop/`.
 
-use kuva::plot::LollipopPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::LollipopPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 use std::fs;
 
 const OUT: &str = "docs/src/assets/lollipop";
@@ -44,11 +44,26 @@ fn main() {
 
     // ── Mutation landscape with domain annotations ─────────────────────────
     let mutations: Vec<(f64, f64)> = vec![
-        (8.0, 1.0), (12.0, 3.0), (19.0, 1.0), (25.0, 2.0),
-        (41.0, 7.0), (53.0, 2.0), (55.0, 1.0), (62.0, 4.0),
-        (79.0, 1.0), (88.0, 3.0), (97.0, 5.0), (110.0, 2.0),
-        (124.0, 8.0), (131.0, 1.0), (138.0, 3.0), (150.0, 1.0),
-        (158.0, 2.0), (163.0, 6.0), (172.0, 1.0), (180.0, 2.0),
+        (8.0, 1.0),
+        (12.0, 3.0),
+        (19.0, 1.0),
+        (25.0, 2.0),
+        (41.0, 7.0),
+        (53.0, 2.0),
+        (55.0, 1.0),
+        (62.0, 4.0),
+        (79.0, 1.0),
+        (88.0, 3.0),
+        (97.0, 5.0),
+        (110.0, 2.0),
+        (124.0, 8.0),
+        (131.0, 1.0),
+        (138.0, 3.0),
+        (150.0, 1.0),
+        (158.0, 2.0),
+        (163.0, 6.0),
+        (172.0, 1.0),
+        (180.0, 2.0),
     ];
     let lp = LollipopPlot::new()
         .with_points(mutations)
@@ -73,13 +88,13 @@ fn main() {
 
     // ── Mixed signs (log2 fold-change style) ──────────────────────────────
     let lp = LollipopPlot::new()
-        .with_point(1.0,  2.1)
+        .with_point(1.0, 2.1)
         .with_point(2.0, -1.3)
-        .with_point(3.0,  3.5)
+        .with_point(3.0, 3.5)
         .with_point(4.0, -2.8)
-        .with_point(5.0,  1.4)
+        .with_point(5.0, 1.4)
         .with_point(6.0, -0.7)
-        .with_point(7.0,  2.9)
+        .with_point(7.0, 2.9)
         .with_point(8.0, -1.9)
         .with_baseline(0.0)
         .with_baseline_dash("4,3")

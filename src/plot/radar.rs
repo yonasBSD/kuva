@@ -155,10 +155,7 @@ impl RadarPlot {
     ///
     /// A shaded band is drawn between `value − error` and `value + error` on each axis.
     /// Call this immediately after `with_series*`.
-    pub fn with_series_errors(
-        mut self,
-        errors: impl IntoIterator<Item = impl Into<f64>>,
-    ) -> Self {
+    pub fn with_series_errors(mut self, errors: impl IntoIterator<Item = impl Into<f64>>) -> Self {
         if let Some(last) = self.series.last_mut() {
             last.errors = Some(errors.into_iter().map(Into::into).collect());
         }
@@ -248,10 +245,7 @@ impl RadarPlot {
     }
 
     /// Mark multiple axes as inverted (by index).
-    pub fn with_inverted_axes(
-        mut self,
-        indices: impl IntoIterator<Item = usize>,
-    ) -> Self {
+    pub fn with_inverted_axes(mut self, indices: impl IntoIterator<Item = usize>) -> Self {
         for axis in indices {
             if self.inverted_axes.len() <= axis {
                 self.inverted_axes.resize(axis + 1, false);

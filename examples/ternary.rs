@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/ternary/`.
 
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::ternary::TernaryPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 
 const OUT: &str = "docs/src/assets/ternary";
 
@@ -34,20 +34,29 @@ fn basic() {
         .with_legend(true);
 
     for (a, b, c) in [
-        (0.75, 0.15, 0.10), (0.80, 0.12, 0.08),
-        (0.70, 0.18, 0.12), (0.82, 0.10, 0.08), (0.68, 0.20, 0.12),
+        (0.75, 0.15, 0.10),
+        (0.80, 0.12, 0.08),
+        (0.70, 0.18, 0.12),
+        (0.82, 0.10, 0.08),
+        (0.68, 0.20, 0.12),
     ] {
         plot = plot.with_point_group(a, b, c, "A-rich");
     }
     for (a, b, c) in [
-        (0.12, 0.75, 0.13), (0.10, 0.80, 0.10),
-        (0.15, 0.72, 0.13), (0.08, 0.82, 0.10), (0.13, 0.70, 0.17),
+        (0.12, 0.75, 0.13),
+        (0.10, 0.80, 0.10),
+        (0.15, 0.72, 0.13),
+        (0.08, 0.82, 0.10),
+        (0.13, 0.70, 0.17),
     ] {
         plot = plot.with_point_group(a, b, c, "B-rich");
     }
     for (a, b, c) in [
-        (0.10, 0.12, 0.78), (0.08, 0.10, 0.82),
-        (0.13, 0.15, 0.72), (0.09, 0.09, 0.82), (0.12, 0.18, 0.70),
+        (0.10, 0.12, 0.78),
+        (0.08, 0.10, 0.82),
+        (0.13, 0.15, 0.72),
+        (0.09, 0.09, 0.82),
+        (0.12, 0.18, 0.70),
     ] {
         plot = plot.with_point_group(a, b, c, "C-rich");
     }
@@ -68,7 +77,8 @@ fn basic() {
 fn marker_density() {
     let mut seed: u64 = 2_718_281_828;
     let mut lcg = || -> f64 {
-        seed = seed.wrapping_mul(6_364_136_223_846_793_005)
+        seed = seed
+            .wrapping_mul(6_364_136_223_846_793_005)
             .wrapping_add(1_442_695_040_888_963_407);
         (seed >> 33) as f64 / ((1u64 << 31) as f64)
     };

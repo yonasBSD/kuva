@@ -78,7 +78,9 @@ pub struct LollipopPlot {
 }
 
 impl Default for LollipopPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LollipopPlot {
@@ -104,25 +106,61 @@ impl LollipopPlot {
 
     /// Add a point at (`x`, `y`) with no label.
     pub fn with_point(mut self, x: impl Into<f64>, y: impl Into<f64>) -> Self {
-        self.points.push(LollipopPoint { x: x.into(), y: y.into(), label: None, color: None });
+        self.points.push(LollipopPoint {
+            x: x.into(),
+            y: y.into(),
+            label: None,
+            color: None,
+        });
         self
     }
 
     /// Add a point with a text label rendered above (or below) the dot.
-    pub fn with_labeled_point(mut self, x: impl Into<f64>, y: impl Into<f64>, label: impl Into<String>) -> Self {
-        self.points.push(LollipopPoint { x: x.into(), y: y.into(), label: Some(label.into()), color: None });
+    pub fn with_labeled_point(
+        mut self,
+        x: impl Into<f64>,
+        y: impl Into<f64>,
+        label: impl Into<String>,
+    ) -> Self {
+        self.points.push(LollipopPoint {
+            x: x.into(),
+            y: y.into(),
+            label: Some(label.into()),
+            color: None,
+        });
         self
     }
 
     /// Add a point with a per-point color override.
-    pub fn with_colored_point(mut self, x: impl Into<f64>, y: impl Into<f64>, color: impl Into<String>) -> Self {
-        self.points.push(LollipopPoint { x: x.into(), y: y.into(), label: None, color: Some(color.into()) });
+    pub fn with_colored_point(
+        mut self,
+        x: impl Into<f64>,
+        y: impl Into<f64>,
+        color: impl Into<String>,
+    ) -> Self {
+        self.points.push(LollipopPoint {
+            x: x.into(),
+            y: y.into(),
+            label: None,
+            color: Some(color.into()),
+        });
         self
     }
 
     /// Add a point with both a label and a per-point color override.
-    pub fn with_labeled_colored_point(mut self, x: impl Into<f64>, y: impl Into<f64>, label: impl Into<String>, color: impl Into<String>) -> Self {
-        self.points.push(LollipopPoint { x: x.into(), y: y.into(), label: Some(label.into()), color: Some(color.into()) });
+    pub fn with_labeled_colored_point(
+        mut self,
+        x: impl Into<f64>,
+        y: impl Into<f64>,
+        label: impl Into<String>,
+        color: impl Into<String>,
+    ) -> Self {
+        self.points.push(LollipopPoint {
+            x: x.into(),
+            y: y.into(),
+            label: Some(label.into()),
+            color: Some(color.into()),
+        });
         self
     }
 
@@ -134,7 +172,12 @@ impl LollipopPlot {
         I: IntoIterator<Item = (T, U)>,
     {
         for (x, y) in pts {
-            self.points.push(LollipopPoint { x: x.into(), y: y.into(), label: None, color: None });
+            self.points.push(LollipopPoint {
+                x: x.into(),
+                y: y.into(),
+                label: None,
+                color: None,
+            });
         }
         self
     }
@@ -202,7 +245,13 @@ impl LollipopPlot {
     /// Add a colored domain annotation band behind the stems.
     ///
     /// `label` is optional text centered inside the rect. `color` is a CSS color string.
-    pub fn with_domain(mut self, x_start: f64, x_end: f64, label: Option<&str>, color: impl Into<String>) -> Self {
+    pub fn with_domain(
+        mut self,
+        x_start: f64,
+        x_end: f64,
+        label: Option<&str>,
+        color: impl Into<String>,
+    ) -> Self {
         self.domains.push(LollipopDomain {
             x_start,
             x_end,
@@ -214,7 +263,14 @@ impl LollipopPlot {
     }
 
     /// Add a domain with explicit opacity.
-    pub fn with_domain_opacity(mut self, x_start: f64, x_end: f64, label: Option<&str>, color: impl Into<String>, opacity: f64) -> Self {
+    pub fn with_domain_opacity(
+        mut self,
+        x_start: f64,
+        x_end: f64,
+        label: Option<&str>,
+        color: impl Into<String>,
+        opacity: f64,
+    ) -> Self {
         self.domains.push(LollipopDomain {
             x_start,
             x_end,
