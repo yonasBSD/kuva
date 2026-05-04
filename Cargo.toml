@@ -21,7 +21,7 @@ all-features = true
 default = []
 png  = ["dep:resvg"]
 pdf  = ["dep:svg2pdf"]
-cli  = ["dep:clap", "dep:clap_mangen"]
+cli  = ["dep:clap", "dep:clap_mangen", "dep:csv"]
 full = ["png", "pdf"]
 # Adds `kuva doom` subcommand and generates a self-contained DOOM SVG.
 # Build downloads doom.wasm + doom1.wad from the kuva doom-assets release.
@@ -37,6 +37,7 @@ resvg       = { version = "0.44", optional = true }
 svg2pdf     = { version = "0.13", optional = true }
 clap        = { version = "4", features = ["derive"], optional = true }
 clap_mangen = { version = "0.2", optional = true }
+csv         = { version = "1", optional = true }
 
 [dev-dependencies]
 rand = "0.9.3"

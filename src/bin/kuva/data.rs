@@ -74,30 +74,36 @@ impl DataTable {
             sniff_delim(&content)
         };
 
-        let all_lines: Vec<&str> = content.lines().collect();
-        if all_lines.is_empty() {
+        let mut rdr = csv::ReaderBuilder::new()
+            .delimiter(delim as u8)
+            .has_headers(false)
+            .flexible(true)
+            .trim(csv::Trim::All)
+            .from_reader(content.as_bytes());
+
+        let mut all_records: Vec<Vec<String>> = rdr
+            .records()
+            .filter_map(|r| r.ok())
+            .filter(|r| !r.iter().all(|f| f.trim().is_empty()))
+            .map(|r| r.iter().map(|f| f.to_string()).collect())
+            .collect();
+
+        if all_records.is_empty() {
             return Err("Input is empty".to_string());
         }
-
-        let first_fields: Vec<String> = split_line(all_lines[0], delim);
 
         let has_header = if no_header {
             false
         } else {
-            first_fields.first().map(|f| f.parse::<f64>().is_err()).unwrap_or(false)
+            all_records[0].first().map(|f| f.parse::<f64>().is_err()).unwrap_or(false)
         };
 
-        let (header, data_start) = if has_header {
-            (Some(first_fields), 1)
+        let (header, rows) = if has_header {
+            let h = all_records.remove(0);
+            (Some(h), all_records)
         } else {
-            (None, 0)
+            (None, all_records)
         };
-
-        let rows: Vec<Vec<String>> = all_lines[data_start..]
-            .iter()
-            .filter(|l| !l.trim().is_empty())
-            .map(|l| split_line(l, delim))
-            .collect();
 
         Ok(DataTable { header, rows })
     }
@@ -178,10 +184,6 @@ fn sniff_delim(content: &str) -> char {
     let tabs = first.chars().filter(|&c| c == '\t').count();
     let commas = first.chars().filter(|&c| c == ',').count();
     if tabs >= commas { '\t' } else { ',' }
-}
-
-fn split_line(line: &str, delim: char) -> Vec<String> {
-    line.split(delim).map(|s| s.trim().to_string()).collect()
 }
 
 /// Parse a colormap name string into a `ColorMap` enum.
