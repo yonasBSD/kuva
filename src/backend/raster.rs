@@ -22,6 +22,7 @@ fn shared_fontdb() -> Arc<resvg::usvg::fontdb::Database> {
     FONTDB
         .get_or_init(|| {
             let mut db = resvg::usvg::fontdb::Database::new();
+            db.load_font_data(crate::fonts::dejavu_sans().to_vec());
             db.load_system_fonts();
             Arc::new(db)
         })
@@ -70,11 +71,20 @@ impl RasterBackend {
 
         for elem in &scene.elements {
             match elem {
-                Primitive::Circle { cx, cy, r, fill, fill_opacity, stroke, stroke_width } => {
+                Primitive::Circle {
+                    cx,
+                    cy,
+                    r,
+                    fill,
+                    fill_opacity,
+                    stroke,
+                    stroke_width,
+                } => {
                     if let Some(mut color) = color_to_skia(fill) {
                         if let Some(op) = fill_opacity {
                             let a = op.clamp(0.0, 1.0) as f32;
-                            color = Color::from_rgba(color.red(), color.green(), color.blue(), a).unwrap_or(color);
+                            color = Color::from_rgba(color.red(), color.green(), color.blue(), a)
+                                .unwrap_or(color);
                         }
                         let mut paint = Paint::default();
                         paint.set_color(color);
@@ -89,7 +99,10 @@ impl RasterBackend {
                                     sp.set_color(sc_color);
                                     sp.anti_alias = true;
                                     let sw = stroke_width.unwrap_or(1.0) as f32;
-                                    let sk_stroke = Stroke { width: sw, ..Stroke::default() };
+                                    let sk_stroke = Stroke {
+                                        width: sw,
+                                        ..Stroke::default()
+                                    };
                                     pixmap.stroke_path(&path, &sp, &sk_stroke, transform, None);
                                 }
                             }
@@ -112,9 +125,9 @@ impl RasterBackend {
                         if let Some(mut color) = color_to_skia(fill) {
                             if let Some(op) = opacity {
                                 let a = (*op as f32).clamp(0.0, 1.0) * color.alpha();
-                                color = Color::from_rgba(
-                                    color.red(), color.green(), color.blue(), a,
-                                ).unwrap_or(color);
+                                color =
+                                    Color::from_rgba(color.red(), color.green(), color.blue(), a)
+                                        .unwrap_or(color);
                             }
                             let mut paint = Paint::default();
                             paint.set_color(color);
@@ -126,17 +139,14 @@ impl RasterBackend {
                                 paint.set_color(color);
                                 paint.anti_alias = true;
                                 let sw = stroke_width.unwrap_or(1.0) as f32;
-                                let sk_stroke = Stroke { width: sw, ..Stroke::default() };
+                                let sk_stroke = Stroke {
+                                    width: sw,
+                                    ..Stroke::default()
+                                };
                                 let mut pb = PathBuilder::new();
                                 pb.push_rect(rect);
                                 if let Some(path) = pb.finish() {
-                                    pixmap.stroke_path(
-                                        &path,
-                                        &paint,
-                                        &sk_stroke,
-                                        transform,
-                                        None,
-                                    );
+                                    pixmap.stroke_path(&path, &paint, &sk_stroke, transform, None);
                                 }
                             }
                         }
@@ -155,7 +165,10 @@ impl RasterBackend {
                         let mut paint = Paint::default();
                         paint.set_color(color);
                         paint.anti_alias = true;
-                        let sk_stroke = Stroke { width: *stroke_width as f32, ..Stroke::default() };
+                        let sk_stroke = Stroke {
+                            width: *stroke_width as f32,
+                            ..Stroke::default()
+                        };
                         let mut pb = PathBuilder::new();
                         pb.move_to(*x1 as f32, *y1 as f32);
                         pb.line_to(*x2 as f32, *y2 as f32);
@@ -171,19 +184,17 @@ impl RasterBackend {
                                 if let Some(op) = pd.opacity {
                                     let a = (op as f32).clamp(0.0, 1.0) * color.alpha();
                                     color = Color::from_rgba(
-                                        color.red(), color.green(), color.blue(), a,
-                                    ).unwrap_or(color);
+                                        color.red(),
+                                        color.green(),
+                                        color.blue(),
+                                        a,
+                                    )
+                                    .unwrap_or(color);
                                 }
                                 let mut paint = Paint::default();
                                 paint.set_color(color);
                                 paint.anti_alias = true;
-                                pixmap.fill_path(
-                                    &path,
-                                    &paint,
-                                    FillRule::Winding,
-                                    transform,
-                                    None,
-                                );
+                                pixmap.fill_path(&path, &paint, FillRule::Winding, transform, None);
                             }
                         }
                         if !matches!(pd.stroke, crate::render::color::Color::None) {
@@ -191,26 +202,32 @@ impl RasterBackend {
                                 let mut paint = Paint::default();
                                 paint.set_color(color);
                                 paint.anti_alias = true;
-                                let sk_stroke = Stroke { width: pd.stroke_width as f32, ..Stroke::default() };
-                                pixmap.stroke_path(
-                                    &path,
-                                    &paint,
-                                    &sk_stroke,
-                                    transform,
-                                    None,
-                                );
+                                let sk_stroke = Stroke {
+                                    width: pd.stroke_width as f32,
+                                    ..Stroke::default()
+                                };
+                                pixmap.stroke_path(&path, &paint, &sk_stroke, transform, None);
                             }
                         }
                     }
                 }
-                Primitive::Text { .. } => {
+                Primitive::Text { .. } | Primitive::RichText { .. } => {
                     text_primitives.push(elem);
                 }
-                Primitive::CircleBatch { cx, cy, r, fill, fill_opacity, stroke, stroke_width } => {
+                Primitive::CircleBatch {
+                    cx,
+                    cy,
+                    r,
+                    fill,
+                    fill_opacity,
+                    stroke,
+                    stroke_width,
+                } => {
                     if let Some(mut color) = color_to_skia(fill) {
                         if let Some(op) = fill_opacity {
                             let a = op.clamp(0.0, 1.0) as f32;
-                            color = Color::from_rgba(color.red(), color.green(), color.blue(), a).unwrap_or(color);
+                            color = Color::from_rgba(color.red(), color.green(), color.blue(), a)
+                                .unwrap_or(color);
                         }
                         let mut paint = Paint::default();
                         paint.set_color(color);
@@ -222,14 +239,15 @@ impl RasterBackend {
                             sp
                         });
                         let sw = stroke_width.unwrap_or(1.0) as f32;
-                        let sk_stroke = Stroke { width: sw, ..Stroke::default() };
+                        let sk_stroke = Stroke {
+                            width: sw,
+                            ..Stroke::default()
+                        };
                         for i in 0..cx.len() {
                             if let Some(path) =
                                 PathBuilder::from_circle(cx[i] as f32, cy[i] as f32, *r as f32)
                             {
-                                pixmap.fill_path(
-                                    &path, &paint, FillRule::Winding, transform, None,
-                                );
+                                pixmap.fill_path(&path, &paint, FillRule::Winding, transform, None);
                                 if let Some(ref sp) = stroke_paint {
                                     pixmap.stroke_path(&path, sp, &sk_stroke, transform, None);
                                 }
@@ -289,34 +307,76 @@ fn build_text_svg(scene: &Scene, texts: &[&Primitive]) -> String {
     svg.push('>');
 
     for elem in texts {
-        if let Primitive::Text {
-            x,
-            y,
-            content,
-            size,
-            anchor,
-            rotate,
-            bold,
-        } = elem
-        {
-            let anchor_str = match anchor {
-                TextAnchor::Start => "start",
-                TextAnchor::Middle => "middle",
-                TextAnchor::End => "end",
-            };
-            let _ = write!(
-                svg,
-                r#"<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor_str}""#
-            );
-            if *bold {
-                svg.push_str(r#" font-weight="bold""#);
+        match elem {
+            Primitive::Text {
+                x,
+                y,
+                content,
+                size,
+                anchor,
+                rotate,
+                bold,
+                ..
+            } => {
+                let anchor_str = match anchor {
+                    TextAnchor::Start => "start",
+                    TextAnchor::Middle => "middle",
+                    TextAnchor::End => "end",
+                };
+                let _ = write!(
+                    svg,
+                    r#"<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor_str}""#
+                );
+                if *bold {
+                    svg.push_str(r#" font-weight="bold""#);
+                }
+                if let Some(angle) = rotate {
+                    let _ = write!(svg, r#" transform="rotate({angle},{x},{y})""#);
+                }
+                svg.push('>');
+                write_escaped(&mut svg, content);
+                svg.push_str("</text>");
             }
-            if let Some(angle) = rotate {
-                let _ = write!(svg, r#" transform="rotate({angle},{x},{y})""#);
+            Primitive::RichText {
+                x,
+                y,
+                spans,
+                size,
+                anchor,
+                ..
+            } => {
+                let anchor_str = match anchor {
+                    TextAnchor::Start => "start",
+                    TextAnchor::Middle => "middle",
+                    TextAnchor::End => "end",
+                };
+                let _ = write!(
+                    svg,
+                    r#"<text x="{x}" y="{y}" font-size="{size}" text-anchor="{anchor_str}">"#
+                );
+                for span in spans {
+                    let styled = span.bold || span.italic || span.underline;
+                    if styled {
+                        svg.push_str("<tspan");
+                        if span.bold {
+                            svg.push_str(r#" font-weight="bold""#);
+                        }
+                        if span.italic {
+                            svg.push_str(r#" font-style="italic""#);
+                        }
+                        if span.underline {
+                            svg.push_str(r#" text-decoration="underline""#);
+                        }
+                        svg.push('>');
+                    }
+                    write_escaped(&mut svg, &span.text);
+                    if styled {
+                        svg.push_str("</tspan>");
+                    }
+                }
+                svg.push_str("</text>");
             }
-            svg.push('>');
-            write_escaped(&mut svg, content);
-            svg.push_str("</text>");
+            _ => {}
         }
     }
 
@@ -496,10 +556,7 @@ fn parse_svg_path(d: &str) -> Option<tiny_skia::Path> {
         if start == *pos {
             return None;
         }
-        std::str::from_utf8(&data[start..*pos])
-            .ok()?
-            .parse()
-            .ok()
+        std::str::from_utf8(&data[start..*pos]).ok()?.parse().ok()
     }
 
     fn parse_flag(data: &[u8], pos: &mut usize) -> Option<u8> {
@@ -530,9 +587,7 @@ fn parse_svg_path(d: &str) -> Option<tiny_skia::Path> {
                 // Implicit L after M
                 loop {
                     skip_ws_comma(chars, &mut i);
-                    if i >= chars.len()
-                        || chars[i].is_ascii_alphabetic()
-                    {
+                    if i >= chars.len() || chars[i].is_ascii_alphabetic() {
                         break;
                     }
                     let x = parse_f32(chars, &mut i)?;

@@ -152,6 +152,109 @@ let heatmap = Heatmap::new()
 
 ---
 
+## Custom axis bounds — scalar fields
+
+By default the heatmap maps columns to `[0.5, cols + 0.5]` and rows to `[0.5, rows + 0.5]` so that integer tick values land on cell centres. Use `.with_x_range()` and `.with_y_range()` when the grid represents a physical domain and you want real-world coordinates on the axes.
+
+```rust,no_run
+use kuva::plot::{Heatmap, ColorMap};
+use kuva::render::layout::Layout;
+use kuva::render::plots::Plot;
+
+// 2D Gaussian temperature field over x ∈ [-10, 10], y ∈ [-4, 4]
+let data: Vec<Vec<f64>> = (0..16)
+    .map(|i| {
+        let y = 4.0 - (i as f64 + 0.5) * 8.0 / 16.0;
+        (0..40).map(|j| {
+            let x = -10.0 + (j as f64 + 0.5) * 20.0 / 40.0;
+            let r2 = x * x / 16.0 + y * y / 4.0;
+            (-r2 / 2.0).exp()
+        }).collect()
+    })
+    .collect();
+
+let hm = Heatmap::new()
+    .with_data(data)
+    .with_color_map(ColorMap::Inferno)
+    .with_x_range(-10.0, 10.0)
+    .with_y_range(-4.0, 4.0);
+
+let plots = vec![Plot::Heatmap(hm)];
+let layout = Layout::auto_from_plots(&plots)
+    .with_title("Temperature Field")
+    .with_x_label("x (m)")
+    .with_y_label("y (m)");
+```
+
+<img src="../assets/heatmap/scalar_field.svg" alt="Scalar field heatmap with custom axis bounds" width="560">
+
+Both methods accept any numeric type via `impl Into<f64>`. Either range can be set independently — you can fix only the x-axis and leave the y-axis on its default integer scale, or vice versa.
+
+---
+
+## Row reordering — phylogenetic alignment
+
+When composing a heatmap alongside a `PhyloTree`, use `with_labels` + `with_y_categories` to reorder the heatmap rows so they match the tree's leaf order top-to-bottom.
+
+**Key points:**
+- `with_y_categories(order)` treats `order` as **top-to-bottom** — the first label ends up at the top of the rendered heatmap.
+- After the call, `heatmap.row_labels` is stored in **bottom-to-top** order (matching the y-axis convention). Pass it directly to `Layout::with_y_categories`.
+- Use `Figure::new(1, 2)` to place the tree and heatmap side by side.
+
+```rust,no_run
+use kuva::plot::{Heatmap, PhyloTree};
+use kuva::render::figure::Figure;
+use kuva::render::layout::Layout;
+use kuva::render::plots::Plot;
+use kuva::backend::svg::SvgBackend;
+
+let labels_str = ["Wolf", "Cat", "Whale", "Human"];
+let labels: Vec<String> = labels_str.iter().map(|s| s.to_string()).collect();
+
+// Distance matrix — rows correspond to labels_str in order
+let dist = vec![
+    vec![0.0, 0.5, 0.9, 0.8],  // Wolf
+    vec![0.5, 0.0, 0.9, 0.8],  // Cat
+    vec![0.9, 0.9, 0.0, 0.7],  // Whale
+    vec![0.8, 0.8, 0.7, 0.0],  // Human
+];
+
+let tree = PhyloTree::from_distance_matrix(&labels_str, &dist).with_phylogram();
+
+// leaf_labels_top_to_bottom() returns the leaf render order, top-to-bottom
+let leaf_order = tree.leaf_labels_top_to_bottom();
+
+let heatmap = Heatmap::new()
+    .with_data(dist)
+    .with_labels(labels, vec![])     // associate rows with names
+    .with_y_categories(leaf_order);  // first leaf → top of heatmap
+
+// row_labels is now stored bottom-to-top — pass directly to Layout
+let layout_cats = heatmap.row_labels.clone().unwrap();
+
+let tree_plots = vec![Plot::PhyloTree(tree)];
+let heatmap_plots = vec![Plot::Heatmap(heatmap)];
+
+let tree_layout = Layout::auto_from_plots(&tree_plots).with_title("UPGMA Tree");
+let heatmap_layout = Layout::auto_from_plots(&heatmap_plots)
+    .with_title("Distance Matrix")
+    .with_y_categories(layout_cats);
+
+// 1 row × 2 columns: tree on left, heatmap on right
+let figure = Figure::new(1, 2)
+    .with_plots(vec![tree_plots, heatmap_plots])
+    .with_layouts(vec![tree_layout, heatmap_layout]);
+
+let svg = SvgBackend.render_scene(&figure.render());
+std::fs::write("phylo_heatmap.svg", svg).unwrap();
+```
+
+> **Note:** `Layout::with_y_categories()` alone only changes the axis tick *labels* — it does not reorder the data matrix. Always call `Heatmap::with_y_categories()` first to permute the rows, then pass `row_labels` to the layout.
+
+Column reordering works the same way via `with_x_categories`. Unlike `with_y_categories`, column order is not reversed internally — pass the desired left-to-right order directly to both `Heatmap::with_x_categories` and `Layout::with_x_categories`.
+
+---
+
 ## API reference
 
 | Method | Description |
@@ -160,12 +263,17 @@ let heatmap = Heatmap::new()
 | `.with_data(rows)` | Set grid data; accepts any numeric iterable of iterables |
 | `.with_color_map(map)` | Color encoding: `Viridis`, `Inferno`, `Grayscale`, or `Custom` (default `Viridis`) |
 | `.with_values()` | Print each cell's value as text inside the cell |
-| `.with_labels(rows, cols)` | Store label strings in the struct (pass to `Layout` to render them) |
+| `.with_labels(rows, cols)` | Associate rows and columns with label strings; required before calling `with_y_categories` / `with_x_categories` |
+| `.with_y_categories(order)` | Reorder rows so `order[0]` is at the top; stores `row_labels` bottom-to-top for `Layout::with_y_categories` |
+| `.with_x_categories(order)` | Reorder columns to match `order` (left-to-right); stores `col_labels` in the same order |
+| `.with_x_range(lo, hi)` | Set custom x-axis extent (default `[0.5, cols + 0.5]`) |
+| `.with_y_range(lo, hi)` | Set custom y-axis extent (default `[0.5, rows + 0.5]`) |
+| `.with_cell_size(factor)` | Cell fill fraction `[0.5, 1.0]`. Default `0.99` leaves a thin gap between cells. Pass `1.0` for flush cells with no visible boundary — useful for large grids. |
 | `.with_legend(s)` | Attach a legend label |
 
 **Layout methods used with heatmaps:**
 
 | Method | Description |
 |--------|-------------|
-| `Layout::with_x_categories(labels)` | Column labels on the x-axis |
-| `Layout::with_y_categories(labels)` | Row labels on the y-axis |
+| `Layout::with_x_categories(labels)` | Column labels on the x-axis (left-to-right) |
+| `Layout::with_y_categories(labels)` | Row labels on the y-axis (bottom-to-top; pass `heatmap.row_labels` directly after `with_y_categories`) |

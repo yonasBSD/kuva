@@ -1,6 +1,6 @@
-use kuva::plot::synteny::SyntenyPlot;
-use kuva::render::{plots::Plot, layout::Layout};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::synteny::SyntenyPlot;
+use kuva::render::{layout::Layout, plots::Plot};
 use kuva::render_synteny;
 
 fn render(plot: &SyntenyPlot, layout: Layout) -> String {
@@ -13,8 +13,22 @@ fn synteny_pairwise_forward() {
     let plot = SyntenyPlot::new()
         .with_sequences([("Human chr1", 248_956_422.0), ("Mouse chr1", 195_471_971.0)])
         .with_block(0, 0.0, 50_000_000.0, 1, 0.0, 45_000_000.0)
-        .with_block(0, 60_000_000.0, 120_000_000.0, 1, 55_000_000.0, 100_000_000.0)
-        .with_block(0, 130_000_000.0, 200_000_000.0, 1, 110_000_000.0, 170_000_000.0);
+        .with_block(
+            0,
+            60_000_000.0,
+            120_000_000.0,
+            1,
+            55_000_000.0,
+            100_000_000.0,
+        )
+        .with_block(
+            0,
+            130_000_000.0,
+            200_000_000.0,
+            1,
+            110_000_000.0,
+            170_000_000.0,
+        );
 
     let layout = Layout::auto_from_plots(&[Plot::Synteny(plot.clone())]);
     let svg = render(&plot, layout);
@@ -117,17 +131,16 @@ fn synteny_custom_colors() {
 /// Forward blocks are separated by gaps; inversions sit in those gaps.
 #[test]
 fn synteny_large() {
-    let mut plot = SyntenyPlot::new()
-        .with_sequences([
-            ("Chr 1", 248_956_422.0),
-            ("Chr 2", 242_193_529.0),
-            ("Chr 3", 198_295_559.0),
-            ("Chr 4", 190_214_555.0),
-            ("Chr 5", 181_538_259.0),
-            ("Chr 6", 170_805_979.0),
-        ]);
+    let mut plot = SyntenyPlot::new().with_sequences([
+        ("Chr 1", 248_956_422.0),
+        ("Chr 2", 242_193_529.0),
+        ("Chr 3", 198_295_559.0),
+        ("Chr 4", 190_214_555.0),
+        ("Chr 5", 181_538_259.0),
+        ("Chr 6", 170_805_979.0),
+    ]);
 
-    let pairs: [(usize, usize); 5] = [(0,1),(1,2),(2,3),(3,4),(4,5)];
+    let pairs: [(usize, usize); 5] = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)];
     // Four forward blocks — all endpoints fit within Chr 6 (170M)
     // Gaps: 35–45M, 85–95M, 130–140M
     let fwd = [

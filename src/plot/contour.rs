@@ -1,4 +1,4 @@
-use crate::plot::heatmap::ColorMap;
+use crate::plot::colormap::ColorMap;
 
 /// Builder for a contour plot.
 ///
@@ -100,7 +100,9 @@ pub struct ContourPlot {
 }
 
 impl Default for ContourPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ContourPlot {

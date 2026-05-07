@@ -48,10 +48,14 @@ pub struct DensityPlot {
     /// Upper bound for KDE evaluation. When set, boundary reflection is applied
     /// at `x_hi` so the curve terminates smoothly at the upper limit.
     pub x_hi: Option<f64>,
+    /// When `true`, the y-axis fits to the data range instead of anchoring at 0.
+    pub fit_y: bool,
 }
 
 impl Default for DensityPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DensityPlot {
@@ -73,6 +77,7 @@ impl DensityPlot {
             precomputed: None,
             x_lo: None,
             x_hi: None,
+            fit_y: false,
         }
     }
 
@@ -194,6 +199,16 @@ impl DensityPlot {
     /// `3×bandwidth` past the data minimum.
     pub fn with_x_hi(mut self, hi: f64) -> Self {
         self.x_hi = Some(hi);
+        self
+    }
+
+    /// Fit the y-axis to the data range instead of anchoring at zero.
+    ///
+    /// By default the y-axis starts at 0 (density is non-negative). Call this
+    /// when overlaying multiple density curves with very different scales, or
+    /// when zooming into a region where the baseline is not meaningful.
+    pub fn with_fit(mut self) -> Self {
+        self.fit_y = true;
         self
     }
 }

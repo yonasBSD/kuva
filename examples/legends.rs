@@ -31,18 +31,26 @@ fn months() -> Vec<f64> {
 fn variant_sa(pos: LegendPosition) -> (Vec<Plot>, Layout) {
     let sa = StackedAreaPlot::new()
         .with_x(months())
-        .with_series([420.0, 445.0, 398.0, 510.0, 488.0, 501.0,
-                      467.0, 523.0, 495.0, 540.0, 518.0, 555.0])
-        .with_color("steelblue").with_legend("SNVs")
-        .with_series([ 95.0, 102.0,  88.0, 115.0, 108.0, 112.0,
-                        98.0, 125.0, 118.0, 130.0, 122.0, 140.0])
-        .with_color("orange").with_legend("Indels")
-        .with_series([ 22.0,  25.0,  20.0,  28.0,  26.0,  27.0,
-                        24.0,  31.0,  28.0,  33.0,  30.0,  35.0])
-        .with_color("mediumseagreen").with_legend("SVs")
-        .with_series([ 15.0,  17.0,  14.0,  19.0,  18.0,  18.0,
-                        16.0,  21.0,  19.0,  23.0,  21.0,  24.0])
-        .with_color("tomato").with_legend("CNVs");
+        .with_series([
+            420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0,
+        ])
+        .with_color("steelblue")
+        .with_legend("SNVs")
+        .with_series([
+            95.0, 102.0, 88.0, 115.0, 108.0, 112.0, 98.0, 125.0, 118.0, 130.0, 122.0, 140.0,
+        ])
+        .with_color("orange")
+        .with_legend("Indels")
+        .with_series([
+            22.0, 25.0, 20.0, 28.0, 26.0, 27.0, 24.0, 31.0, 28.0, 33.0, 30.0, 35.0,
+        ])
+        .with_color("mediumseagreen")
+        .with_legend("SVs")
+        .with_series([
+            15.0, 17.0, 14.0, 19.0, 18.0, 18.0, 16.0, 21.0, 19.0, 23.0, 21.0, 24.0,
+        ])
+        .with_color("tomato")
+        .with_legend("CNVs");
 
     let plots = vec![Plot::StackedArea(sa)];
     let layout = Layout::auto_from_plots(&plots)
@@ -83,9 +91,21 @@ fn main() {
 fn basic_auto() {
     // Scatter with three colour groups — legend is collected automatically.
     let groups = [
-        ("Cluster A", "steelblue",     vec![(1.1, 2.3), (1.9, 3.1), (2.4, 2.7), (3.0, 3.8), (3.6, 3.2)]),
-        ("Cluster B", "orange",        vec![(4.0, 1.2), (4.8, 1.8), (5.3, 1.4), (6.0, 2.0), (6.5, 1.6)]),
-        ("Cluster C", "mediumseagreen",vec![(2.0, 5.5), (2.8, 6.1), (3.5, 5.8), (4.3, 6.5), (5.0, 6.0)]),
+        (
+            "Cluster A",
+            "steelblue",
+            vec![(1.1, 2.3), (1.9, 3.1), (2.4, 2.7), (3.0, 3.8), (3.6, 3.2)],
+        ),
+        (
+            "Cluster B",
+            "orange",
+            vec![(4.0, 1.2), (4.8, 1.8), (5.3, 1.4), (6.0, 2.0), (6.5, 1.6)],
+        ),
+        (
+            "Cluster C",
+            "mediumseagreen",
+            vec![(2.0, 5.5), (2.8, 6.1), (3.5, 5.8), (4.3, 6.5), (5.0, 6.0)],
+        ),
     ];
 
     let mut plots: Vec<Plot> = Vec::new();
@@ -136,18 +156,26 @@ fn positions() {
 fn no_box() {
     let sa = StackedAreaPlot::new()
         .with_x(months())
-        .with_series([420.0, 445.0, 398.0, 510.0, 488.0, 501.0,
-                      467.0, 523.0, 495.0, 540.0, 518.0, 555.0])
-        .with_color("steelblue").with_legend("SNVs")
-        .with_series([ 95.0, 102.0,  88.0, 115.0, 108.0, 112.0,
-                        98.0, 125.0, 118.0, 130.0, 122.0, 140.0])
-        .with_color("orange").with_legend("Indels")
-        .with_series([ 22.0,  25.0,  20.0,  28.0,  26.0,  27.0,
-                        24.0,  31.0,  28.0,  33.0,  30.0,  35.0])
-        .with_color("mediumseagreen").with_legend("SVs")
-        .with_series([ 15.0,  17.0,  14.0,  19.0,  18.0,  18.0,
-                        16.0,  21.0,  19.0,  23.0,  21.0,  24.0])
-        .with_color("tomato").with_legend("CNVs");
+        .with_series([
+            420.0, 445.0, 398.0, 510.0, 488.0, 501.0, 467.0, 523.0, 495.0, 540.0, 518.0, 555.0,
+        ])
+        .with_color("steelblue")
+        .with_legend("SNVs")
+        .with_series([
+            95.0, 102.0, 88.0, 115.0, 108.0, 112.0, 98.0, 125.0, 118.0, 130.0, 122.0, 140.0,
+        ])
+        .with_color("orange")
+        .with_legend("Indels")
+        .with_series([
+            22.0, 25.0, 20.0, 28.0, 26.0, 27.0, 24.0, 31.0, 28.0, 33.0, 30.0, 35.0,
+        ])
+        .with_color("mediumseagreen")
+        .with_legend("SVs")
+        .with_series([
+            15.0, 17.0, 14.0, 19.0, 18.0, 18.0, 16.0, 21.0, 19.0, 23.0, 21.0, 24.0,
+        ])
+        .with_color("tomato")
+        .with_legend("CNVs");
 
     let plots = vec![Plot::StackedArea(sa)];
     let layout = Layout::auto_from_plots(&plots)
@@ -172,10 +200,26 @@ fn legend_title() {
 
 fn legend_groups() {
     let groups = [
-        ("Control-A",   "steelblue",      vec![(1.0, 2.1), (2.0, 3.4), (3.0, 2.9), (4.0, 4.2)]),
-        ("Control-B",   "#4e9fd4",        vec![(1.0, 1.8), (2.0, 2.9), (3.0, 2.5), (4.0, 3.6)]),
-        ("Treatment-A", "tomato",         vec![(1.0, 2.5), (2.0, 4.1), (3.0, 5.3), (4.0, 6.8)]),
-        ("Treatment-B", "#e06060",        vec![(1.0, 2.2), (2.0, 3.8), (3.0, 5.0), (4.0, 6.2)]),
+        (
+            "Control-A",
+            "steelblue",
+            vec![(1.0, 2.1), (2.0, 3.4), (3.0, 2.9), (4.0, 4.2)],
+        ),
+        (
+            "Control-B",
+            "#4e9fd4",
+            vec![(1.0, 1.8), (2.0, 2.9), (3.0, 2.5), (4.0, 3.6)],
+        ),
+        (
+            "Treatment-A",
+            "tomato",
+            vec![(1.0, 2.5), (2.0, 4.1), (3.0, 5.3), (4.0, 6.8)],
+        ),
+        (
+            "Treatment-B",
+            "#e06060",
+            vec![(1.0, 2.2), (2.0, 3.8), (3.0, 5.0), (4.0, 6.2)],
+        ),
     ];
 
     let mut plots: Vec<Plot> = Vec::new();
@@ -189,12 +233,32 @@ fn legend_groups() {
     }
 
     let ctrl_entries = vec![
-        LegendEntry { label: "Control-A".into(),   color: "steelblue".into(), shape: LegendShape::Circle, dasharray: None },
-        LegendEntry { label: "Control-B".into(),   color: "#4e9fd4".into(),   shape: LegendShape::Circle, dasharray: None },
+        LegendEntry {
+            label: "Control-A".into(),
+            color: "steelblue".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Control-B".into(),
+            color: "#4e9fd4".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
     ];
     let trt_entries = vec![
-        LegendEntry { label: "Treatment-A".into(), color: "tomato".into(),   shape: LegendShape::Circle, dasharray: None },
-        LegendEntry { label: "Treatment-B".into(), color: "#e06060".into(),  shape: LegendShape::Circle, dasharray: None },
+        LegendEntry {
+            label: "Treatment-A".into(),
+            color: "tomato".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
+        LegendEntry {
+            label: "Treatment-B".into(),
+            color: "#e06060".into(),
+            shape: LegendShape::Circle,
+            dasharray: None,
+        },
     ];
 
     let layout = Layout::auto_from_plots(&plots)
@@ -231,12 +295,24 @@ fn data_coords() {
 fn manual_entries() {
     // Three scatter series with different marker shapes.
     let series: &[(&str, &str, LegendShape, &[(f64, f64)])] = &[
-        ("Healthy",  "steelblue",      LegendShape::Circle,
-         &[(1.2, 4.1), (2.0, 3.8), (2.8, 4.5), (3.7, 4.0), (4.5, 4.3)]),
-        ("At risk",  "orange",         LegendShape::Rect,
-         &[(1.5, 2.5), (2.3, 2.1), (3.1, 2.8), (4.0, 2.4), (4.8, 2.7)]),
-        ("Diseased", "crimson",        LegendShape::Line,
-         &[(1.1, 0.9), (1.9, 1.3), (2.7, 0.7), (3.5, 1.1), (4.3, 0.8)]),
+        (
+            "Healthy",
+            "steelblue",
+            LegendShape::Circle,
+            &[(1.2, 4.1), (2.0, 3.8), (2.8, 4.5), (3.7, 4.0), (4.5, 4.3)],
+        ),
+        (
+            "At risk",
+            "orange",
+            LegendShape::Rect,
+            &[(1.5, 2.5), (2.3, 2.1), (3.1, 2.8), (4.0, 2.4), (4.8, 2.7)],
+        ),
+        (
+            "Diseased",
+            "crimson",
+            LegendShape::Line,
+            &[(1.1, 0.9), (1.9, 1.3), (2.7, 0.7), (3.5, 1.1), (4.3, 0.8)],
+        ),
     ];
 
     let mut plots: Vec<Plot> = Vec::new();
@@ -273,9 +349,21 @@ fn manual_entries() {
 fn size_override() {
     // Long labels that would overflow the default auto-sized box.
     let series: &[(&str, &str, &[(f64, f64)])] = &[
-        ("Homo sapiens (reference)",  "steelblue", &[(0.0,1.0),(1.0,1.8),(2.0,2.4),(3.0,2.9)]),
-        ("Mus musculus (knockout)",   "orange",    &[(0.0,0.9),(1.0,1.5),(2.0,1.8),(3.0,2.0)]),
-        ("Rattus norvegicus (ctrl)",  "crimson",   &[(0.0,0.8),(1.0,1.2),(2.0,1.4),(3.0,1.5)]),
+        (
+            "Homo sapiens (reference)",
+            "steelblue",
+            &[(0.0, 1.0), (1.0, 1.8), (2.0, 2.4), (3.0, 2.9)],
+        ),
+        (
+            "Mus musculus (knockout)",
+            "orange",
+            &[(0.0, 0.9), (1.0, 1.5), (2.0, 1.8), (3.0, 2.0)],
+        ),
+        (
+            "Rattus norvegicus (ctrl)",
+            "crimson",
+            &[(0.0, 0.8), (1.0, 1.2), (2.0, 1.4), (3.0, 1.5)],
+        ),
     ];
 
     let mut plots: Vec<Plot> = Vec::new();
@@ -302,53 +390,67 @@ fn size_override() {
 
 fn figure_shared() {
     let colors = [
-        ("steelblue",      "SNVs"),
-        ("orange",         "Indels"),
+        ("steelblue", "SNVs"),
+        ("orange", "Indels"),
         ("mediumseagreen", "SVs"),
-        ("tomato",         "CNVs"),
+        ("tomato", "CNVs"),
     ];
 
     let counts: [[f64; 6]; 4] = [
         [420.0, 467.0, 510.0, 523.0, 540.0, 555.0],
-        [ 95.0,  98.0, 115.0, 125.0, 130.0, 140.0],
-        [ 22.0,  24.0,  28.0,  31.0,  33.0,  35.0],
-        [ 15.0,  16.0,  19.0,  21.0,  23.0,  24.0],
+        [95.0, 98.0, 115.0, 125.0, 130.0, 140.0],
+        [22.0, 24.0, 28.0, 31.0, 33.0, 35.0],
+        [15.0, 16.0, 19.0, 21.0, 23.0, 24.0],
     ];
 
     // Panel A — H1 cohort (first 6 months)
     let mut panel_a: Vec<Plot> = Vec::new();
     for (i, (color, label)) in colors.iter().enumerate() {
-        let pts: Vec<(f64, f64)> = counts[i].iter().enumerate()
-            .map(|(m, &v)| (m as f64 + 1.0, v)).collect();
+        let pts: Vec<(f64, f64)> = counts[i]
+            .iter()
+            .enumerate()
+            .map(|(m, &v)| (m as f64 + 1.0, v))
+            .collect();
         panel_a.push(Plot::Scatter(
-            ScatterPlot::new().with_data(pts).with_color(*color)
-                .with_legend(*label).with_size(6.0),
+            ScatterPlot::new()
+                .with_data(pts)
+                .with_color(*color)
+                .with_legend(*label)
+                .with_size(6.0),
         ));
     }
 
     // Panel B — H2 cohort (same types, slightly different values)
     let counts_b: [[f64; 6]; 4] = [
         [390.0, 440.0, 480.0, 505.0, 520.0, 535.0],
-        [ 88.0,  95.0, 105.0, 118.0, 124.0, 132.0],
-        [ 19.0,  22.0,  25.0,  28.0,  30.0,  33.0],
-        [ 12.0,  14.0,  17.0,  19.0,  21.0,  23.0],
+        [88.0, 95.0, 105.0, 118.0, 124.0, 132.0],
+        [19.0, 22.0, 25.0, 28.0, 30.0, 33.0],
+        [12.0, 14.0, 17.0, 19.0, 21.0, 23.0],
     ];
     let mut panel_b: Vec<Plot> = Vec::new();
     for (i, (color, label)) in colors.iter().enumerate() {
-        let pts: Vec<(f64, f64)> = counts_b[i].iter().enumerate()
-            .map(|(m, &v)| (m as f64 + 1.0, v)).collect();
+        let pts: Vec<(f64, f64)> = counts_b[i]
+            .iter()
+            .enumerate()
+            .map(|(m, &v)| (m as f64 + 1.0, v))
+            .collect();
         panel_b.push(Plot::Scatter(
-            ScatterPlot::new().with_data(pts).with_color(*color)
-                .with_legend(*label).with_size(6.0),
+            ScatterPlot::new()
+                .with_data(pts)
+                .with_color(*color)
+                .with_legend(*label)
+                .with_size(6.0),
         ));
     }
 
     let layout_a = Layout::auto_from_plots(&panel_a)
         .with_title("Cohort H1")
-        .with_x_label("Month").with_y_label("Count");
+        .with_x_label("Month")
+        .with_y_label("Count");
     let layout_b = Layout::auto_from_plots(&panel_b)
         .with_title("Cohort H2")
-        .with_x_label("Month").with_y_label("Count");
+        .with_x_label("Month")
+        .with_y_label("Count");
 
     let scene = Figure::new(1, 2)
         .with_plots(vec![panel_a, panel_b])

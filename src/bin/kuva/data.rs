@@ -47,12 +47,14 @@ pub struct DataTable {
 
 impl DataTable {
     /// Read and parse input from a file path or stdin.
-    pub fn parse(input: Option<&Path>, no_header: bool, delim_override: Option<char>) -> Result<Self, String> {
+    pub fn parse(
+        input: Option<&Path>,
+        no_header: bool,
+        delim_override: Option<char>,
+    ) -> Result<Self, String> {
         let content = match input {
-            Some(p) if p.to_str() != Some("-") => {
-                std::fs::read_to_string(p)
-                    .map_err(|e| format!("Cannot read {}: {e}", p.display()))?
-            }
+            Some(p) if p.to_str() != Some("-") => std::fs::read_to_string(p)
+                .map_err(|e| format!("Cannot read {}: {e}", p.display()))?,
             _ => {
                 let mut s = String::new();
                 io::stdin()
@@ -74,30 +76,39 @@ impl DataTable {
             sniff_delim(&content)
         };
 
-        let all_lines: Vec<&str> = content.lines().collect();
-        if all_lines.is_empty() {
+        let mut rdr = csv::ReaderBuilder::new()
+            .delimiter(delim as u8)
+            .has_headers(false)
+            .flexible(true)
+            .trim(csv::Trim::All)
+            .from_reader(content.as_bytes());
+
+        let mut all_records: Vec<Vec<String>> = rdr
+            .records()
+            .filter_map(|r| r.ok())
+            .filter(|r| !r.iter().all(|f| f.trim().is_empty()))
+            .map(|r| r.iter().map(|f| f.to_string()).collect())
+            .collect();
+
+        if all_records.is_empty() {
             return Err("Input is empty".to_string());
         }
-
-        let first_fields: Vec<String> = split_line(all_lines[0], delim);
 
         let has_header = if no_header {
             false
         } else {
-            first_fields.first().map(|f| f.parse::<f64>().is_err()).unwrap_or(false)
+            all_records[0]
+                .first()
+                .map(|f| f.parse::<f64>().is_err())
+                .unwrap_or(false)
         };
 
-        let (header, data_start) = if has_header {
-            (Some(first_fields), 1)
+        let (header, rows) = if has_header {
+            let h = all_records.remove(0);
+            (Some(h), all_records)
         } else {
-            (None, 0)
+            (None, all_records)
         };
-
-        let rows: Vec<Vec<String>> = all_lines[data_start..]
-            .iter()
-            .filter(|l| !l.trim().is_empty())
-            .map(|l| split_line(l, delim))
-            .collect();
 
         Ok(DataTable { header, rows })
     }
@@ -108,12 +119,17 @@ impl DataTable {
             ColSpec::Index(i) => Ok(*i),
             ColSpec::Name(name) => {
                 let header = self.header.as_ref().ok_or_else(|| {
-                    format!("Column name '{name}' requested but no header row was detected. \
+                    format!(
+                        "Column name '{name}' requested but no header row was detected. \
                              Use --no-header to force treating the first row as data, or \
-                             use a 0-based integer index instead.")
+                             use a 0-based integer index instead."
+                    )
                 })?;
                 header.iter().position(|h| h == name).ok_or_else(|| {
-                    format!("Column '{name}' not found. Available columns: {}", header.join(", "))
+                    format!(
+                        "Column '{name}' not found. Available columns: {}",
+                        header.join(", ")
+                    )
                 })
             }
         }
@@ -168,7 +184,15 @@ impl DataTable {
 
         Ok(groups
             .into_iter()
-            .map(|(name, rows)| (name, DataTable { header: self.header.clone(), rows }))
+            .map(|(name, rows)| {
+                (
+                    name,
+                    DataTable {
+                        header: self.header.clone(),
+                        rows,
+                    },
+                )
+            })
             .collect())
     }
 }
@@ -177,9 +201,77 @@ fn sniff_delim(content: &str) -> char {
     let first = content.lines().next().unwrap_or("");
     let tabs = first.chars().filter(|&c| c == '\t').count();
     let commas = first.chars().filter(|&c| c == ',').count();
-    if tabs >= commas { '\t' } else { ',' }
+    if tabs >= commas {
+        '\t'
+    } else {
+        ','
+    }
 }
 
-fn split_line(line: &str, delim: char) -> Vec<String> {
-    line.split(delim).map(|s| s.trim().to_string()).collect()
+/// Parse a colormap name string into a `ColorMap` enum.
+/// Unrecognized names default to Viridis with a warning on stderr.
+///
+/// Accepted names (case-insensitive, hyphens or no separator both work):
+/// viridis, inferno, magma, plasma, cividis, turbo, warm, cool, cubehelix,
+/// blue-green, blue-purple, green-blue, orange-red, purple-blue, purple-blue-green,
+/// purple-red, red-purple, yellow-green, yellow-green-blue, yellow-orange-brown,
+/// yellow-orange-red, blues, greens, grayscale (grey/gray), oranges, purples, reds,
+/// brown-green, pink-green, purple-green, purple-orange, red-blue, red-grey,
+/// red-yellow-blue, red-yellow-green, spectral, rainbow, sinebow.
+pub fn parse_colormap(name: &str) -> kuva::plot::ColorMap {
+    use kuva::plot::ColorMap;
+    match name.to_ascii_lowercase().replace('_', "-").as_str() {
+        // Sequential perceptual
+        "viridis" => ColorMap::Viridis,
+        "inferno" => ColorMap::Inferno,
+        "magma" => ColorMap::Magma,
+        "plasma" => ColorMap::Plasma,
+        "cividis" => ColorMap::Cividis,
+        "turbo" => ColorMap::Turbo,
+        "warm" => ColorMap::Warm,
+        "cool" => ColorMap::Cool,
+        "cubehelix" => ColorMap::Cubehelix,
+        // Sequential ColorBrewer
+        "blue-green" | "bluegreen" | "bugn" => ColorMap::BlueGreen,
+        "blue-purple" | "bluepurple" | "bupu" => ColorMap::BluePurple,
+        "green-blue" | "greenblue" | "gnbu" => ColorMap::GreenBlue,
+        "orange-red" | "orangered" | "orrd" => ColorMap::OrangeRed,
+        "purple-blue-green" | "purplebluegre" | "pubugn" => ColorMap::PurpleBlueGreen,
+        "purple-blue" | "purpleblue" | "pubu" => ColorMap::PurpleBlue,
+        "purple-red" | "purplered" | "purd" => ColorMap::PurpleRed,
+        "red-purple" | "redpurple" | "rdpu" => ColorMap::RedPurple,
+        "yellow-green-blue" | "yellowgreenblue" | "ylgnbu" => ColorMap::YellowGreenBlue,
+        "yellow-green" | "yellowgreen" | "ylgn" => ColorMap::YellowGreen,
+        "yellow-orange-brown" | "yelloworangebrown" | "ylorb" | "ylorbr" => {
+            ColorMap::YellowOrangeBrown
+        }
+        "yellow-orange-red" | "yelloworangered" | "ylord" | "ylorrd" => ColorMap::YellowOrangeRed,
+        // Sequential single-hue
+        "blues" => ColorMap::Blues,
+        "greens" => ColorMap::Greens,
+        "grayscale" | "grey" | "gray" | "greys" | "grays" => ColorMap::Grayscale,
+        "oranges" => ColorMap::Oranges,
+        "purples" => ColorMap::Purples,
+        "reds" => ColorMap::Reds,
+        // Diverging
+        "brown-green" | "browngreen" | "brbg" => ColorMap::BrownGreen,
+        "pink-green" | "pinkgreen" | "piyg" => ColorMap::PinkGreen,
+        "purple-green" | "purplegreen" | "prgn" => ColorMap::PurpleGreen,
+        "purple-orange" | "purpleorange" | "puor" => ColorMap::PurpleOrange,
+        "red-blue" | "redblue" | "rdbu" => ColorMap::RedBlue,
+        "red-grey" | "red-gray" | "redgrey" | "redgray" | "rdgy" => ColorMap::RedGrey,
+        "red-yellow-blue" | "redyellowblue" | "rdylbu" => ColorMap::RedYellowBlue,
+        "red-yellow-green" | "redyellowgreen" | "rdylgn" => ColorMap::RedYellowGreen,
+        "spectral" => ColorMap::Spectral,
+        // Cyclical
+        "rainbow" => ColorMap::Rainbow,
+        "sinebow" => ColorMap::Sinebow,
+        _ => {
+            eprintln!(
+                "warning: unknown colormap '{name}', using viridis. \
+                Run with --help to see accepted names."
+            );
+            ColorMap::Viridis
+        }
+    }
 }

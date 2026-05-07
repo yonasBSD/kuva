@@ -1,12 +1,14 @@
 use clap::Args;
 
-use kuva::plot::histogram2d::{Histogram2D, ColorMap};
+use kuva::plot::histogram2d::Histogram2D;
 use kuva::render::layout::{Layout, TickFormat};
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, LogArgs, apply_base_args, apply_axis_args, apply_log_args};
+use crate::layout_args::{
+    apply_axis_args, apply_base_args, apply_log_args, AxisArgs, BaseArgs, LogArgs,
+};
 use crate::output::write_output;
 
 /// 2-D density histogram from two numeric columns.
@@ -28,7 +30,7 @@ pub struct Hist2dArgs {
     #[arg(long, default_value_t = 10)]
     pub bins_y: usize,
 
-    /// Color map: viridis (default), inferno, turbo, grayscale.
+    /// Color map (default: viridis). Run `kuva hist2d --help` for accepted names.
     #[arg(long, default_value = "viridis")]
     pub colormap: String,
 
@@ -61,21 +63,14 @@ pub struct Hist2dArgs {
 
 fn parse_colorbar_tick_format(name: &str) -> TickFormat {
     match name {
-        "sci"     => TickFormat::Sci,
+        "sci" => TickFormat::Sci,
         "integer" => TickFormat::Integer,
-        "fixed2"  => TickFormat::Fixed(2),
-        _         => TickFormat::Auto,
+        "fixed2" => TickFormat::Fixed(2),
+        _ => TickFormat::Auto,
     }
 }
 
-fn parse_colormap(name: &str) -> ColorMap {
-    match name {
-        "inferno" => ColorMap::Inferno,
-        "grayscale" | "grey" | "gray" => ColorMap::Grayscale,
-        "turbo" => ColorMap::Turbo,
-        _ => ColorMap::Viridis,
-    }
-}
+use crate::data::parse_colormap;
 
 pub fn run(args: Hist2dArgs) -> Result<(), String> {
     let table = DataTable::parse(
@@ -100,10 +95,22 @@ pub fn run(args: Hist2dArgs) -> Result<(), String> {
     // provided. This is critical for real data with outliers: without explicit
     // bounds the range spans data_min..data_max and sparse outliers create a
     // wide grid where most bins are empty.
-    let x_min = args.axis.x_min.unwrap_or_else(|| data.iter().map(|p| p.0).fold(f64::INFINITY, f64::min));
-    let x_max = args.axis.x_max.unwrap_or_else(|| data.iter().map(|p| p.0).fold(f64::NEG_INFINITY, f64::max));
-    let y_min = args.axis.y_min.unwrap_or_else(|| data.iter().map(|p| p.1).fold(f64::INFINITY, f64::min));
-    let y_max = args.axis.y_max.unwrap_or_else(|| data.iter().map(|p| p.1).fold(f64::NEG_INFINITY, f64::max));
+    let x_min = args
+        .axis
+        .x_min
+        .unwrap_or_else(|| data.iter().map(|p| p.0).fold(f64::INFINITY, f64::min));
+    let x_max = args
+        .axis
+        .x_max
+        .unwrap_or_else(|| data.iter().map(|p| p.0).fold(f64::NEG_INFINITY, f64::max));
+    let y_min = args
+        .axis
+        .y_min
+        .unwrap_or_else(|| data.iter().map(|p| p.1).fold(f64::INFINITY, f64::min));
+    let y_max = args
+        .axis
+        .y_max
+        .unwrap_or_else(|| data.iter().map(|p| p.1).fold(f64::NEG_INFINITY, f64::max));
 
     let mut plot = Histogram2D::new()
         .with_data(
@@ -127,7 +134,8 @@ pub fn run(args: Hist2dArgs) -> Result<(), String> {
     let layout = apply_base_args(layout, &args.base);
     let layout = apply_axis_args(layout, &args.axis);
     let layout = apply_log_args(layout, &args.log);
-    let layout = layout.with_colorbar_tick_format(parse_colorbar_tick_format(&args.colorbar_tick_format));
+    let layout =
+        layout.with_colorbar_tick_format(parse_colorbar_tick_format(&args.colorbar_tick_format));
     let scene = render_multiple(plots, layout);
     write_output(scene, &args.base)
 }

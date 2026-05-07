@@ -25,8 +25,16 @@ const OUT: &str = "docs/src/assets/scale";
 
 fn base_plots() -> Vec<Plot> {
     let scatter_pts: Vec<(f64, f64)> = vec![
-        (1.0, 2.1), (2.0, 3.8), (3.0, 5.5), (4.0, 7.0), (5.0, 9.2),
-        (6.0, 10.8), (7.0, 12.1), (8.0, 14.5), (9.0, 15.9), (10.0, 18.0),
+        (1.0, 2.1),
+        (2.0, 3.8),
+        (3.0, 5.5),
+        (4.0, 7.0),
+        (5.0, 9.2),
+        (6.0, 10.8),
+        (7.0, 12.1),
+        (8.0, 14.5),
+        (9.0, 15.9),
+        (10.0, 18.0),
     ];
     let line_pts: Vec<(f64, f64)> = vec![(1.0, 1.9), (10.0, 18.2)];
 
@@ -77,9 +85,9 @@ fn write(name: &str, svg: String) {
 fn scale_comparison() {
     for (label, scale) in [
         ("scale_0_5x", 0.5_f64),
-        ("scale_1x",   1.0),
+        ("scale_1x", 1.0),
         ("scale_1_5x", 1.5),
-        ("scale_2x",   2.0),
+        ("scale_2x", 2.0),
     ] {
         let plots = base_plots();
         let layout = base_layout(&plots).with_scale(scale);
@@ -107,8 +115,16 @@ fn annotation_not_scaled() {
 
 fn annotation_scaled_manually() {
     let scatter_pts: Vec<(f64, f64)> = vec![
-        (1.0, 2.1), (2.0, 3.8), (3.0, 5.5), (4.0, 7.0), (5.0, 9.2),
-        (6.0, 10.8), (7.0, 12.1), (8.0, 14.5), (9.0, 15.9), (10.0, 18.0),
+        (1.0, 2.1),
+        (2.0, 3.8),
+        (3.0, 5.5),
+        (4.0, 7.0),
+        (5.0, 9.2),
+        (6.0, 10.8),
+        (7.0, 12.1),
+        (8.0, 14.5),
+        (9.0, 15.9),
+        (10.0, 18.0),
     ];
     let line_pts: Vec<(f64, f64)> = vec![(1.0, 1.9), (10.0, 18.2)];
 
@@ -135,19 +151,22 @@ fn annotation_scaled_manually() {
         .with_annotation(
             TextAnnotation::new("Peak", 9.0, 15.9)
                 .with_arrow(9.0, 15.9)
-                .with_font_size((11.0 * scale).round() as u32)  // scaled manually
+                .with_font_size((11.0 * scale).round() as u32) // scaled manually
                 .with_color("dimgray"),
         )
         .with_reference_line(
             ReferenceLine::horizontal(10.0)
                 .with_color("orange")
                 .with_label("threshold")
-                .with_stroke_width(1.0 * scale),  // scaled manually
+                .with_stroke_width(1.0 * scale), // scaled manually
         )
         .with_scale(scale);
 
     let scene = render_multiple(plots, layout);
-    write("annotation_scaled_manually", SvgBackend.render_scene(&scene));
+    write(
+        "annotation_scaled_manually",
+        SvgBackend.render_scene(&scene),
+    );
 }
 
 // ── Scale + larger canvas ─────────────────────────────────────────────────────

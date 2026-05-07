@@ -89,6 +89,8 @@ let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 
 <img src="../assets/scatter/trend.svg" alt="Scatter with linear trend line" width="560">
 
+> **Tip:** `.with_equation()` and `.with_correlation()` render the fit statistics as floating text in the data area. For a cleaner presentation — particularly with dense point clouds — consider using `Layout::with_stats_box()` to display fit statistics in a bordered inset box instead. See [Stats Box](../reference/stats_box.md).
+
 ---
 
 ## Confidence band

@@ -1,5 +1,5 @@
-use clap::Args;
 use chrono::NaiveDate;
+use clap::Args;
 
 use kuva::plot::candlestick::CandlestickPlot;
 use kuva::render::layout::Layout;
@@ -8,7 +8,7 @@ use kuva::render::render::render_multiple;
 use kuva::DateTimeAxis;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Candlestick / OHLC chart from open, high, low, close columns.
@@ -77,15 +77,15 @@ pub fn run(args: CandlestickArgs) -> Result<(), String> {
     )?;
 
     let label_col = args.label_col.unwrap_or(ColSpec::Index(0));
-    let open_col  = args.open_col.unwrap_or(ColSpec::Index(1));
-    let high_col  = args.high_col.unwrap_or(ColSpec::Index(2));
-    let low_col   = args.low_col.unwrap_or(ColSpec::Index(3));
+    let open_col = args.open_col.unwrap_or(ColSpec::Index(1));
+    let high_col = args.high_col.unwrap_or(ColSpec::Index(2));
+    let low_col = args.low_col.unwrap_or(ColSpec::Index(3));
     let close_col = args.close_col.unwrap_or(ColSpec::Index(4));
 
     let labels = table.col_str(&label_col)?;
-    let opens  = table.col_f64(&open_col)?;
-    let highs  = table.col_f64(&high_col)?;
-    let lows   = table.col_f64(&low_col)?;
+    let opens = table.col_f64(&open_col)?;
+    let highs = table.col_f64(&high_col)?;
+    let lows = table.col_f64(&low_col)?;
     let closes = table.col_f64(&close_col)?;
 
     let volumes: Vec<Option<f64>> = if let Some(ref vcol) = args.volume_col {
@@ -96,28 +96,49 @@ pub fn run(args: CandlestickArgs) -> Result<(), String> {
 
     // Try parsing every label as YYYY-MM-DD.
     let epoch = NaiveDate::from_ymd_opt(1970, 1, 1).expect("1970-01-01 is a valid date");
-    let timestamps: Vec<Option<f64>> = labels.iter().map(|s| {
-        NaiveDate::parse_from_str(s, "%Y-%m-%d").ok().map(|d| {
-            d.signed_duration_since(epoch).num_seconds() as f64
+    let timestamps: Vec<Option<f64>> = labels
+        .iter()
+        .map(|s| {
+            NaiveDate::parse_from_str(s, "%Y-%m-%d")
+                .ok()
+                .map(|d| d.signed_duration_since(epoch).num_seconds() as f64)
         })
-    }).collect();
+        .collect();
     let all_dates = timestamps.iter().all(|t| t.is_some());
 
     let mut plot = CandlestickPlot::new();
-    if let Some(ref c) = args.color_up    { plot = plot.with_color_up(c.clone()); }
-    if let Some(ref c) = args.color_down  { plot = plot.with_color_down(c.clone()); }
-    if let Some(ref c) = args.color_doji  { plot = plot.with_color_doji(c.clone()); }
+    if let Some(ref c) = args.color_up {
+        plot = plot.with_color_up(c.clone());
+    }
+    if let Some(ref c) = args.color_down {
+        plot = plot.with_color_down(c.clone());
+    }
+    if let Some(ref c) = args.color_doji {
+        plot = plot.with_color_doji(c.clone());
+    }
 
     let datetime_axis: Option<DateTimeAxis>;
 
     if all_dates {
         // Datetime mode: position candles at epoch-second x values and use a
         // date-range axis so only month/week boundaries are labelled.
-        let mut rows: Vec<(f64, f64, f64, f64, f64, Option<f64>)> = timestamps.iter()
-            .zip(opens.iter().zip(highs.iter().zip(lows.iter().zip(closes.iter()))))
+        let mut rows: Vec<(f64, f64, f64, f64, f64, Option<f64>)> = timestamps
+            .iter()
+            .zip(
+                opens
+                    .iter()
+                    .zip(highs.iter().zip(lows.iter().zip(closes.iter()))),
+            )
             .zip(volumes.iter())
             .map(|((ts_opt, (o, (h, (l, c)))), vol)| {
-                (ts_opt.expect("all_dates check guarantees all timestamps are Some"), *o, *h, *l, *c, *vol)
+                (
+                    ts_opt.expect("all_dates check guarantees all timestamps are Some"),
+                    *o,
+                    *h,
+                    *l,
+                    *c,
+                    *vol,
+                )
             })
             .collect();
         rows.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
@@ -132,7 +153,9 @@ pub fn run(args: CandlestickArgs) -> Result<(), String> {
 
         if args.volume_col.is_some() {
             let vols: Vec<f64> = rows.iter().filter_map(|r| r.5).collect();
-            if !vols.is_empty() { plot = plot.with_volume(vols); }
+            if !vols.is_empty() {
+                plot = plot.with_volume(vols);
+            }
         }
 
         let min_ts = rows.first().map(|r| r.0).unwrap_or(0.0);
@@ -140,8 +163,11 @@ pub fn run(args: CandlestickArgs) -> Result<(), String> {
         datetime_axis = Some(DateTimeAxis::auto(min_ts, max_ts));
     } else {
         // Categorical mode: labels used as-is, ticks rotated.
-        if let Some(w) = args.candle_width { plot = plot.with_candle_width(w); }
-        for (((label, open), (high, low)), close) in labels.iter()
+        if let Some(w) = args.candle_width {
+            plot = plot.with_candle_width(w);
+        }
+        for (((label, open), (high, low)), close) in labels
+            .iter()
             .zip(opens.iter())
             .zip(highs.iter().zip(lows.iter()))
             .zip(closes.iter())
@@ -151,22 +177,27 @@ pub fn run(args: CandlestickArgs) -> Result<(), String> {
 
         if args.volume_col.is_some() {
             let vols: Vec<f64> = volumes.iter().filter_map(|v| *v).collect();
-            if !vols.is_empty() { plot = plot.with_volume(vols); }
+            if !vols.is_empty() {
+                plot = plot.with_volume(vols);
+            }
         }
 
         datetime_axis = None;
     }
 
-    if args.volume_panel { plot = plot.with_volume_panel(); }
+    if args.volume_panel {
+        plot = plot.with_volume_panel();
+    }
 
     let plots = vec![Plot::Candlestick(plot)];
     let layout = Layout::auto_from_plots(&plots);
     let layout = apply_base_args(layout, &args.base);
     let layout = apply_axis_args(layout, &args.axis);
+    let layout = layout.with_x_tick_rotate(-45.0);
     let layout = if let Some(dt) = datetime_axis {
         layout.with_x_datetime(dt)
     } else {
-        layout.with_x_tick_rotate(-45.0)
+        layout
     };
     let scene = render_multiple(plots, layout);
     write_output(scene, &args.base)

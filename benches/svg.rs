@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
-use kuva::render::render::{Scene, Primitive};
 use kuva::backend::svg::SvgBackend;
+use kuva::render::render::{Primitive, Scene};
 
 fn bench_svg_circles(c: &mut Criterion) {
     let mut group = c.benchmark_group("svg_circles");
@@ -13,6 +13,9 @@ fn bench_svg_circles(c: &mut Criterion) {
                 cy: (i % 500) as f64,
                 r: 3.0,
                 fill: kuva::render::color::Color::from("#4c72b0"),
+                fill_opacity: None,
+                stroke: None,
+                stroke_width: None,
             });
         }
 

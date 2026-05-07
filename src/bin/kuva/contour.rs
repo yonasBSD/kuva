@@ -1,12 +1,12 @@
 use clap::Args;
 
-use kuva::plot::{ContourPlot, ColorMap};
+use kuva::plot::ContourPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Contour or filled-contour plot from scattered x/y/z data.
@@ -32,7 +32,7 @@ pub struct ContourArgs {
     #[arg(long)]
     pub filled: bool,
 
-    /// Color map for filled contours: viridis (default), inferno, grayscale.
+    /// Color map for filled contours (default: viridis). Run `kuva contour --help` for accepted names.
     #[arg(long, default_value = "viridis")]
     pub colormap: String,
 
@@ -53,13 +53,7 @@ pub struct ContourArgs {
     pub axis: AxisArgs,
 }
 
-fn parse_colormap(name: &str) -> ColorMap {
-    match name {
-        "inferno" => ColorMap::Inferno,
-        "grayscale" | "grey" | "gray" => ColorMap::Grayscale,
-        _ => ColorMap::Viridis,
-    }
-}
+use crate::data::parse_colormap;
 
 pub fn run(args: ContourArgs) -> Result<(), String> {
     let table = DataTable::parse(
@@ -76,7 +70,10 @@ pub fn run(args: ContourArgs) -> Result<(), String> {
     let ys = table.col_f64(&y_col)?;
     let zs = table.col_f64(&z_col)?;
 
-    let pts: Vec<(f64, f64, f64)> = xs.into_iter().zip(ys).zip(zs)
+    let pts: Vec<(f64, f64, f64)> = xs
+        .into_iter()
+        .zip(ys)
+        .zip(zs)
         .map(|((x, y), z)| (x, y, z))
         .collect();
 

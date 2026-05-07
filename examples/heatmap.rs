@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/heatmap/`.
 
-use kuva::plot::{Heatmap, ColorMap};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{ColorMap, Heatmap};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/heatmap";
 
@@ -24,6 +24,7 @@ fn main() {
     labeled();
     values();
     colormaps();
+    scalar_field();
 
     println!("Heatmap SVGs written to {OUT}/");
 }
@@ -56,9 +57,9 @@ fn labeled() {
     ];
 
     let row_labels = ["GeneA", "GeneB", "GeneC", "GeneD"]
-        .map(String::from).to_vec();
-    let col_labels = ["Ctrl", "T1", "T2", "T3", "T4"]
-        .map(String::from).to_vec();
+        .map(String::from)
+        .to_vec();
+    let col_labels = ["Ctrl", "T1", "T2", "T3", "T4"].map(String::from).to_vec();
 
     let heatmap = Heatmap::new().with_data(data);
     let plots = vec![Plot::Heatmap(heatmap)];
@@ -80,15 +81,50 @@ fn values() {
         vec![50.0, 90.0, 65.0, 20.0],
     ];
 
-    let heatmap = Heatmap::new()
-        .with_data(data)
-        .with_values();
+    let heatmap = Heatmap::new().with_data(data).with_values();
 
     let plots = vec![Plot::Heatmap(heatmap)];
     let layout = Layout::auto_from_plots(&plots).with_title("Value Overlay");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/values.svg"), svg).unwrap();
+}
+
+/// Heatmap with custom axis bounds representing a physical scalar field.
+fn scalar_field() {
+    use std::f64::consts::PI;
+    // A 2D Gaussian-like temperature field over x ∈ [-10, 10], y ∈ [-4, 4].
+    let rows = 16usize;
+    let cols = 40usize;
+    let data: Vec<Vec<f64>> = (0..rows)
+        .map(|i| {
+            let y = 4.0 - (i as f64 + 0.5) * 8.0 / rows as f64;
+            (0..cols)
+                .map(|j| {
+                    let x = -10.0 + (j as f64 + 0.5) * 20.0 / cols as f64;
+                    let r2 = x * x / 16.0 + y * y / 4.0;
+                    ((-r2 / 2.0).exp() + 0.3 * (x * PI / 5.0).sin()).clamp(0.0, 1.0)
+                })
+                .collect()
+        })
+        .collect();
+
+    let hm = Heatmap::new()
+        .with_data(data)
+        .with_color_map(ColorMap::Inferno)
+        .with_x_range(-10.0, 10.0)
+        .with_y_range(-4.0, 4.0)
+        .with_cell_size(1.0);
+
+    let plots = vec![Plot::Heatmap(hm)];
+    let layout = Layout::auto_from_plots(&plots)
+        .with_title("Temperature Field")
+        .with_x_label("x (m)")
+        .with_y_label("y (m)")
+        .with_legend_entries(vec![]);
+
+    let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
+    std::fs::write(format!("{OUT}/scalar_field.svg"), svg).unwrap();
 }
 
 /// Three color maps applied to the same data.
@@ -101,13 +137,11 @@ fn colormaps() {
     ];
 
     for (cmap, name, title) in [
-        (ColorMap::Viridis,   "viridis",   "Viridis"),
-        (ColorMap::Inferno,   "inferno",   "Inferno"),
+        (ColorMap::Viridis, "viridis", "Viridis"),
+        (ColorMap::Inferno, "inferno", "Inferno"),
         (ColorMap::Grayscale, "greyscale", "Greyscale"),
     ] {
-        let heatmap = Heatmap::new()
-            .with_data(data.clone())
-            .with_color_map(cmap);
+        let heatmap = Heatmap::new().with_data(data.clone()).with_color_map(cmap);
 
         let plots = vec![Plot::Heatmap(heatmap)];
         let layout = Layout::auto_from_plots(&plots).with_title(title);

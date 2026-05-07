@@ -43,7 +43,9 @@ pub struct Histogram {
 }
 
 impl Default for Histogram {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Histogram {
@@ -193,7 +195,10 @@ impl Histogram {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

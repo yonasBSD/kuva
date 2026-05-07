@@ -9,15 +9,15 @@
 //!
 //! SVGs are written to `docs/src/assets/density/`.
 
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal};
-use kuva::plot::DensityPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::DensityPlot;
+use kuva::render::annotations::ReferenceLine;
 use kuva::render::layout::Layout;
 use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
-use kuva::render::annotations::ReferenceLine;
+use kuva::render::render::render_multiple;
+use rand::SeedableRng;
+use rand_distr::{Distribution, Normal};
 
 const OUT: &str = "docs/src/assets/density";
 
@@ -36,7 +36,8 @@ fn main() {
 
 fn normal_samples(mean: f64, std: f64, n: usize, seed: u64) -> Vec<f64> {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
-    Normal::new(mean, std).unwrap()
+    Normal::new(mean, std)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(n)
         .collect()
@@ -85,7 +86,7 @@ fn filled() {
 /// Multi-group — three overlapping filled curves with palette colors.
 /// This is the canonical gallery image.
 fn multigroup() {
-    let control    = normal_samples(0.0, 1.0, 300, 1);
+    let control = normal_samples(0.0, 1.0, 300, 1);
     let treatment_a = normal_samples(1.5, 0.8, 300, 2);
     let treatment_b = normal_samples(-0.5, 1.3, 300, 3);
 
@@ -158,8 +159,8 @@ fn bandwidth() {
     };
 
     save("bandwidth_narrow", Some(0.1), "h = 0.1 (too narrow)");
-    save("bandwidth_auto",   None,      "Auto — Silverman");
-    save("bandwidth_wide",   Some(2.0), "h = 2.0 (too wide)");
+    save("bandwidth_auto", None, "Auto — Silverman");
+    save("bandwidth_wide", Some(2.0), "h = 2.0 (too wide)");
 }
 
 /// Bounded data — unbounded KDE bleeding past [0, 1].
@@ -167,12 +168,14 @@ fn bandwidth() {
 /// Reference lines mark the valid [0, 1] range; the KDE visibly extends past them.
 fn bounded_unbounded() {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(99);
-    let near_zero: Vec<f64> = Normal::new(0.1_f64, 0.05).unwrap()
+    let near_zero: Vec<f64> = Normal::new(0.1_f64, 0.05)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(120)
         .collect();
     let mut rng2 = rand::rngs::SmallRng::seed_from_u64(100);
-    let near_one: Vec<f64> = Normal::new(0.9_f64, 0.05).unwrap()
+    let near_one: Vec<f64> = Normal::new(0.9_f64, 0.05)
+        .unwrap()
         .sample_iter(&mut rng2)
         .take(120)
         .collect();
@@ -212,12 +215,14 @@ fn bounded_unbounded() {
 /// Same data as bounded_unbounded(); curve now tapers smoothly to zero at both edges.
 fn bounded_reflected() {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(99);
-    let near_zero: Vec<f64> = Normal::new(0.1_f64, 0.05).unwrap()
+    let near_zero: Vec<f64> = Normal::new(0.1_f64, 0.05)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(120)
         .collect();
     let mut rng2 = rand::rngs::SmallRng::seed_from_u64(100);
-    let near_one: Vec<f64> = Normal::new(0.9_f64, 0.05).unwrap()
+    let near_one: Vec<f64> = Normal::new(0.9_f64, 0.05)
+        .unwrap()
         .sample_iter(&mut rng2)
         .take(120)
         .collect();

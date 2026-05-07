@@ -163,6 +163,12 @@ header "chord"
 run chord "$DATA/chord.tsv" --title "Cell Type Co-occurrence" \
     --terminal $W $H
 
+# ── network ──────────────────────────────────────────────────────────────────
+header "network"
+run network "$DATA/network.tsv" --source-col source --target-col target \
+    --weight-col weight --labels --title "Gene Regulatory Network" \
+    --terminal $W $H
+
 # ── sankey ───────────────────────────────────────────────────────────────────
 header "sankey"
 run sankey "$DATA/sankey.tsv" --source-col source --target-col target --value-col value \
@@ -199,6 +205,25 @@ header "ternary"
 run ternary "$DATA/ternary.tsv" --a a --b b --c c --color-by group \
     --a-label "A" --b-label "B" --c-label "C" \
     --title "Ternary Plot" \
+    --terminal $W $H
+
+# ── text wrapping ─────────────────────────────────────────────────────────────
+header "wrap title"
+run scatter "$DATA/scatter.tsv" --x x --y y \
+    --title "This is a deliberately long title that should wrap onto multiple lines" \
+    --wrap 30 \
+    --terminal $W $H
+
+header "wrap legend"
+run scatter "$DATA/scatter.tsv" --x x --y y --color-by group --legend \
+    --legend-wrap 10 \
+    --title "Legend Wrap" \
+    --terminal $W $H
+
+header "wrap y-label"
+run scatter "$DATA/scatter.tsv" --x x --y y \
+    --y-label "A very long y-axis label that wraps into multiple rotated lines" \
+    --y-label-wrap 20 \
     --terminal $W $H
 
 echo

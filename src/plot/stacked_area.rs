@@ -1,8 +1,14 @@
 use crate::plot::legend::LegendPosition;
 
 const DEFAULT_COLORS: &[&str] = &[
-    "steelblue", "orange", "green", "red", "purple",
-    "brown", "pink", "gray",
+    "steelblue",
+    "orange",
+    "green",
+    "red",
+    "purple",
+    "brown",
+    "pink",
+    "gray",
 ];
 
 /// Builder for a stacked area chart.
@@ -75,7 +81,9 @@ pub struct StackedAreaPlot {
 }
 
 impl Default for StackedAreaPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StackedAreaPlot {

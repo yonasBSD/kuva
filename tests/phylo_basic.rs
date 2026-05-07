@@ -1,6 +1,6 @@
-use kuva::plot::{PhyloTree, TreeBranchStyle, TreeOrientation};
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::{PhyloTree, TreeBranchStyle, TreeOrientation};
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 use kuva::render_phylo_tree;
 
 fn svg_with_title(tree: PhyloTree, title: Option<&str>) -> String {
@@ -16,8 +16,9 @@ fn svg_with_title(tree: PhyloTree, title: Option<&str>) -> String {
 #[test]
 fn test_phylo_newick_basic() {
     let tree = PhyloTree::from_newick(
-        "((TaxonA:1.0,TaxonB:2.0)95:1.0,(TaxonC:0.5,TaxonD:0.5)88:1.5,TaxonE:3.0);"
-    ).with_support_threshold(80.0);
+        "((TaxonA:1.0,TaxonB:2.0)95:1.0,(TaxonC:0.5,TaxonD:0.5)88:1.5,TaxonE:3.0);",
+    )
+    .with_support_threshold(80.0);
 
     let svg = svg_with_title(tree, Some("Rectangular tree (Left) — 5 leaves"));
     std::fs::write("test_outputs/phylo_newick_basic.svg", &svg).unwrap();
@@ -105,7 +106,10 @@ fn test_phylo_upgma() {
     let svg = svg_with_title(tree, Some("UPGMA tree"));
     std::fs::write("test_outputs/phylo_upgma.svg", &svg).unwrap();
     assert!(svg.contains("<svg"), "UPGMA tree should render");
-    assert!(svg.contains("Wolf") || svg.contains("Cat"), "leaf labels should appear");
+    assert!(
+        svg.contains("Wolf") || svg.contains("Cat"),
+        "leaf labels should appear"
+    );
 }
 
 /// 7. from_edges with clade coloring and legend
@@ -128,8 +132,14 @@ fn test_phylo_clade_color() {
     let svg = svg_with_title(tree, Some("Clade coloring by domain"));
     std::fs::write("test_outputs/phylo_clade_color.svg", &svg).unwrap();
     assert!(svg.contains("<svg"), "clade color tree should render");
-    assert!(svg.contains("#e41a1c"), "red clade color should appear in SVG");
-    assert!(svg.contains("#377eb8"), "blue clade color should appear in SVG");
+    assert!(
+        svg.contains("#e41a1c"),
+        "red clade color should appear in SVG"
+    );
+    assert!(
+        svg.contains("#377eb8"),
+        "blue clade color should appear in SVG"
+    );
 }
 
 /// 8. render_phylo_tree standalone function

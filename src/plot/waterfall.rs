@@ -93,7 +93,9 @@ pub struct WaterfallPlot {
 }
 
 impl Default for WaterfallPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WaterfallPlot {
@@ -128,10 +130,10 @@ impl WaterfallPlot {
     ///     .with_delta("COGS",    -340.0)
     ///     .with_delta("OpEx",    -200.0);
     /// ```
-    pub fn with_delta<S: Into<String>>(mut self, label: S, value: f64) -> Self {
+    pub fn with_delta<S: Into<String>>(mut self, label: S, value: impl Into<f64>) -> Self {
         self.bars.push(WaterfallBar {
             label: label.into(),
-            value,
+            value: value.into(),
             kind: WaterfallKind::Delta,
         });
         self
@@ -152,11 +154,19 @@ impl WaterfallPlot {
     ///     .with_difference("vs target", 1000.0, 1200.0)  // independent reference
     ///     .with_total("End");
     /// ```
-    pub fn with_difference<S: Into<String>>(mut self, label: S, from: f64, to: f64) -> Self {
+    pub fn with_difference<S: Into<String>>(
+        mut self,
+        label: S,
+        from: impl Into<f64>,
+        to: impl Into<f64>,
+    ) -> Self {
         self.bars.push(WaterfallBar {
             label: label.into(),
             value: 0.0,
-            kind: WaterfallKind::Difference { from, to },
+            kind: WaterfallKind::Difference {
+                from: from.into(),
+                to: to.into(),
+            },
         });
         self
     }
@@ -187,8 +197,18 @@ impl WaterfallPlot {
     }
 
     /// Set the bar width as a fraction of the category slot (default `0.6`).
+    ///
+    /// Complement of [`with_gap`](Self::with_gap): `width = 1.0 - gap`.
     pub fn with_bar_width(mut self, width: f64) -> Self {
         self.bar_width = width;
+        self
+    }
+
+    /// Set the gap between bars as a fraction of the category slot (default `0.4`).
+    ///
+    /// Complement of [`with_bar_width`](Self::with_bar_width): `gap = 1.0 - width`.
+    pub fn with_gap(mut self, gap: f64) -> Self {
+        self.bar_width = (1.0 - gap).clamp(0.0, 1.0);
         self
     }
 
@@ -238,7 +258,10 @@ impl WaterfallPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

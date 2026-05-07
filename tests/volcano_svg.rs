@@ -1,57 +1,56 @@
-use kuva::plot::{VolcanoPlot, LabelStyle};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::{render_multiple, render_volcano};
+use kuva::plot::{LabelStyle, VolcanoPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::{render_multiple, render_volcano};
 
 fn make_test_data() -> Vec<(&'static str, f64, f64)> {
     vec![
         // Up-regulated (log2fc >= 1.0, pvalue <= 0.05)
-        ("BRCA1",   2.5,  0.001),
-        ("TP53",    1.8,  0.01),
-        ("EGFR",    3.2,  0.0001),
-        ("MYC",     1.5,  0.03),
-        ("KRAS",    2.1,  0.005),
-        ("CDK4",    1.2,  0.04),
-        ("PTEN",    2.8,  0.002),
-        ("RB1",     1.9,  0.008),
-        ("AKT1",    3.5,  0.00005),
-        ("VEGFA",   2.3,  0.003),
+        ("BRCA1", 2.5, 0.001),
+        ("TP53", 1.8, 0.01),
+        ("EGFR", 3.2, 0.0001),
+        ("MYC", 1.5, 0.03),
+        ("KRAS", 2.1, 0.005),
+        ("CDK4", 1.2, 0.04),
+        ("PTEN", 2.8, 0.002),
+        ("RB1", 1.9, 0.008),
+        ("AKT1", 3.5, 0.00005),
+        ("VEGFA", 2.3, 0.003),
         // Down-regulated (log2fc <= -1.0, pvalue <= 0.05)
-        ("CDKN2A", -2.3,  0.002),
-        ("SMAD4",  -1.9,  0.008),
-        ("VHL",    -3.0,  0.0005),
-        ("CASP3",  -1.6,  0.04),
-        ("BCL2",   -2.7,  0.001),
-        ("FAS",    -1.4,  0.035),
-        ("PUMA",   -2.0,  0.007),
-        ("BAX",    -1.7,  0.015),
-        ("P21",    -3.2,  0.0002),
-        ("MDM2",   -2.5,  0.003),
+        ("CDKN2A", -2.3, 0.002),
+        ("SMAD4", -1.9, 0.008),
+        ("VHL", -3.0, 0.0005),
+        ("CASP3", -1.6, 0.04),
+        ("BCL2", -2.7, 0.001),
+        ("FAS", -1.4, 0.035),
+        ("PUMA", -2.0, 0.007),
+        ("BAX", -1.7, 0.015),
+        ("P21", -3.2, 0.0002),
+        ("MDM2", -2.5, 0.003),
         // Not significant — low fold change
-        ("GAPDH",   0.3,  0.5),
-        ("ACTB",   -0.5,  0.3),
-        ("TUBA1",   0.8,  0.1),
-        ("HIST1",  -0.2,  0.7),
-        ("RPL5",    0.6,  0.2),
-        ("RPS6",   -0.9,  0.15),
-        ("EEF1A",   0.1,  0.8),
-        ("HNRNPA", -0.7,  0.4),
-        ("SF3B1",   0.4,  0.6),
-        ("SRSF1",  -0.3,  0.9),
+        ("GAPDH", 0.3, 0.5),
+        ("ACTB", -0.5, 0.3),
+        ("TUBA1", 0.8, 0.1),
+        ("HIST1", -0.2, 0.7),
+        ("RPL5", 0.6, 0.2),
+        ("RPS6", -0.9, 0.15),
+        ("EEF1A", 0.1, 0.8),
+        ("HNRNPA", -0.7, 0.4),
+        ("SF3B1", 0.4, 0.6),
+        ("SRSF1", -0.3, 0.9),
         // NS — high fold change but not significant p-value
-        ("GeneA",   1.5,  0.2),
-        ("GeneB",  -1.1,  0.07),
-        ("GeneC",   0.9,  0.12),
-        ("GeneD",  -0.8,  0.08),
-        ("GeneE",   1.3,  0.18),
+        ("GeneA", 1.5, 0.2),
+        ("GeneB", -1.1, 0.07),
+        ("GeneC", 0.9, 0.12),
+        ("GeneD", -0.8, 0.08),
+        ("GeneE", 1.3, 0.18),
     ]
 }
 
 #[test]
 fn test_volcano_basic() {
-    let vp = VolcanoPlot::new()
-        .with_points(make_test_data());
+    let vp = VolcanoPlot::new().with_points(make_test_data());
 
     let plots = vec![Plot::Volcano(vp)];
     let layout = Layout::auto_from_plots(&plots)
@@ -111,7 +110,10 @@ fn test_volcano_labeled_arrow() {
     let vp = VolcanoPlot::new()
         .with_points(make_test_data())
         .with_label_top(8)
-        .with_label_style(LabelStyle::Arrow { offset_x: 12.0, offset_y: 18.0 });
+        .with_label_style(LabelStyle::Arrow {
+            offset_x: 12.0,
+            offset_y: 18.0,
+        });
 
     let plots = vec![Plot::Volcano(vp)];
     let layout = Layout::auto_from_plots(&plots)

@@ -1,9 +1,9 @@
-use kuva::plot::StackedAreaPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::StackedAreaPlot;
 use kuva::render::layout::Layout;
-use kuva::render::plots::Plot;
 use kuva::render::palette::Palette;
+use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn stacked_area_basic() {

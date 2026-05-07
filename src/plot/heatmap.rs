@@ -1,90 +1,4 @@
-use std::sync::Arc;
-use colorous::{VIRIDIS, INFERNO, GREYS};
-
-const HEX_DIGITS: &[u8; 16] = b"0123456789abcdef";
-
-/// Convert an RGB triplet to a 7-byte hex color string (`#rrggbb`).
-/// Avoids `format!` overhead in hot loops (heatmaps, 2D histograms).
-#[inline]
-fn rgb_hex(r: u8, g: u8, b: u8) -> String {
-    let bytes = [
-        b'#',
-        HEX_DIGITS[(r >> 4) as usize],
-        HEX_DIGITS[(r & 0xf) as usize],
-        HEX_DIGITS[(g >> 4) as usize],
-        HEX_DIGITS[(g & 0xf) as usize],
-        HEX_DIGITS[(b >> 4) as usize],
-        HEX_DIGITS[(b & 0xf) as usize],
-    ];
-    // SAFETY: all bytes are ASCII
-    unsafe { String::from_utf8_unchecked(bytes.to_vec()) }
-}
-
-fn viridis(value: f64) -> String {
-    let rgb = VIRIDIS.eval_continuous(value.clamp(0.0, 1.0));
-    rgb_hex(rgb.r, rgb.g, rgb.b)
-}
-
-fn inferno(value: f64) -> String {
-    let rgb = INFERNO.eval_continuous(value.clamp(0.0, 1.0));
-    rgb_hex(rgb.r, rgb.g, rgb.b)
-}
-
-fn greyscale(value: f64) -> String {
-    let rgb = GREYS.eval_continuous(value.clamp(0.0, 1.0));
-    rgb_hex(rgb.r, rgb.g, rgb.b)
-}
-
-/// Color map used to encode numeric cell values as colors.
-///
-/// Values are normalized to `[0.0, 1.0]` relative to the data min/max before
-/// the map is applied. The same `ColorMap` type is shared by [`Heatmap`] and
-/// [`Histogram2D`](crate::plot::Histogram2D).
-///
-/// # Choosing a color map
-///
-/// | Variant | Character | Use when |
-/// |---------|-----------|----------|
-/// | `Viridis` | Blue → green → yellow | General purpose; perceptually uniform; colorblind-safe |
-/// | `Inferno` | Black → purple → yellow | High-contrast; works in greyscale print |
-/// | `Grayscale` | Black → white | Publication figures; print-friendly |
-/// | `Custom` | User-defined | Full control over color encoding |
-#[derive(Clone)]
-pub enum ColorMap {
-    /// Perceptually uniform blue-green-yellow scale (default).
-    Grayscale,
-    /// Perceptually uniform blue-green-yellow scale.
-    Viridis,
-    /// High-contrast black-purple-yellow scale.
-    Inferno,
-    /// User-defined mapping from a normalized `[0.0, 1.0]` value to a CSS
-    /// color string. Wrap the function in `Arc` for cloneability.
-    ///
-    /// ```rust,no_run
-    /// use std::sync::Arc;
-    /// use kuva::plot::ColorMap;
-    ///
-    /// // Custom blue-to-red diverging scale
-    /// let cmap = ColorMap::Custom(Arc::new(|t: f64| {
-    ///     let r = (t * 255.0) as u8;
-    ///     let b = ((1.0 - t) * 255.0) as u8;
-    ///     format!("rgb({r},0,{b})")
-    /// }));
-    /// ```
-    Custom(Arc<dyn Fn(f64) -> String + Send + Sync>),
-}
-
-impl ColorMap {
-    /// Map a normalized value in `[0.0, 1.0]` to a CSS color string.
-    pub fn map(&self, value: f64) -> String {
-        match self {
-            ColorMap::Grayscale => greyscale(value),
-            ColorMap::Viridis => viridis(value),
-            ColorMap::Inferno => inferno(value),
-            ColorMap::Custom(f) => f(value),
-        }
-    }
-}
+pub use crate::plot::colormap::ColorMap;
 
 /// Builder for a heatmap.
 ///
@@ -93,11 +7,50 @@ impl ColorMap {
 /// normalizing values to `[0.0, 1.0]` relative to the data range. A colorbar
 /// is always shown in the right margin.
 ///
-/// Axis labels are set on the [`Layout`](crate::render::layout::Layout) via
-/// [`with_x_categories`](crate::render::layout::Layout::with_x_categories)
+/// ## Axis labels
+///
+/// To display axis tick labels, pass them to
+/// [`Layout::with_x_categories`](crate::render::layout::Layout::with_x_categories)
 /// (column labels) and
-/// [`with_y_categories`](crate::render::layout::Layout::with_y_categories)
-/// (row labels), not on the `Heatmap` struct directly.
+/// [`Layout::with_y_categories`](crate::render::layout::Layout::with_y_categories)
+/// (row labels).
+///
+/// ## Row / column reordering (e.g. phylogenetic alignment)
+///
+/// Call [`with_labels`](Heatmap::with_labels) first to associate each row and
+/// column with a name. Then call [`with_y_categories`](Heatmap::with_y_categories)
+/// or [`with_x_categories`](Heatmap::with_x_categories) with the desired order
+/// to **reorder the data matrix in-place** and update the stored labels.
+///
+/// ```rust,no_run
+/// use kuva::plot::{Heatmap, PhyloTree};
+/// use kuva::render::layout::Layout;
+/// use kuva::render::plots::Plot;
+///
+/// let labels: Vec<String> = ["A","B","C","D","E"].iter().map(|s| s.to_string()).collect();
+/// let data = vec![
+///     vec![0.0, 1.0, 1.0, 1.0, 1.0],
+///     vec![1.0, 0.0, 0.4, 1.0, 1.0],
+///     vec![1.0, 0.4, 0.0, 1.0, 1.0],
+///     vec![1.0, 1.0, 1.0, 0.0, 1.0],
+///     vec![1.0, 1.0, 1.0, 1.0, 0.0],
+/// ];
+///
+/// let label_refs: Vec<&str> = labels.iter().map(|s| s.as_str()).collect();
+/// let tree = PhyloTree::from_distance_matrix(&label_refs, &data);
+/// let leaf_order = tree.leaf_labels_top_to_bottom();
+///
+/// let heatmap = Heatmap::new()
+///     .with_data(data)
+///     .with_labels(labels, vec![])    // record original row order
+///     .with_y_categories(leaf_order); // first leaf → top of heatmap
+///
+/// // row_labels is stored bottom-to-top — pass to Layout directly
+/// let layout_cats = heatmap.row_labels.clone().unwrap();
+/// let plots: Vec<Plot> = vec![Plot::PhyloTree(tree), Plot::Heatmap(heatmap)];
+/// let layout = Layout::auto_from_plots(&plots)
+///     .with_y_categories(layout_cats); // axis tick labels in matching order
+/// ```
 ///
 /// # Example
 ///
@@ -145,11 +98,23 @@ pub struct Heatmap {
     pub legend_label: Option<String>,
     pub show_tooltips: bool,
     pub tooltip_labels: Option<Vec<String>>,
+    /// Custom x-axis range `(x_min, x_max)`. When set, cell columns are
+    /// mapped linearly across this range instead of the default `[0.5, cols+0.5]`.
+    pub x_range: Option<(f64, f64)>,
+    /// Custom y-axis range `(y_min, y_max)`. When set, cell rows are
+    /// mapped linearly across this range instead of the default `[0.5, rows+0.5]`.
+    pub y_range: Option<(f64, f64)>,
+    /// Fraction of each cell's natural size used when drawing the cell rect.
+    /// `0.99` (default) leaves a 1% gap between cells, making cell boundaries
+    /// visible. `1.0` draws cells flush — useful for large grids where the gap
+    /// becomes a distracting grid pattern.
+    pub cell_size: f64,
 }
 
-
 impl Default for Heatmap {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Heatmap {
@@ -166,6 +131,9 @@ impl Heatmap {
             legend_label: None,
             show_tooltips: false,
             tooltip_labels: None,
+            x_range: None,
+            y_range: None,
+            cell_size: 0.99,
         }
     }
 
@@ -202,15 +170,120 @@ impl Heatmap {
 
     /// Store row and column label strings in the struct.
     ///
-    /// These labels are **not** rendered automatically. To display them on the
-    /// axes, pass them to
+    /// These labels are used for tooltip text and as the reference mapping for
+    /// [`with_y_categories`](Heatmap::with_y_categories) /
+    /// [`with_x_categories`](Heatmap::with_x_categories) row/column reordering.
+    /// To display them as axis tick labels, also pass them to
     /// [`Layout::with_y_categories`](crate::render::layout::Layout::with_y_categories)
-    /// (rows) and
-    /// [`Layout::with_x_categories`](crate::render::layout::Layout::with_x_categories)
-    /// (columns) when building the layout.
+    /// and [`Layout::with_x_categories`](crate::render::layout::Layout::with_x_categories).
     pub fn with_labels(mut self, rows: Vec<String>, cols: Vec<String>) -> Self {
         self.row_labels = Some(rows);
         self.col_labels = Some(cols);
+        self
+    }
+
+    /// Reorder heatmap rows so that `desired_order[0]` appears at the **top** of
+    /// the rendered heatmap and `desired_order[N-1]` at the bottom.
+    ///
+    /// `desired_order` is interpreted as **top-to-bottom** — matching the convention
+    /// of [`PhyloTree::leaf_labels_top_to_bottom`](crate::plot::PhyloTree::leaf_labels_top_to_bottom)
+    /// so that passing its result here aligns heatmap rows with tree leaves.
+    ///
+    /// If row labels have already been set via [`with_labels`](Heatmap::with_labels),
+    /// the data matrix rows are permuted accordingly. Any labels in `desired_order`
+    /// not found in the current label set are silently skipped.
+    ///
+    /// After calling this method, pass `heatmap.row_labels.clone().unwrap()` (which
+    /// is stored in **bottom-to-top** order to match the y-axis convention) to
+    /// [`Layout::with_y_categories`](crate::render::layout::Layout::with_y_categories)
+    /// to display the axis tick labels in the correct order.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::{Heatmap, PhyloTree};
+    /// # use kuva::render::layout::Layout;
+    /// # use kuva::render::plots::Plot;
+    /// let labels = ["A", "B", "C"];
+    /// let tree = PhyloTree::from_newick("((A:1,B:2):1,C:3);");
+    /// let leaf_order = tree.leaf_labels_top_to_bottom(); // top-to-bottom
+    ///
+    /// let heatmap = Heatmap::new()
+    ///     .with_data(vec![vec![1.0,2.0,3.0], vec![4.0,5.0,6.0], vec![7.0,8.0,9.0]])
+    ///     .with_labels(labels.iter().map(|s| s.to_string()).collect(), vec![])
+    ///     .with_y_categories(leaf_order); // first label → top row
+    ///
+    /// // row_labels is bottom-to-top — pass directly to Layout
+    /// let layout_cats = heatmap.row_labels.clone().unwrap();
+    /// let plots: Vec<Plot> = vec![Plot::Heatmap(heatmap)];
+    /// let layout = Layout::auto_from_plots(&plots).with_y_categories(layout_cats);
+    /// ```
+    pub fn with_y_categories(
+        mut self,
+        desired_order: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        let order: Vec<String> = desired_order.into_iter().map(|s| s.into()).collect();
+        if let Some(ref current_labels) = self.row_labels.clone() {
+            let label_to_idx: std::collections::HashMap<&str, usize> = current_labels
+                .iter()
+                .enumerate()
+                .map(|(i, s)| (s.as_str(), i))
+                .collect();
+            // Build rows in desired order, then reverse so index 0 = bottom (matching
+            // the heatmap renderer's convention) and the last row = top.
+            let mut new_data: Vec<Vec<f64>> = order
+                .iter()
+                .filter_map(|label| {
+                    label_to_idx
+                        .get(label.as_str())
+                        .map(|&i| self.data[i].clone())
+                })
+                .collect();
+            new_data.reverse();
+            self.data = new_data;
+        }
+        // Store labels in bottom-to-top order so they can be passed directly
+        // to Layout::with_y_categories (which also uses bottom-to-top / index-0-at-bottom).
+        let mut bottom_to_top = order;
+        bottom_to_top.reverse();
+        self.row_labels = Some(bottom_to_top);
+        self
+    }
+
+    /// Reorder heatmap columns to match `desired_order` and store the new column labels.
+    ///
+    /// If column labels have already been set via [`with_labels`](Heatmap::with_labels),
+    /// the data matrix columns are permuted so that each column's label matches the
+    /// corresponding position in `desired_order`. Any labels in `desired_order`
+    /// that are not found in the current label set are silently skipped.
+    ///
+    /// If no column labels have been set, the provided order is stored as-is (the
+    /// caller is responsible for ensuring the data is already in this order).
+    ///
+    /// After calling this method, pass the same order to
+    /// [`Layout::with_x_categories`](crate::render::layout::Layout::with_x_categories)
+    /// to display the labels as axis tick marks.
+    pub fn with_x_categories(
+        mut self,
+        desired_order: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        let order: Vec<String> = desired_order.into_iter().map(|s| s.into()).collect();
+        if let Some(ref current_labels) = self.col_labels.clone() {
+            let label_to_idx: std::collections::HashMap<&str, usize> = current_labels
+                .iter()
+                .enumerate()
+                .map(|(i, s)| (s.as_str(), i))
+                .collect();
+            self.data = self
+                .data
+                .iter()
+                .map(|row| {
+                    order
+                        .iter()
+                        .filter_map(|label| label_to_idx.get(label.as_str()).map(|&j| row[j]))
+                        .collect()
+                })
+                .collect();
+        }
+        self.col_labels = Some(order);
         self
     }
 
@@ -247,8 +320,42 @@ impl Heatmap {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
+        self
+    }
+
+    /// Set the x-axis range `(x_min, x_max)` for the heatmap.
+    ///
+    /// By default columns are mapped to `[0.5, cols + 0.5]` so that integer
+    /// tick positions land on cell centres. Use this when the heatmap represents
+    /// a scalar field over a physical domain (e.g. `-10.0..10.0`).
+    pub fn with_x_range(mut self, x_min: impl Into<f64>, x_max: impl Into<f64>) -> Self {
+        self.x_range = Some((x_min.into(), x_max.into()));
+        self
+    }
+
+    /// Set the y-axis range `(y_min, y_max)` for the heatmap.
+    ///
+    /// By default rows are mapped to `[0.5, rows + 0.5]`. Use this when the
+    /// heatmap represents a scalar field over a physical domain.
+    pub fn with_y_range(mut self, y_min: impl Into<f64>, y_max: impl Into<f64>) -> Self {
+        self.y_range = Some((y_min.into(), y_max.into()));
+        self
+    }
+
+    /// Set the cell size as a fraction of each cell's natural width and height.
+    ///
+    /// The default `0.99` leaves a thin gap that makes cell boundaries visible.
+    /// Pass `1.0` to draw cells flush with no gap — recommended for large grids
+    /// where the gap becomes a distracting grid pattern.
+    ///
+    /// Values are clamped to `[0.5, 1.0]`.
+    pub fn with_cell_size(mut self, factor: impl Into<f64>) -> Self {
+        self.cell_size = factor.into().clamp(0.5, 1.0);
         self
     }
 }

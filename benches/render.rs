@@ -1,14 +1,16 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, BatchSize, Criterion};
+use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion};
 
-use kuva::plot::scatter::ScatterPlot;
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::line::LinePlot;
-use kuva::plot::violin::ViolinPlot;
 use kuva::plot::manhattan::ManhattanPlot;
+use kuva::plot::scatter::ScatterPlot;
+use kuva::plot::violin::ViolinPlot;
 use kuva::plot::Heatmap;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-use kuva::render::render::{render_scatter, render_line, render_violin, render_manhattan, render_multiple};
-use kuva::backend::svg::SvgBackend;
+use kuva::render::render::{
+    render_line, render_manhattan, render_multiple, render_scatter, render_violin,
+};
 
 // ── scatter ──────────────────────────────────────────────────────────────────
 
@@ -92,7 +94,9 @@ fn bench_line(c: &mut Criterion) {
 fn make_violin(n: usize) -> ViolinPlot {
     let vals_a: Vec<f64> = (0..n).map(|i| (i as f64 * 0.01).sin()).collect();
     let vals_b: Vec<f64> = (0..n).map(|i| (i as f64 * 0.01).cos()).collect();
-    let vals_c: Vec<f64> = (0..n).map(|i| (i as f64 * 0.01 + 1.0).sin() * 0.5).collect();
+    let vals_c: Vec<f64> = (0..n)
+        .map(|i| (i as f64 * 0.01 + 1.0).sin() * 0.5)
+        .collect();
     ViolinPlot::new()
         .with_group("A", vals_a)
         .with_group("B", vals_b)
@@ -128,8 +132,8 @@ fn bench_violin(c: &mut Criterion) {
 // ── manhattan ────────────────────────────────────────────────────────────────
 
 const CHROMS: &[&str] = &[
-    "1","2","3","4","5","6","7","8","9","10",
-    "11","12","13","14","15","16","17","18","19","20","21","22",
+    "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17",
+    "18", "19", "20", "21", "22",
 ];
 
 fn make_manhattan(n: usize) -> ManhattanPlot {

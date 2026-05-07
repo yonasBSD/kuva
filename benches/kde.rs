@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
-use kuva::render::render_utils::{simple_kde, silverman_bandwidth};
+use kuva::render::render_utils::{silverman_bandwidth, simple_kde};
 
 fn bench_kde(c: &mut Criterion) {
     let mut group = c.benchmark_group("kde");

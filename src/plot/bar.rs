@@ -58,7 +58,9 @@ pub struct BarValue {
 }
 
 impl Default for BarPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BarPlot {
@@ -89,19 +91,25 @@ impl BarPlot {
     ///     .with_group("Feb", vec![(13.0, "steelblue"), (9.0, "crimson")])
     ///     .with_legend(vec!["Series A", "Series B"]);
     /// ```
-    pub fn with_group<T: Into<String>>(mut self, label: T, values: Vec<(f64, &str)>) -> Self {
+    pub fn with_group<T, V, S, I>(mut self, label: T, values: I) -> Self
+    where
+        T: Into<String>,
+        V: Into<f64>,
+        S: Into<String>,
+        I: IntoIterator<Item = (V, S)>,
+    {
         let bars = values
-                        .into_iter()
-                        .map(|(v, c)| BarValue {
-                            value: v,
-                            color: c.into(),
-                        })
-                        .collect();
+            .into_iter()
+            .map(|(v, c)| BarValue {
+                value: v.into(),
+                color: c.into(),
+            })
+            .collect();
 
         self.groups.push(BarGroup {
-                        label: label.into(),
-                        bars,
-                    });
+            label: label.into(),
+            bars,
+        });
         self
     }
 
@@ -110,17 +118,25 @@ impl BarPlot {
     /// Must be called after the groups are defined so the label count
     /// matches the number of bars per group.
     pub fn with_legend(mut self, legend: Vec<&str>) -> Self {
-        self.legend_label = Some(legend.into_iter()
-                                 .map(|l| l.into())
-                                .collect());
+        self.legend_label = Some(legend.into_iter().map(|l| l.into()).collect());
         self
     }
 
     /// Set the bar width as a fraction of the available category slot (default `0.8`).
     ///
     /// Values between `0.0` and `1.0`. A width of `1.0` means bars touch.
+    /// Complement of [`with_gap`](Self::with_gap): `width = 1.0 - gap`.
     pub fn with_width(mut self, width: f64) -> Self {
         self.width = width;
+        self
+    }
+
+    /// Set the gap between bars as a fraction of the category slot (default `0.2`).
+    ///
+    /// Complement of [`with_width`](Self::with_width): `gap = 1.0 - width`.
+    /// A gap of `0.0` means bars touch; `0.5` leaves half the slot as space.
+    pub fn with_gap(mut self, gap: f64) -> Self {
+        self.width = (1.0 - gap).clamp(0.0, 1.0);
         self
     }
 
@@ -137,14 +153,81 @@ impl BarPlot {
     ///     .with_bar("C", 2.8)
     ///     .with_color("steelblue");
     /// ```
-    pub fn with_bar<T: Into<String>>(mut self, label: T, value: f64) -> Self {
+    pub fn with_bar<T: Into<String>>(mut self, label: T, value: impl Into<f64>) -> Self {
         let color = self.default_color();
         let l = label.into();
         self.groups.push(BarGroup {
             label: l.clone(),
-            bars: vec![BarValue { value, color }],
+            bars: vec![BarValue {
+                value: value.into(),
+                color,
+            }],
         });
 
+        self
+    }
+
+    /// Add a single bar with an explicit color (simple mode).
+    ///
+    /// Use this when each bar should have its own color — for example when
+    /// bars represent distinct categories such as nucleotide variants.
+    /// Unlike [`.with_bar()`](Self::with_bar) + [`.with_color()`](Self::with_color),
+    /// this sets only that bar's color without touching the others.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BarPlot;
+    /// let plot = BarPlot::new()
+    ///     .with_colored_bar("A2C", 42.0, "steelblue")
+    ///     .with_colored_bar("A2G", 58.0, "seagreen")
+    ///     .with_colored_bar("A2T", 31.0, "tomato");
+    /// ```
+    pub fn with_colored_bar<T, V, S>(mut self, label: T, value: V, color: S) -> Self
+    where
+        T: Into<String>,
+        V: Into<f64>,
+        S: Into<String>,
+    {
+        self.groups.push(BarGroup {
+            label: label.into(),
+            bars: vec![BarValue {
+                value: value.into(),
+                color: color.into(),
+            }],
+        });
+        self
+    }
+
+    /// Add multiple bars with per-bar colors at once (simple mode).
+    ///
+    /// Each item is a `(label, value, color)` triple. Equivalent to calling
+    /// [`.with_colored_bar()`](Self::with_colored_bar) for each item.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BarPlot;
+    /// let variants = vec![
+    ///     ("A2C", 42.0, "steelblue"),
+    ///     ("A2G", 58.0, "seagreen"),
+    ///     ("A2T", 31.0, "tomato"),
+    ///     ("C2A", 25.0, "gold"),
+    /// ];
+    /// let plot = BarPlot::new().with_colored_bars(variants);
+    /// ```
+    pub fn with_colored_bars<I, T, V, S>(mut self, data: I) -> Self
+    where
+        I: IntoIterator<Item = (T, V, S)>,
+        T: Into<String>,
+        V: Into<f64>,
+        S: Into<String>,
+    {
+        for (label, value, color) in data {
+            self.groups.push(BarGroup {
+                label: label.into(),
+                bars: vec![BarValue {
+                    value: value.into(),
+                    color: color.into(),
+                }],
+            });
+        }
         self
     }
 
@@ -159,12 +242,20 @@ impl BarPlot {
     ///     .with_bars(vec![("A", 3.2), ("B", 4.7), ("C", 2.8)])
     ///     .with_color("steelblue");
     /// ```
-    pub fn with_bars<T: Into<String>>(mut self, data: Vec<(T, f64)>) -> Self {
+    pub fn with_bars<T, V, I>(mut self, data: I) -> Self
+    where
+        T: Into<String>,
+        V: Into<f64>,
+        I: IntoIterator<Item = (T, V)>,
+    {
         let color = self.default_color();
-        for (label, value) in data.into_iter() {
+        for (label, value) in data {
             self.groups.push(BarGroup {
                 label: label.into(),
-                bars: vec![BarValue { value, color: color.clone() }],
+                bars: vec![BarValue {
+                    value: value.into(),
+                    color: color.clone(),
+                }],
             });
         }
         self
@@ -206,7 +297,10 @@ impl BarPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

@@ -1,10 +1,10 @@
-use kuva::plot::scatter::ScatterPlot;
-use kuva::plot::line::LinePlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::line::LinePlot;
+use kuva::plot::scatter::ScatterPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-use kuva::{DateTimeAxis, ymd, ymd_hms};
+use kuva::render::render::render_multiple;
+use kuva::{ymd, ymd_hms, DateTimeAxis};
 
 #[test]
 fn test_datetime_days() {
@@ -23,7 +23,10 @@ fn test_datetime_days() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/datetime_days.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("2024-01"), "SVG should contain date labels like 2024-01-*");
+    assert!(
+        svg.contains("2024-01"),
+        "SVG should contain date labels like 2024-01-*"
+    );
 }
 
 #[test]
@@ -31,7 +34,12 @@ fn test_datetime_months() {
     let t0 = ymd(2023, 1, 1);
     let t1 = ymd(2023, 12, 31);
     let data: Vec<(f64, f64)> = (0..12)
-        .map(|i| (t0 + i as f64 * 30.0 * 86400.0, (i as f64).sin().abs() * 10.0))
+        .map(|i| {
+            (
+                t0 + i as f64 * 30.0 * 86400.0,
+                (i as f64).sin().abs() * 10.0,
+            )
+        })
         .collect();
 
     let plot = LinePlot::new().with_data(data).with_color("tomato");
@@ -58,7 +66,9 @@ fn test_datetime_years() {
         .map(|i| (t0 + i as f64 * 365.25 * 86400.0, i as f64 * 3.0))
         .collect();
 
-    let plot = ScatterPlot::new().with_data(data).with_color("mediumseagreen");
+    let plot = ScatterPlot::new()
+        .with_data(data)
+        .with_color("mediumseagreen");
     let layout = Layout::new((t0, t1), (0.0, 20.0))
         .with_title("Yearly ticks")
         .with_x_datetime(DateTimeAxis::years("%Y"));
@@ -67,7 +77,10 @@ fn test_datetime_years() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/datetime_years.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("2022") || svg.contains("2021"), "SVG should contain year labels");
+    assert!(
+        svg.contains("2022") || svg.contains("2021"),
+        "SVG should contain year labels"
+    );
     assert!(svg.contains("2023"), "SVG should contain 2023");
 }
 
@@ -114,14 +127,19 @@ fn test_datetime_rotated() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/datetime_rotated.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("rotate"), "SVG should contain rotate attribute on tick labels");
+    assert!(
+        svg.contains("rotate"),
+        "SVG should contain rotate attribute on tick labels"
+    );
 }
 
 #[test]
 fn test_datetime_helpers() {
     // ymd round-trip
     let ts = ymd(2024, 3, 15);
-    let dt = chrono::DateTime::from_timestamp(ts as i64, 0).unwrap().naive_utc();
+    let dt = chrono::DateTime::from_timestamp(ts as i64, 0)
+        .unwrap()
+        .naive_utc();
     assert_eq!(chrono::Datelike::year(&dt), 2024);
     assert_eq!(chrono::Datelike::month(&dt), 3);
     assert_eq!(chrono::Datelike::day(&dt), 15);
@@ -129,7 +147,9 @@ fn test_datetime_helpers() {
 
     // ymd_hms round-trip
     let ts2 = ymd_hms(2024, 6, 21, 12, 30, 0);
-    let dt2 = chrono::DateTime::from_timestamp(ts2 as i64, 0).unwrap().naive_utc();
+    let dt2 = chrono::DateTime::from_timestamp(ts2 as i64, 0)
+        .unwrap()
+        .naive_utc();
     assert_eq!(chrono::Datelike::year(&dt2), 2024);
     assert_eq!(chrono::Datelike::month(&dt2), 6);
     assert_eq!(chrono::Datelike::day(&dt2), 21);
@@ -155,7 +175,10 @@ fn test_datetime_y_axis() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/datetime_y_axis.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("<svg"), "Should render valid SVG without panic");
+    assert!(
+        svg.contains("<svg"),
+        "Should render valid SVG without panic"
+    );
     assert!(
         svg.contains("2024") || svg.contains("Jan") || svg.contains("Feb"),
         "Y axis should show datetime labels"

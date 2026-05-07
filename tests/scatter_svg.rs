@@ -1,27 +1,23 @@
-use rand::Rng;
-use kuva::plot::scatter::{ScatterPlot, TrendLine, MarkerShape};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::{render_scatter, render_multiple};
+use kuva::plot::scatter::{MarkerShape, ScatterPlot, TrendLine};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::{render_multiple, render_scatter};
+use rand::Rng;
 
 #[test]
 fn test_scatter_svg_output_builder() {
-    let data = vec![
-        (1.0, 5.0),
-        (4.5, 3.5),
-        (5.0, 8.7),
-    ];
+    let data = vec![(1.0, 5.0), (4.5, 3.5), (5.0, 8.7)];
 
     let plot = ScatterPlot::new()
         .with_data(data)
         .with_color("blue")
         .with_size(5.0);
-        
+
     let layout = Layout::new((0.0, 10.0), (0.0, 40.0))
-    .with_title("Scatter Builder Plot")
-    .with_x_label("The X axis")
-    .with_y_label("The Y axis");
+        .with_title("Scatter Builder Plot")
+        .with_x_label("The X axis")
+        .with_y_label("The Y axis");
 
     let scene = render_scatter(&plot, layout).with_background(Some("white"));
     let svg = SvgBackend.render_scene(&scene);
@@ -34,11 +30,7 @@ fn test_scatter_svg_output_builder() {
 
 #[test]
 fn test_scatter_svg_output_layout() {
-    let data = vec![
-        (1.0, 5.0),
-        (4.5, 3.5),
-        (5.0, 8.7),
-    ];
+    let data = vec![(1.0, 5.0), (4.5, 3.5), (5.0, 8.7)];
 
     let plot = ScatterPlot::new()
         .with_data(data)
@@ -61,7 +53,6 @@ fn test_scatter_svg_output_layout() {
 
 #[test]
 fn test_scatter_trend_svg() {
-
     // Generate some noisy linear data: y = 2x + 1 + noise
     let mut rng = rand::rng();
     let data: Vec<(f64, f64)> = (1..49)
@@ -80,14 +71,12 @@ fn test_scatter_trend_svg() {
         .with_equation()
         .with_correlation();
 
-
     let plot = vec![Plot::Scatter(scatter)];
 
-
     let layout = Layout::auto_from_plots(&plot)
-                        .with_title("Scatter with trend")
-                        .with_x_label("The X axis")
-                        .with_y_label("The Y axis");
+        .with_title("Scatter with trend")
+        .with_x_label("The X axis")
+        .with_y_label("The Y axis");
 
     let scene = render_multiple(plot, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -96,19 +85,16 @@ fn test_scatter_trend_svg() {
     // Basic sanity assertion
     assert!(svg.contains("<svg"));
     assert!(svg.contains("<circle"));
-
 }
-
 
 #[test]
 fn test_scatter_trend_error_svg() {
-
     let data = vec![(1.5, 2), (2.0, 3), (3.0, 5), (4.0, 6)];
     let x_err = vec![0.1, 0.05, 0.2, 0.3];
     let y_err = vec![(1, 1), (1, 1), (1, 1), (1, 1)];
 
     let scatter = ScatterPlot::new()
-        .with_data(data) // i32 -> f64 input test 
+        .with_data(data) // i32 -> f64 input test
         .with_x_err(x_err)
         .with_y_err_asymmetric(y_err)
         .with_color("red")
@@ -118,11 +104,10 @@ fn test_scatter_trend_error_svg() {
 
     let plot = vec![Plot::Scatter(scatter)];
 
-
     let layout = Layout::auto_from_plots(&plot)
-                        .with_title("Scatter with trend + error")
-                        .with_x_label("The X axis")
-                        .with_y_label("The Y axis");
+        .with_title("Scatter with trend + error")
+        .with_x_label("The X axis")
+        .with_y_label("The Y axis");
 
     let scene = render_multiple(plot, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -131,9 +116,7 @@ fn test_scatter_trend_error_svg() {
     // Basic sanity assertion
     assert!(svg.contains("<svg"));
     assert!(svg.contains("<circle"));
-
 }
-
 
 #[test]
 fn test_scatter_log_scale() {
@@ -218,15 +201,19 @@ fn test_scatter_markers() {
     std::fs::write("test_outputs/scatter_markers.svg", svg.clone()).unwrap();
 
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("<circle"));  // Circle markers
-    assert!(svg.contains("<rect"));    // Square markers
+    assert!(svg.contains("<circle")); // Circle markers
+    assert!(svg.contains("<rect")); // Square markers
 }
 
 #[test]
 fn test_bubble_plot() {
     let data: Vec<(f64, f64)> = vec![
-        (1.0, 2.0), (2.0, 3.0), (3.0, 5.0),
-        (4.0, 4.0), (5.0, 6.0), (6.0, 3.0),
+        (1.0, 2.0),
+        (2.0, 3.0),
+        (3.0, 5.0),
+        (4.0, 4.0),
+        (5.0, 6.0),
+        (6.0, 3.0),
     ];
     let sizes = vec![3.0, 6.0, 10.0, 4.0, 8.0, 12.0];
 
@@ -257,8 +244,12 @@ fn test_bubble_plot() {
 fn test_scatter_log_x_only() {
     // Log X with linear Y — e.g. dose-response
     let data: Vec<(f64, f64)> = vec![
-        (0.01, 5.0), (0.1, 12.0), (1.0, 45.0),
-        (10.0, 78.0), (100.0, 95.0), (1000.0, 99.0),
+        (0.01, 5.0),
+        (0.1, 12.0),
+        (1.0, 45.0),
+        (10.0, 78.0),
+        (100.0, 95.0),
+        (1000.0, 99.0),
     ];
 
     let scatter = ScatterPlot::new()
@@ -290,8 +281,12 @@ fn test_scatter_log_x_only() {
 fn test_scatter_log_y_only() {
     // Linear X with log Y — e.g. exponential growth
     let data: Vec<(f64, f64)> = vec![
-        (1.0, 2.0), (2.0, 8.0), (3.0, 30.0),
-        (4.0, 120.0), (5.0, 500.0), (6.0, 2000.0),
+        (1.0, 2.0),
+        (2.0, 8.0),
+        (3.0, 30.0),
+        (4.0, 120.0),
+        (5.0, 500.0),
+        (6.0, 2000.0),
         (7.0, 8000.0),
     ];
 
@@ -322,9 +317,12 @@ fn test_scatter_log_y_only() {
 fn test_scatter_log_small_values() {
     // Very small values (sub-unity range)
     let data: Vec<(f64, f64)> = vec![
-        (0.001, 0.0001), (0.005, 0.0008),
-        (0.02, 0.003), (0.1, 0.015),
-        (0.5, 0.08), (1.0, 0.5),
+        (0.001, 0.0001),
+        (0.005, 0.0008),
+        (0.02, 0.003),
+        (0.1, 0.015),
+        (0.5, 0.08),
+        (1.0, 0.5),
     ];
 
     let scatter = ScatterPlot::new()
@@ -352,9 +350,12 @@ fn test_scatter_log_small_values() {
 #[test]
 fn test_scatter_per_point_colors() {
     let data: Vec<(f64, f64)> = vec![
-        (1.0, 1.0), (2.0, 2.0),
-        (3.0, 3.0), (4.0, 4.0),
-        (5.0, 5.0), (6.0, 6.0),
+        (1.0, 1.0),
+        (2.0, 2.0),
+        (3.0, 3.0),
+        (4.0, 4.0),
+        (5.0, 5.0),
+        (6.0, 6.0),
     ];
     let colors = vec!["red", "green", "blue", "red", "green", "blue"];
 
@@ -384,8 +385,11 @@ fn test_scatter_per_point_colors() {
 fn test_scatter_log_narrow_range() {
     // Narrow range (< 3 decades) should show 2x and 5x sub-ticks
     let data: Vec<(f64, f64)> = vec![
-        (5.0, 10.0), (10.0, 25.0), (20.0, 50.0),
-        (50.0, 80.0), (100.0, 200.0),
+        (5.0, 10.0),
+        (10.0, 25.0),
+        (20.0, 50.0),
+        (50.0, 80.0),
+        (100.0, 200.0),
     ];
 
     let scatter = ScatterPlot::new()
@@ -421,7 +425,10 @@ fn test_scatter_empty_data() {
     let layout = Layout::auto_from_plots(&plots);
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/scatter_empty.svg", &svg).unwrap();
-    assert!(svg.contains("<svg"), "empty scatter should still produce SVG");
+    assert!(
+        svg.contains("<svg"),
+        "empty scatter should still produce SVG"
+    );
 
     // Mixed: one empty series + one with data — only the populated series
     // should determine the axis range, and both should render without panic.
@@ -436,6 +443,12 @@ fn test_scatter_empty_data() {
     let layout2 = Layout::auto_from_plots(&plots2);
     let svg2 = SvgBackend.render_scene(&render_multiple(plots2, layout2));
     std::fs::write("test_outputs/scatter_empty_mixed.svg", &svg2).unwrap();
-    assert!(svg2.contains("<svg"), "mixed empty+populated should produce SVG");
-    assert!(svg2.contains("data"), "populated series legend should appear");
+    assert!(
+        svg2.contains("<svg"),
+        "mixed empty+populated should produce SVG"
+    );
+    assert!(
+        svg2.contains("data"),
+        "populated series legend should appear"
+    );
 }

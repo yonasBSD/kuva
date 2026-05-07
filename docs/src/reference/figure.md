@@ -193,6 +193,19 @@ Figure::new(2, 3)
 
 <img src="../assets/figure/figure_size.svg" alt="2×3 figure sized to a fixed 900×560 total" width="760">
 
+### Per-row and per-column overrides
+
+Override the height of individual rows or the width of individual columns while leaving the rest at their default cell size:
+
+```rust,no_run
+Figure::new(3, 2)
+    .with_cell_size(500.0, 380.0)
+    .with_row_height(2, 80.0)    // third row is a thin annotation strip
+    .with_col_width(1, 180.0)    // second column is a narrow legend column
+```
+
+When combined with `with_figure_size`, the explicit sizes are subtracted first and the remaining budget is divided equally among unconstrained rows/cols — so the total SVG dimensions are still exactly honoured.
+
 ---
 
 ## API reference
@@ -221,6 +234,8 @@ Figure::new(2, 3)
 | `.with_keep_panel_legends()` | Keep per-panel legends alongside the shared one |
 | `.with_cell_size(w, h)` | Cell dimensions in pixels (default 500 × 380) |
 | `.with_figure_size(w, h)` | Total figure dimensions; cells auto-compute to fit |
+| `.with_row_height(row, px)` | Override height of a single row (0-based); other rows use `cell_height` |
+| `.with_col_width(col, px)` | Override width of a single column (0-based); other columns use `cell_width` |
 | `.with_spacing(px)` | Gap between cells (default 15) |
 | `.with_padding(px)` | Outer margin (default 10) |
 | `.render()` | Consume the Figure and return a `Scene` |

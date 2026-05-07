@@ -73,6 +73,19 @@ check() {
     fi
 }
 
+# Passes when the command exits non-zero (error path test).
+check_error() {
+    local name="$1"
+    shift
+    if ! "$@" > /dev/null 2>&1; then
+        echo "PASS  $name"
+        PASS=$((PASS + 1))
+    else
+        echo "FAIL  $name  (expected error, got success)"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
 # ── scatter ───────────────────────────────────────────────────────────────────
 check "scatter basic" \
     "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
@@ -86,6 +99,33 @@ check "scatter trend" \
     "$BIN" scatter "$DATA/scatter.tsv" --x x --y y --trend --equation --correlation \
         --title "Scatter with Trend" --x-label "X" --y-label "Y"
 
+check "scatter tick format sci" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
+        --y-tick-format sci --title "Scatter Y=sci"
+
+check "scatter tick format fixed" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
+        --x-tick-format fixed:2 --y-tick-format fixed:3 --title "Scatter fixed ticks"
+
+check "line tick format int" \
+    "$BIN" line "$DATA/measurements.tsv" --x time --y value --color-by group \
+        --y-tick-format int --title "Line Y=int"
+
+check "line tick format percent" \
+    "$BIN" line "$DATA/measurements.tsv" --x time --y value --color-by group \
+        --y-tick-format percent --title "Line Y=percent"
+
+check "scatter multi-y two columns" \
+    "$BIN" scatter "$DATA/measurements.tsv" --x time --y value,time --legend \
+        --title "Scatter Multi-Y (2 cols)" --x-label "Time" --y-label "Value"
+
+check "scatter multi-y three columns no legend" \
+    "$BIN" scatter "$DATA/measurements.tsv" --x time --y value,time,value \
+        --title "Scatter Multi-Y (3 cols)"
+
+check_error "scatter multi-y color-by conflict" \
+    "$BIN" scatter "$DATA/measurements.tsv" --x time --y value,time --color-by group
+
 # ── line ──────────────────────────────────────────────────────────────────────
 check "line color-by" \
     "$BIN" line "$DATA/measurements.tsv" --x time --y value --color-by group \
@@ -94,6 +134,21 @@ check "line color-by" \
 check "line color-by legend" \
     "$BIN" line "$DATA/measurements.tsv" --x time --y value --color-by group --legend \
         --title "Growth Curves" --x-label "Time" --y-label "Value"
+
+check "line multi-y two columns" \
+    "$BIN" line "$DATA/measurements.tsv" --x time --y value,time --legend \
+        --title "Line Multi-Y (2 cols)" --x-label "Time" --y-label "Value"
+
+check "line multi-y with fill" \
+    "$BIN" line "$DATA/measurements.tsv" --x time --y value,time --fill --legend \
+        --title "Line Multi-Y Filled" --x-label "Time" --y-label "Value"
+
+check "line multi-y dashed" \
+    "$BIN" line "$DATA/measurements.tsv" --x time --y value,time --dashed \
+        --title "Line Multi-Y Dashed"
+
+check_error "line multi-y color-by conflict" \
+    "$BIN" line "$DATA/measurements.tsv" --x time --y value,time --color-by group
 
 # ── bar ───────────────────────────────────────────────────────────────────────
 check "bar basic" \
@@ -306,6 +361,21 @@ check "hist2d colorbar sci format" \
     "$BIN" hist2d "$DATA/hist2d.tsv" --x x --y y --bins-x 20 --bins-y 20 \
         --colorbar-tick-format sci --title "hist2d sci colorbar" --x-label "X" --y-label "Y"
 
+# ── hexbin ────────────────────────────────────────────────────────────────────
+check "hexbin basic" \
+    "$BIN" hexbin "$DATA/hexbin.tsv" --x x --y y \
+        --title "Hexbin Plot" --x-label "X" --y-label "Y"
+
+check "hexbin n-bins and colormap" \
+    "$BIN" hexbin "$DATA/hexbin.tsv" --x x --y y \
+        --n-bins 15 --colormap inferno \
+        --title "Hexbin Inferno" --x-label "X" --y-label "Y"
+
+check "hexbin z-mean flat-top" \
+    "$BIN" hexbin "$DATA/hexbin.tsv" --x x --y y --z z --reduce mean \
+        --flat-top --stroke "#444444" \
+        --title "Hexbin Z Mean" --x-label "X" --y-label "Y"
+
 # ── contour ───────────────────────────────────────────────────────────────────
 check "contour basic" \
     "$BIN" contour "$DATA/contour.tsv" --x x --y y --z density \
@@ -342,6 +412,28 @@ check "chord gap legend" \
     "$BIN" chord "$DATA/chord.tsv" --gap 3.0 --opacity 0.6 --legend "connectivity" \
         --title "Cell Type Co-occurrence"
 
+# ── network ───────────────────────────────────────────────────────────────────
+check "network basic" \
+    "$BIN" network "$DATA/network.tsv" --source-col source --target-col target \
+        --labels --title "Gene Regulatory Network"
+
+check "network directed weighted legend" \
+    "$BIN" network "$DATA/network.tsv" --source-col source --target-col target \
+        --weight-col weight --group-col group --directed --labels \
+        --legend "pathway" --title "Gene Regulatory Network"
+
+check "network circle layout" \
+    "$BIN" network "$DATA/network.tsv" --source-col source --target-col target \
+        --layout circle --labels --title "Circle Layout"
+
+check "network kk layout" \
+    "$BIN" network "$DATA/network.tsv" --source-col source --target-col target \
+        --layout kk --labels --title "Kamada-Kawai Layout"
+
+check "network matrix" \
+    "$BIN" network "$DATA/network_matrix.tsv" --matrix --directed --labels \
+        --title "Matrix Input"
+
 # ── sankey ────────────────────────────────────────────────────────────────────
 check "sankey basic" \
     "$BIN" sankey "$DATA/sankey.tsv" --source-col source --target-col target --value-col value \
@@ -366,6 +458,12 @@ check "sankey flow-labels-unit" \
 check "sankey flow-labels-sci" \
     "$BIN" sankey "$DATA/sankey.tsv" --source-col source --target-col target --value-col value \
         --flow-labels --flow-label-format sci --title "Flow Labels Sci"
+
+check "sankey alluvium crossings left-coloring" \
+    "$BIN" sankey "$DATA/sankey_alluvium.tsv" \
+        --axis-col tissue --axis-col cluster --axis-col sex --value-col count \
+        --node-order crossings --node-order-seed 42 --coloring left \
+        --title "Alluvium Crossings"
 
 # ── phylo ─────────────────────────────────────────────────────────────────────
 check "phylo edge-list" \
@@ -400,6 +498,33 @@ check "density x-range bounded" \
         --x-label "Expression" --y-label "Density" \
         --title "Density bounded range"
 
+# ── ecdf ──────────────────────────────────────────────────────────────────────
+check "ecdf basic" \
+    "$BIN" ecdf "$DATA/samples.tsv" \
+        --value expression --x-label "Expression" --y-label "F(x)" \
+        --title "ECDF"
+
+check "ecdf color-by with confidence band" \
+    "$BIN" ecdf "$DATA/samples.tsv" \
+        --value expression --color-by group --confidence-band \
+        --title "ECDF by group"
+
+check "ecdf complementary with rug" \
+    "$BIN" ecdf "$DATA/samples.tsv" \
+        --value expression --complementary --rug \
+        --x-label "Expression" --y-label "1 - F(x)" \
+        --title "CCDF with rug"
+
+check "ecdf percentile lines and markers" \
+    "$BIN" ecdf "$DATA/samples.tsv" \
+        --value expression --percentile-lines 0.25,0.5,0.75 --markers \
+        --title "ECDF with percentiles"
+
+check "ecdf smooth" \
+    "$BIN" ecdf "$DATA/samples.tsv" \
+        --value expression --color-by group --smooth \
+        --title "Smooth ECDF"
+
 # ── ridgeline ─────────────────────────────────────────────────────────────────
 check "ridgeline basic" \
     "$BIN" ridgeline "$DATA/samples.tsv" \
@@ -419,6 +544,25 @@ check "synteny proportional" \
     "$BIN" synteny "$DATA/synteny_seqs.tsv" \
         --blocks-file "$DATA/synteny_blocks.tsv" --proportional --legend "synteny" \
         --title "Synteny Map"
+
+# ── radar ──────────────────────────────────────────────────────────────────────
+check "radar basic" \
+    "$BIN" radar "$DATA/radar.tsv" \
+        --axes Sensitivity Specificity Precision F1 AUC \
+        --color-by tool --legend \
+        --title "Radar Chart"
+
+check "radar filled" \
+    "$BIN" radar "$DATA/radar.tsv" \
+        --axes Sensitivity Specificity Precision F1 AUC \
+        --color-by tool --filled --legend \
+        --title "Radar Chart Filled"
+
+check "radar normalize" \
+    "$BIN" radar "$DATA/radar.tsv" \
+        --axes Sensitivity Specificity Precision F1 AUC \
+        --color-by tool --normalize --legend \
+        --title "Radar Normalized"
 
 # ── polar ──────────────────────────────────────────────────────────────────────
 check "polar basic" \
@@ -459,12 +603,352 @@ check "ternary legend" \
         --legend \
         --title "Ternary Legend"
 
+# ── scatter3d ─────────────────────────────────────────────────────────────────
+check "scatter3d basic" \
+    "$BIN" scatter3d "$DATA/scatter3d.tsv" --x x --y y --z z \
+        --title "3D Scatter" --x-label "X" --y-label "Y" --z-label "Z"
+
+check "scatter3d color-by" \
+    "$BIN" scatter3d "$DATA/scatter3d.tsv" --x x --y y --z z --color-by group \
+        --title "3D Scatter Grouped"
+
+check "scatter3d z-colormap" \
+    "$BIN" scatter3d "$DATA/scatter3d.tsv" --x x --y y --z z \
+        --z-color viridis \
+        --title "3D Scatter Z-Color"
+
+check "scatter3d depth-shade" \
+    "$BIN" scatter3d "$DATA/scatter3d.tsv" --x x --y y --z z \
+        --depth-shade \
+        --title "3D Scatter Depth Shade"
+
+check "scatter3d no-grid no-box" \
+    "$BIN" scatter3d "$DATA/scatter3d.tsv" --x x --y y --z z \
+        --no-grid --no-box \
+        --title "3D Scatter No Grid"
+
+check "scatter3d alternate view" \
+    "$BIN" scatter3d "$DATA/scatter3d.tsv" --x x --y y --z z \
+        --azimuth -120 --elevation 20 \
+        --title "3D Scatter Alt View"
+
+# ── surface3d ─────────────────────────────────────────────────────────────────
+check "surface3d basic" \
+    "$BIN" surface3d "$DATA/surface3d.tsv" --x x --y y --z z \
+        --z-color viridis \
+        --title "3D Surface" --x-label "X" --y-label "Y" --z-label "Z"
+
+check "surface3d high-res" \
+    "$BIN" surface3d "$DATA/surface3d.tsv" --x x --y y --z z \
+        --z-color inferno --resolution 20 \
+        --title "3D Surface (Upsampled)"
+
+check "surface3d no-wireframe" \
+    "$BIN" surface3d "$DATA/surface3d.tsv" --x x --y y --z z \
+        --z-color viridis --no-wireframe \
+        --title "3D Surface No Wireframe"
+
+check "surface3d alpha" \
+    "$BIN" surface3d "$DATA/surface3d.tsv" --x x --y y --z z \
+        --alpha 0.7 --color steelblue \
+        --title "3D Surface Alpha"
+
+check "surface3d no-grid no-box" \
+    "$BIN" surface3d "$DATA/surface3d.tsv" --x x --y y --z z \
+        --z-color viridis --no-grid --no-box \
+        --title "3D Surface No Grid"
+
+check "surface3d alternate view" \
+    "$BIN" surface3d "$DATA/surface3d.tsv" --x x --y y --z z \
+        --z-color viridis --azimuth 45 --elevation 45 \
+        --title "3D Surface Alt View"
+
+# ── qq ───────────────────────────────────────────────────────────────────────
+check "qq normal basic" \
+    "$BIN" qq "$DATA/samples.tsv" \
+        --value expression \
+        --title "Normal Q-Q"
+
+check "qq normal multigroup" \
+    "$BIN" qq "$DATA/samples.tsv" \
+        --value expression --color-by group \
+        --title "Multi-group Normal Q-Q"
+
+check "qq genomic basic" \
+    "$BIN" qq "$DATA/gene_stats.tsv" \
+        --value pvalue --genomic \
+        --title "Genomic Q-Q"
+
+check "qq genomic with ci band and lambda" \
+    "$BIN" qq "$DATA/gene_stats.tsv" \
+        --value pvalue --genomic --ci-band --lambda \
+        --title "Genomic Q-Q with CI and lambda"
+
+# ── streamgraph ───────────────────────────────────────────────────────────────
+check "streamgraph wiggle (default)" \
+    "$BIN" streamgraph "$DATA/streamgraph.tsv" \
+        --title "Microbiome streamgraph"
+
+check "streamgraph symmetric" \
+    "$BIN" streamgraph "$DATA/streamgraph.tsv" \
+        --baseline symmetric \
+        --title "Symmetric streamgraph"
+
+check "streamgraph normalized" \
+    "$BIN" streamgraph "$DATA/streamgraph.tsv" \
+        --normalize \
+        --title "Normalised streamgraph"
+
+check "streamgraph linear with stroke" \
+    "$BIN" streamgraph "$DATA/streamgraph.tsv" \
+        --linear --stroke \
+        --title "Linear streamgraph"
+
 # ── interactive ───────────────────────────────────────────────────────────────
 check "scatter interactive" \
     "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
         --color-by group --legend \
         --interactive \
         --title "Interactive Scatter"
+
+# ── text wrapping ─────────────────────────────────────────────────────────────
+check "wrap title" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
+        --title "This is a deliberately long title that should definitely wrap onto multiple lines when wrap is set" \
+        --wrap 30
+
+check "wrap legend" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
+        --color-by group --legend \
+        --legend-wrap 15 \
+        --title "Legend Wrap"
+
+check "wrap x-label" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
+        --x-label "A very long x-axis label that would normally make the bottom margin huge" \
+        --x-label-wrap 25
+
+check "wrap y-label" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
+        --y-label "A very long y-axis label that wraps into multiple rotated lines" \
+        --y-label-wrap 20
+
+check "wrap dark theme" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y \
+        --title "Long dark theme title that should wrap nicely" \
+        --wrap 25 --theme dark
+
+check "wrap with scale" \
+    "$BIN" scatter "$DATA/scatter.tsv" --x x --y y --color-by group --legend \
+        --title "Scaled wrapped plot" \
+        --wrap 20 --scale 1.5
+
+# ── slope ─────────────────────────────────────────────────────────────────────
+check "slope basic" \
+    "$BIN" slope "$DATA/slope.tsv" \
+        --label-col label --before-col before --after-col after \
+        --before-label "Before" --after-label "After" \
+        --title "Weight Loss by Diet"
+
+check "slope direction colors" \
+    "$BIN" slope "$DATA/slope.tsv" \
+        --label-col label --before-col before --after-col after \
+        --show-values --title "Slope with Values"
+
+# ── lollipop ──────────────────────────────────────────────────────────────────
+check "lollipop basic" \
+    "$BIN" lollipop "$DATA/lollipop.tsv" \
+        --x-col gene --y-col expression \
+        --label-col gene \
+        --title "Gene Expression"
+
+check "lollipop styled" \
+    "$BIN" lollipop "$DATA/lollipop.tsv" \
+        --x-col gene --y-col expression \
+        --color steelblue --dot-radius 6 \
+        --legend "Expression" --title "Styled Lollipop"
+
+# ── raincloud ─────────────────────────────────────────────────────────────────
+check "raincloud basic" \
+    "$BIN" raincloud "$DATA/raincloud.tsv" \
+        --group-col group --value-col value \
+        --title "Raincloud Plot"
+
+check "raincloud no rain" \
+    "$BIN" raincloud "$DATA/raincloud.tsv" \
+        --group-col group --value-col value \
+        --no-rain --legend "group" --title "Cloud + Box Only"
+
+# ── mosaic ────────────────────────────────────────────────────────────────────
+check "mosaic basic" \
+    "$BIN" mosaic "$DATA/mosaic.tsv" \
+        --col-col region --row-col outcome --value-col count \
+        --title "Outcomes by Region"
+
+check "mosaic with values" \
+    "$BIN" mosaic "$DATA/mosaic.tsv" \
+        --col-col region --row-col outcome --value-col count \
+        --show-values --title "Mosaic with Values"
+
+# ── waffle ────────────────────────────────────────────────────────────────────
+check "waffle basic" \
+    "$BIN" waffle "$DATA/waffle.tsv" \
+        --label-col category --value-col value --color-col color \
+        --legend "Energy Mix" --title "Energy Sources"
+
+check "waffle circle shape" \
+    "$BIN" waffle "$DATA/waffle.tsv" \
+        --label-col category --value-col value --color-col color \
+        --shape circle --show-percents --title "Waffle Circles"
+
+# ── pyramid ───────────────────────────────────────────────────────────────────
+check "pyramid basic" \
+    "$BIN" pyramid "$DATA/pyramid.tsv" \
+        --label-col age --left-col male --right-col female \
+        --left-label "Male" --right-label "Female" \
+        --title "Population Pyramid"
+
+check "pyramid normalized" \
+    "$BIN" pyramid "$DATA/pyramid.tsv" \
+        --label-col age --left-col male --right-col female \
+        --left-label "Male" --right-label "Female" \
+        --normalize --legend --title "Normalized Pyramid"
+
+# ── roc ───────────────────────────────────────────────────────────────────────
+check "roc basic" \
+    "$BIN" roc "$DATA/roc.tsv" \
+        --score-col score --label-col label \
+        --auc-label --title "ROC Curve"
+
+check "roc with ci" \
+    "$BIN" roc "$DATA/roc.tsv" \
+        --score-col score --label-col label \
+        --ci --auc-label --legend "Model" --title "ROC with CI"
+
+# ── pr ────────────────────────────────────────────────────────────────────────
+check "pr basic" \
+    "$BIN" pr "$DATA/pr.tsv" \
+        --score-col score --label-col label \
+        --auc-label --title "Precision-Recall Curve"
+
+check "pr no baseline" \
+    "$BIN" pr "$DATA/pr.tsv" \
+        --score-col score --label-col label \
+        --no-baseline --legend "Classifier" --title "PR no Baseline"
+
+# ── survival ──────────────────────────────────────────────────────────────────
+check "survival basic" \
+    "$BIN" survival "$DATA/survival.tsv" \
+        --time-col time --event-col event --group-col group \
+        --title "Kaplan-Meier Survival"
+
+check "survival no ci" \
+    "$BIN" survival "$DATA/survival.tsv" \
+        --time-col time --event-col event --group-col group \
+        --no-ci --legend "Group" --title "KM no CI"
+
+# ── horizon ───────────────────────────────────────────────────────────────────
+check "horizon basic" \
+    "$BIN" horizon "$DATA/horizon.tsv" \
+        --x-col week --value-col value --group-col series \
+        --title "Horizon Chart"
+
+check "horizon with value labels" \
+    "$BIN" horizon "$DATA/horizon.tsv" \
+        --x-col week --value-col value --group-col series \
+        --value-labels --n-bands 4 --title "Horizon 4 Bands"
+
+# ── parallel ──────────────────────────────────────────────────────────────────
+check "parallel basic" \
+    "$BIN" parallel "$DATA/parallel.tsv" \
+        --value-cols sepal_length sepal_width petal_length petal_width \
+        --group-col species \
+        --title "Parallel Coordinates"
+
+check "parallel curved" \
+    "$BIN" parallel "$DATA/parallel.tsv" \
+        --value-cols sepal_length sepal_width petal_length petal_width \
+        --group-col species \
+        --curved --show-mean --legend "Species" --title "Parallel Curved"
+
+# ── venn ──────────────────────────────────────────────────────────────────────
+check "venn basic" \
+    "$BIN" venn "$DATA/venn.tsv" \
+        --element-col element --set-col set \
+        --title "Venn Diagram"
+
+check "venn proportional" \
+    "$BIN" venn "$DATA/venn.tsv" \
+        --element-col element --set-col set \
+        --proportional --legend "Gene Sets" --title "Proportional Venn"
+
+# ── calendar ──────────────────────────────────────────────────────────────────
+check "calendar basic" \
+    "$BIN" calendar "$DATA/calendar.tsv" \
+        --date-col date --value-col count \
+        --title "Calendar Heatmap"
+
+check "calendar date range" \
+    "$BIN" calendar "$DATA/calendar.tsv" \
+        --date-col date --value-col count \
+        --start 2024-01-01 --end 2024-06-30 \
+        --agg sum --title "Calendar Range"
+
+# ── bump ──────────────────────────────────────────────────────────────────────
+check "bump basic" \
+    "$BIN" bump "$DATA/bump.tsv" \
+        --series series --time time --rank rank \
+        --title "Ranking Over Time"
+
+check "bump with legend" \
+    "$BIN" bump "$DATA/bump.tsv" \
+        --series series --time time --rank rank \
+        --title "Bump Chart"
+
+# ── funnel ────────────────────────────────────────────────────────────────────
+check "funnel basic" \
+    "$BIN" funnel "$DATA/funnel.tsv" \
+        --label stage --value n_screened \
+        --title "Clinical Trial Funnel"
+
+check "funnel diverging" \
+    "$BIN" funnel "$DATA/funnel.tsv" \
+        --label stage --value n_screened --mirror-col n_placebo \
+        --left-label "Treatment" --right-label "Placebo" \
+        --title "Diverging Funnel"
+
+# ── rose ──────────────────────────────────────────────────────────────────────
+check "rose basic" \
+    "$BIN" rose "$DATA/rose.tsv" \
+        --label direction --value high_speed \
+        --title "Wind Rose"
+
+check "rose grouped" \
+    "$BIN" rose "$DATA/rose.tsv" \
+        --label direction --value high_speed \
+        --legend "Speed" --title "Wind Rose"
+
+# ── treemap ───────────────────────────────────────────────────────────────────
+check "treemap basic" \
+    "$BIN" treemap "$DATA/treemap.tsv" \
+        --label label --value value \
+        --title "World Population"
+
+check "treemap hierarchical" \
+    "$BIN" treemap "$DATA/treemap.tsv" \
+        --label label --value value --parent parent \
+        --title "World Population by Region"
+
+# ── sunburst ──────────────────────────────────────────────────────────────────
+check "sunburst basic" \
+    "$BIN" sunburst "$DATA/sunburst.tsv" \
+        --label label --value value \
+        --title "Animal Kingdom"
+
+check "sunburst hierarchical" \
+    "$BIN" sunburst "$DATA/sunburst.tsv" \
+        --label label --value value --parent parent \
+        --title "Animal Kingdom by Class"
 
 # ── summary ───────────────────────────────────────────────────────────────────
 echo ""

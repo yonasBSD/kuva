@@ -1,12 +1,33 @@
-use crate::render::layout::{Layout, DEFAULT_FONT_FAMILY};
-use crate::render::plots::Plot;
-use crate::render::render::{Primitive, Scene, TextAnchor, render_multiple, render_twin_y, collect_legend_entries, render_legend_at};
 use crate::plot::legend::{LegendEntry, LegendGroup};
+use crate::render::layout::{ComputedLayout, Layout, DEFAULT_FONT_FAMILY};
+use crate::render::plots::Plot;
+use crate::render::render::{
+    collect_legend_entries, render_legend_at, render_multiple, render_twin_y, Primitive, Scene,
+    TextAnchor,
+};
 
 #[derive(Debug, Clone)]
 pub enum FigureLegendPosition {
+    // Right side (3 vertical alignments)
+    /// Right side, vertically centred (kept for backward compatibility).
     Right,
+    RightTop,
+    RightMiddle,
+    RightBottom,
+    // Left side
+    LeftTop,
+    LeftMiddle,
+    LeftBottom,
+    // Top edge
+    TopLeft,
+    TopCenter,
+    TopRight,
+    // Bottom edge
+    /// Bottom edge, horizontally centred (kept for backward compatibility).
     Bottom,
+    BottomLeft,
+    BottomCenter,
+    BottomRight,
     /// Arbitrary pixel position within the figure canvas.
     Custom(f64, f64),
 }
@@ -47,12 +68,8 @@ impl LabelConfig {
                 let c = (b'a' + index as u8) as char;
                 c.to_string()
             }
-            LabelStyle::Numeric => {
-                (index + 1).to_string()
-            }
-            LabelStyle::Custom(labels) => {
-                labels.get(index).cloned().unwrap_or_default()
-            }
+            LabelStyle::Numeric => (index + 1).to_string(),
+            LabelStyle::Custom(labels) => labels.get(index).cloned().unwrap_or_default(),
         }
     }
 }
@@ -63,8 +80,16 @@ pub enum SharedAxis {
     AllColumns,
     Row(usize),
     Column(usize),
-    RowSlice { row: usize, col_start: usize, col_end: usize },
-    ColumnSlice { col: usize, row_start: usize, row_end: usize },
+    RowSlice {
+        row: usize,
+        col_start: usize,
+        col_end: usize,
+    },
+    ColumnSlice {
+        col: usize,
+        row_start: usize,
+        row_end: usize,
+    },
 }
 
 pub struct Figure {
@@ -89,6 +114,10 @@ pub struct Figure {
     keep_panel_legends: bool,
     /// Sparse list of twin-Y cells: (cell_index, primary_plots, secondary_plots).
     twin_y_plots: Vec<(usize, Vec<Plot>, Vec<Plot>)>,
+    /// Per-row height overrides (indexed by row, 0-based). None = use cell_height.
+    row_heights: Vec<Option<f64>>,
+    /// Per-col width overrides (indexed by col, 0-based). None = use cell_width.
+    col_widths: Vec<Option<f64>>,
 }
 
 impl Figure {
@@ -115,6 +144,8 @@ impl Figure {
             shared_legend_entries: None,
             keep_panel_legends: false,
             twin_y_plots: Vec::new(),
+            row_heights: Vec::new(),
+            col_widths: Vec::new(),
         }
     }
 
@@ -200,13 +231,21 @@ impl Figure {
 
     /// Share X axis within a column for a slice of rows.
     pub fn with_shared_x_slice(mut self, col: usize, row_start: usize, row_end: usize) -> Self {
-        self.shared_x.push(SharedAxis::ColumnSlice { col, row_start, row_end });
+        self.shared_x.push(SharedAxis::ColumnSlice {
+            col,
+            row_start,
+            row_end,
+        });
         self
     }
 
     /// Share Y axis within a row for a slice of columns.
     pub fn with_shared_y_slice(mut self, row: usize, col_start: usize, col_end: usize) -> Self {
-        self.shared_y.push(SharedAxis::RowSlice { row, col_start, col_end });
+        self.shared_y.push(SharedAxis::RowSlice {
+            row,
+            col_start,
+            col_end,
+        });
         self
     }
 
@@ -226,8 +265,30 @@ impl Figure {
         self
     }
 
+    /// Override the height of a specific grid row (0-based).
+    /// Useful for thin legend rows or tall data rows. Unset rows use `cell_height`.
+    pub fn with_row_height(mut self, row: usize, height: f64) -> Self {
+        if self.row_heights.len() <= row {
+            self.row_heights.resize(row + 1, None);
+        }
+        self.row_heights[row] = Some(height);
+        self
+    }
+
+    /// Override the width of a specific grid column (0-based).
+    /// Unset columns use `cell_width`.
+    pub fn with_col_width(mut self, col: usize, width: f64) -> Self {
+        if self.col_widths.len() <= col {
+            self.col_widths.resize(col + 1, None);
+        }
+        self.col_widths[col] = Some(width);
+        self
+    }
+
     /// Set the total figure size in pixels; cells auto-compute to fit.
     /// Takes precedence over `with_cell_size` when both are set.
+    /// Explicit per-row/col sizes (from `with_row_height`/`with_col_width`) are
+    /// subtracted first; the remaining space is divided among un-constrained rows/cols.
     pub fn with_figure_size(mut self, w: f64, h: f64) -> Self {
         self.figure_width = Some(w);
         self.figure_height = Some(h);
@@ -255,6 +316,66 @@ impl Figure {
     /// Place the shared legend at an arbitrary pixel position within the figure canvas.
     pub fn with_shared_legend_at(mut self, x: f64, y: f64) -> Self {
         self.shared_legend = Some(FigureLegendPosition::Custom(x, y));
+        self
+    }
+
+    pub fn with_shared_legend_right_top(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::RightTop);
+        self
+    }
+
+    pub fn with_shared_legend_right_middle(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::RightMiddle);
+        self
+    }
+
+    pub fn with_shared_legend_right_bottom(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::RightBottom);
+        self
+    }
+
+    pub fn with_shared_legend_left_top(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::LeftTop);
+        self
+    }
+
+    pub fn with_shared_legend_left_middle(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::LeftMiddle);
+        self
+    }
+
+    pub fn with_shared_legend_left_bottom(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::LeftBottom);
+        self
+    }
+
+    pub fn with_shared_legend_top_left(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::TopLeft);
+        self
+    }
+
+    pub fn with_shared_legend_top_center(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::TopCenter);
+        self
+    }
+
+    pub fn with_shared_legend_top_right(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::TopRight);
+        self
+    }
+
+    pub fn with_shared_legend_bottom_left(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::BottomLeft);
+        self
+    }
+
+    pub fn with_shared_legend_bottom_center(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::BottomCenter);
+        self
+    }
+
+    pub fn with_shared_legend_bottom_right(mut self) -> Self {
+        self.shared_legend = Some(FigureLegendPosition::BottomRight);
         self
     }
 
@@ -288,17 +409,35 @@ impl Figure {
 
     pub fn render(self) -> Scene {
         let Figure {
-            rows, cols, structure, mut plots, layouts: user_layouts,
-            title, title_size, labels, shared_x, shared_y,
-            spacing, padding, mut cell_width, mut cell_height,
-            figure_width, figure_height,
-            shared_legend, shared_legend_entries, keep_panel_legends,
+            rows,
+            cols,
+            structure,
+            mut plots,
+            layouts: user_layouts,
+            title,
+            title_size,
+            labels,
+            shared_x,
+            shared_y,
+            spacing,
+            padding,
+            mut cell_width,
+            mut cell_height,
+            figure_width,
+            figure_height,
+            shared_legend,
+            shared_legend_entries,
+            keep_panel_legends,
             twin_y_plots,
+            row_heights: explicit_row_heights,
+            col_widths: explicit_col_widths,
         } = self;
 
         // Build a lookup from cell_index → (primary, secondary) for twin-Y cells.
-        let mut twin_y_map: std::collections::HashMap<usize, (Vec<Plot>, Vec<Plot>)> =
-            twin_y_plots.into_iter().map(|(i, p, s)| (i, (p, s))).collect();
+        let mut twin_y_map: std::collections::HashMap<usize, (Vec<Plot>, Vec<Plot>)> = twin_y_plots
+            .into_iter()
+            .map(|(i, p, s)| (i, (p, s)))
+            .collect();
 
         validate_structure(&structure, rows, cols);
 
@@ -318,7 +457,8 @@ impl Figure {
                     }
                 }
                 for (primary, secondary) in twin_y_map.values() {
-                    for entry in collect_legend_entries(primary).into_iter()
+                    for entry in collect_legend_entries(primary)
+                        .into_iter()
                         .chain(collect_legend_entries(secondary))
                     {
                         if seen_labels.insert(entry.label.clone()) {
@@ -347,62 +487,100 @@ impl Figure {
             (0.0, 0.0)
         };
 
+        // Helpers: which side does the legend land on?
+        let has_entries = legend_entries.as_ref().is_some_and(|e| !e.is_empty());
+        let legend_on_right = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::Right
+                        | FigureLegendPosition::RightTop
+                        | FigureLegendPosition::RightMiddle
+                        | FigureLegendPosition::RightBottom
+                )
+            );
+        let legend_on_left = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::LeftTop
+                        | FigureLegendPosition::LeftMiddle
+                        | FigureLegendPosition::LeftBottom
+                )
+            );
+        let legend_on_top = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::TopLeft
+                        | FigureLegendPosition::TopCenter
+                        | FigureLegendPosition::TopRight
+                )
+            );
+        let legend_on_bottom = has_entries
+            && matches!(
+                shared_legend.as_ref(),
+                Some(
+                    FigureLegendPosition::Bottom
+                        | FigureLegendPosition::BottomLeft
+                        | FigureLegendPosition::BottomCenter
+                        | FigureLegendPosition::BottomRight
+                )
+            );
+
         // If total figure size is specified, back-compute cell dimensions to fit.
+        // Explicit per-row/col sizes are subtracted first; remaining space is shared
+        // equally among unconstrained rows/cols.
         if let (Some(fw), Some(fh)) = (figure_width, figure_height) {
-            let legend_w_used = match shared_legend.as_ref() {
-                Some(FigureLegendPosition::Right)
-                    if legend_entries.as_ref().is_some_and(|e| !e.is_empty()) =>
-                {
-                    legend_width + legend_spacing
-                }
-                _ => 0.0,
+            let legend_w_used = if legend_on_right || legend_on_left {
+                legend_width + legend_spacing
+            } else {
+                0.0
             };
-            let legend_h_used = match shared_legend.as_ref() {
-                Some(FigureLegendPosition::Bottom)
-                    if legend_entries.as_ref().is_some_and(|e| !e.is_empty()) =>
-                {
-                    legend_height + legend_spacing
-                }
-                _ => 0.0,
+            let legend_h_used = if legend_on_top || legend_on_bottom {
+                legend_height + legend_spacing
+            } else {
+                0.0
             };
             let title_h = if title.is_some() { 30.0 } else { 0.0 };
-            cell_width = ((fw - legend_w_used - 2.0 * padding - (cols as f64 - 1.0) * spacing)
-                / cols as f64)
-                .max(1.0);
-            cell_height = ((fh - legend_h_used - 2.0 * padding - (rows as f64 - 1.0) * spacing - title_h)
-                / rows as f64)
-                .max(1.0);
+
+            let explicit_col_total: f64 = (0..cols)
+                .filter_map(|c| explicit_col_widths.get(c).copied().flatten())
+                .sum();
+            let free_cols = (0..cols)
+                .filter(|&c| explicit_col_widths.get(c).copied().flatten().is_none())
+                .count();
+            if free_cols > 0 {
+                cell_width = ((fw
+                    - legend_w_used
+                    - 2.0 * padding
+                    - (cols as f64 - 1.0) * spacing
+                    - explicit_col_total)
+                    / free_cols as f64)
+                    .max(1.0);
+            }
+
+            let explicit_row_total: f64 = (0..rows)
+                .filter_map(|r| explicit_row_heights.get(r).copied().flatten())
+                .sum();
+            let free_rows = (0..rows)
+                .filter(|&r| explicit_row_heights.get(r).copied().flatten().is_none())
+                .count();
+            if free_rows > 0 {
+                cell_height = ((fh
+                    - legend_h_used
+                    - 2.0 * padding
+                    - (rows as f64 - 1.0) * spacing
+                    - title_h
+                    - explicit_row_total)
+                    / free_rows as f64)
+                    .max(1.0);
+            }
         }
 
         let figure_title_height = if title.is_some() { 30.0 } else { 0.0 };
-        let grid_width = cols as f64 * cell_width
-            + (cols as f64 - 1.0) * spacing
-            + 2.0 * padding;
-        let grid_height = rows as f64 * cell_height
-            + (rows as f64 - 1.0) * spacing
-            + 2.0 * padding
-            + figure_title_height;
 
-        let (total_width, total_height) = match shared_legend.as_ref() {
-            Some(FigureLegendPosition::Right) if legend_entries.as_ref().is_some_and(|e| !e.is_empty()) => {
-                (grid_width + legend_width + legend_spacing, grid_height)
-            }
-            Some(FigureLegendPosition::Bottom) if legend_entries.as_ref().is_some_and(|e| !e.is_empty()) => {
-                (grid_width, grid_height + legend_height + legend_spacing)
-            }
-            _ => (grid_width, grid_height),
-        };
-
-        let mut master = Scene::new(total_width, total_height);
-        // Inherit font_family and theme from first user layout if set
-        let figure_theme = user_layouts.first().map(|l| l.theme.clone()).unwrap_or_default();
-        master.font_family = user_layouts.first().and_then(|l| l.font_family.clone())
-            .or(figure_theme.font_family.clone())
-            .or(Some(DEFAULT_FONT_FAMILY.to_string()));
-        master.background_color = Some(figure_theme.background.clone());
-        master.text_color = Some(figure_theme.text_color.clone());
-
-        // Build a layout for each structure slot
+        // Build a layout for each structure slot (needed before per-row height calc).
         let mut layouts: Vec<Layout> = Vec::new();
         for i in 0..structure.len() {
             let layout = if i < user_layouts.len() {
@@ -427,6 +605,123 @@ impl Figure {
             }
         }
 
+        // Compute per-grid-row heights.  A grid row's height is the default
+        // `cell_height` unless any cell in that row contains a BrickPlot with
+        // `row_height_px`, in which case we compute:
+        //   canvas_height = row_height_px * num_rows + actual_margin_top + actual_margin_bottom
+        //
+        // Margins are extracted from a provisional ComputedLayout (margins do not
+        // depend on canvas size) so they account for suppress_x_ticks, axis labels,
+        // font sizes, etc. — giving exact row heights rather than relying on a fixed
+        // margin estimate.
+        let mut per_row_heights: Vec<f64> = vec![cell_height; rows];
+        for (i, group) in structure.iter().enumerate() {
+            let rect = cell_rect(group, cols);
+            let grid_row = rect.0;
+            if i < plots.len() && i < layouts.len() {
+                for plot in &plots[i] {
+                    if let Plot::Brick(bp) = plot {
+                        if let Some(rh) = bp.row_height_px {
+                            let n = bp.num_rows();
+                            if n > 0 {
+                                // Compute actual margins from the post-shared-axis layout.
+                                // Margins do not depend on canvas height, so this is exact.
+                                let cl = ComputedLayout::from_layout(&layouts[i]);
+                                let overhead = cl.margin_top + cl.margin_bottom;
+                                let desired = rh * n as f64 + overhead;
+                                // Always set — desired is typically smaller than
+                                // the default cell_height, so "> cell_height" would
+                                // silently skip every brick row height request.
+                                per_row_heights[grid_row] = desired;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Apply explicit per-row height overrides (highest priority).
+        for (r, rh) in explicit_row_heights.iter().enumerate() {
+            if let Some(h) = rh {
+                if r < rows {
+                    per_row_heights[r] = *h;
+                }
+            }
+        }
+
+        // Build per-column widths, applying any explicit overrides.
+        let mut per_col_widths: Vec<f64> = vec![cell_width; cols];
+        for (c, cw) in explicit_col_widths.iter().enumerate() {
+            if let Some(w) = cw {
+                if c < cols {
+                    per_col_widths[c] = *w;
+                }
+            }
+        }
+
+        // Prefix sums for fast cell_y / cell_x calculation.
+        let row_y_starts: Vec<f64> = {
+            let mut starts = vec![0.0f64; rows + 1];
+            for r in 0..rows {
+                starts[r + 1] = starts[r] + per_row_heights[r] + spacing;
+            }
+            starts
+        };
+        let col_x_starts: Vec<f64> = {
+            let mut starts = vec![0.0f64; cols + 1];
+            for c in 0..cols {
+                starts[c + 1] = starts[c] + per_col_widths[c] + spacing;
+            }
+            starts
+        };
+
+        let grid_width =
+            per_col_widths.iter().sum::<f64>() + (cols as f64 - 1.0) * spacing + 2.0 * padding;
+        let grid_height = per_row_heights.iter().sum::<f64>()
+            + (rows as f64 - 1.0) * spacing
+            + 2.0 * padding
+            + figure_title_height;
+
+        // When the legend is on the left or top, shift all grid cells so the
+        // legend occupies the vacated margin.
+        let cell_x_offset = if legend_on_left {
+            legend_width + legend_spacing
+        } else {
+            0.0
+        };
+        let cell_y_offset = if legend_on_top {
+            legend_height + legend_spacing
+        } else {
+            0.0
+        };
+
+        let total_width = grid_width
+            + if legend_on_right || legend_on_left {
+                legend_width + legend_spacing
+            } else {
+                0.0
+            };
+        let total_height = grid_height
+            + if legend_on_top || legend_on_bottom {
+                legend_height + legend_spacing
+            } else {
+                0.0
+            };
+
+        let mut master = Scene::new(total_width, total_height);
+        // Inherit font_family and theme from first user layout if set
+        let figure_theme = user_layouts
+            .first()
+            .map(|l| l.theme.clone())
+            .unwrap_or_default();
+        master.font_family = user_layouts
+            .first()
+            .and_then(|l| l.font_family.clone())
+            .or(figure_theme.font_family.clone())
+            .or(Some(DEFAULT_FONT_FAMILY.to_string()));
+        master.background_color = Some(figure_theme.background.clone());
+        master.text_color = Some(figure_theme.text_color.clone());
+
         // Pad plots with empty vecs so indexing is safe
         while plots.len() < structure.len() {
             plots.push(Vec::new());
@@ -437,10 +732,17 @@ impl Figure {
             let col_span = rect.3 - rect.1 + 1;
             let row_span = rect.2 - rect.0 + 1;
 
-            let cell_x = padding + rect.1 as f64 * (cell_width + spacing);
-            let cell_y = padding + figure_title_height + rect.0 as f64 * (cell_height + spacing);
-            let cell_w = col_span as f64 * cell_width + (col_span as f64 - 1.0) * spacing;
-            let cell_h = row_span as f64 * cell_height + (row_span as f64 - 1.0) * spacing;
+            let cell_x = cell_x_offset + padding + col_x_starts[rect.1];
+            let cell_y = cell_y_offset + padding + figure_title_height + row_y_starts[rect.0];
+            let cell_w = (rect.1..rect.1 + col_span)
+                .map(|c| per_col_widths[c])
+                .sum::<f64>()
+                + (col_span as f64 - 1.0) * spacing;
+            // Multi-row spans: sum all spanned row heights + inter-row spacings.
+            let cell_h = (rect.0..rect.0 + row_span)
+                .map(|r| per_row_heights[r])
+                .sum::<f64>()
+                + (row_span as f64 - 1.0) * spacing;
 
             let slot_plots = std::mem::take(&mut plots[i]);
 
@@ -483,6 +785,7 @@ impl Figure {
                     anchor: TextAnchor::Start,
                     rotate: None,
                     bold: config.bold,
+                    color: None,
                 });
             }
         }
@@ -496,27 +799,87 @@ impl Figure {
                 anchor: TextAnchor::Middle,
                 rotate: None,
                 bold: false,
+                color: None,
             });
         }
 
         // Render shared legend
         if let (Some(ref pos), Some(ref entries)) = (&shared_legend, &legend_entries) {
             if !entries.is_empty() {
+                // Pixel extents of just the grid content (cells + padding, no legend margin).
+                let inner_right = cell_x_offset + grid_width;
+                let inner_bottom = cell_y_offset + grid_height;
+                // Vertical centre of the grid content area (below the figure title).
+                let grid_mid_y = cell_y_offset
+                    + figure_title_height
+                    + padding
+                    + (grid_height - figure_title_height - 2.0 * padding) / 2.0;
+
                 let (lx, ly) = match pos {
-                    FigureLegendPosition::Right => {
-                        let lx = grid_width + legend_spacing / 2.0;
-                        let ly = figure_title_height + padding + (grid_height - figure_title_height) / 2.0 - legend_height / 2.0;
-                        (lx, ly)
+                    // ── Right side ──────────────────────────────────────────────
+                    FigureLegendPosition::Right | FigureLegendPosition::RightMiddle => (
+                        inner_right + legend_spacing / 2.0,
+                        grid_mid_y - legend_height / 2.0,
+                    ),
+                    FigureLegendPosition::RightTop => (
+                        inner_right + legend_spacing / 2.0,
+                        cell_y_offset + figure_title_height + padding,
+                    ),
+                    FigureLegendPosition::RightBottom => (
+                        inner_right + legend_spacing / 2.0,
+                        inner_bottom - padding - legend_height,
+                    ),
+                    // ── Left side ────────────────────────────────────────────────
+                    FigureLegendPosition::LeftMiddle => {
+                        (legend_spacing / 2.0, grid_mid_y - legend_height / 2.0)
                     }
-                    FigureLegendPosition::Bottom => {
-                        let lx = grid_width / 2.0 - legend_width / 2.0;
-                        let ly = grid_height + legend_spacing / 2.0;
-                        (lx, ly)
+                    FigureLegendPosition::LeftTop => (
+                        legend_spacing / 2.0,
+                        cell_y_offset + figure_title_height + padding,
+                    ),
+                    FigureLegendPosition::LeftBottom => {
+                        (legend_spacing / 2.0, inner_bottom - padding - legend_height)
                     }
+                    // ── Top edge ─────────────────────────────────────────────────
+                    FigureLegendPosition::TopLeft => (
+                        cell_x_offset + padding,
+                        figure_title_height + legend_spacing / 2.0,
+                    ),
+                    FigureLegendPosition::TopCenter => (
+                        cell_x_offset + grid_width / 2.0 - legend_width / 2.0,
+                        figure_title_height + legend_spacing / 2.0,
+                    ),
+                    FigureLegendPosition::TopRight => (
+                        cell_x_offset + grid_width - padding - legend_width,
+                        figure_title_height + legend_spacing / 2.0,
+                    ),
+                    // ── Bottom edge ───────────────────────────────────────────────
+                    FigureLegendPosition::Bottom | FigureLegendPosition::BottomCenter => (
+                        cell_x_offset + grid_width / 2.0 - legend_width / 2.0,
+                        inner_bottom + legend_spacing / 2.0,
+                    ),
+                    FigureLegendPosition::BottomLeft => {
+                        (cell_x_offset + padding, inner_bottom + legend_spacing / 2.0)
+                    }
+                    FigureLegendPosition::BottomRight => (
+                        cell_x_offset + grid_width - padding - legend_width,
+                        inner_bottom + legend_spacing / 2.0,
+                    ),
                     FigureLegendPosition::Custom(x, y) => (*x, *y),
                 };
                 let body_size = user_layouts.first().map_or(12, |l| l.body_size);
-                render_legend_at(entries, None::<&[LegendGroup]>, None, true, &mut master, lx, ly, legend_width, body_size, &figure_theme);
+                render_legend_at(
+                    entries,
+                    None::<&[LegendGroup]>,
+                    None,
+                    true,
+                    &mut master,
+                    lx,
+                    ly,
+                    legend_width,
+                    body_size,
+                    &figure_theme,
+                );
             }
         }
 
@@ -547,6 +910,10 @@ fn clone_layout(l: &Layout) -> Layout {
     new.legend_groups = l.legend_groups.clone();
     new.legend_box = l.legend_box;
     new.legend_height = l.legend_height;
+    new.stats_entries = l.stats_entries.clone();
+    new.stats_title = l.stats_title.clone();
+    new.stats_position = l.stats_position;
+    new.stats_box = l.stats_box;
     new.log_x = l.log_x;
     new.log_y = l.log_y;
     new.annotations = l.annotations.clone();
@@ -595,6 +962,15 @@ fn clone_layout(l: &Layout) -> Layout {
     new.scale = l.scale;
     new.polar_r_label_angle = l.polar_r_label_angle;
     new.interactive = l.interactive;
+    new.equal_aspect = l.equal_aspect;
+    new.brick_notation_tiers = l.brick_notation_tiers;
+    new.title_wrap = l.title_wrap;
+    new.x_label_wrap = l.x_label_wrap;
+    new.y_label_wrap = l.y_label_wrap;
+    new.y2_label_wrap = l.y2_label_wrap;
+    new.legend_wrap = l.legend_wrap;
+    new.horizon_right_annot_px = l.horizon_right_annot_px;
+    new.gantt_right_annot_px = l.gantt_right_annot_px;
     new
 }
 
@@ -620,7 +996,10 @@ fn validate_structure(structure: &[Vec<usize>], rows: usize, cols: usize) {
     let mut seen = vec![false; total_cells];
 
     for (group_idx, group) in structure.iter().enumerate() {
-        assert!(!group.is_empty(), "Figure structure: group {group_idx} is empty");
+        assert!(
+            !group.is_empty(),
+            "Figure structure: group {group_idx} is empty"
+        );
 
         for &idx in group {
             assert!(
@@ -657,10 +1036,18 @@ fn validate_structure(structure: &[Vec<usize>], rows: usize, cols: usize) {
     }
 }
 
-fn subplot_grid_pos(structure: &[Vec<usize>], subplot_idx: usize, cols: usize) -> Option<(usize, usize)> {
-    if subplot_idx >= structure.len() { return None; }
+fn subplot_grid_pos(
+    structure: &[Vec<usize>],
+    subplot_idx: usize,
+    cols: usize,
+) -> Option<(usize, usize)> {
+    if subplot_idx >= structure.len() {
+        return None;
+    }
     let group = &structure[subplot_idx];
-    if group.is_empty() { return None; }
+    if group.is_empty() {
+        return None;
+    }
     let (min_row, min_col, _, _) = cell_rect(group, cols);
     Some((min_row, min_col))
 }
@@ -675,7 +1062,9 @@ fn apply_shared_axes(
 ) {
     for rule in shared_y_rules {
         let groups = matching_groups_for_shared_y(structure, rule, cols);
-        if groups.len() < 2 { continue; }
+        if groups.len() < 2 {
+            continue;
+        }
 
         let mut y_min = f64::INFINITY;
         let mut y_max = f64::NEG_INFINITY;
@@ -686,7 +1075,8 @@ fn apply_shared_axes(
             }
         }
 
-        let leftmost_col = groups.iter()
+        let leftmost_col = groups
+            .iter()
             .filter_map(|&idx| subplot_grid_pos(structure, idx, cols))
             .map(|(_, col)| col)
             .min()
@@ -707,7 +1097,9 @@ fn apply_shared_axes(
 
     for rule in shared_x_rules {
         let groups = matching_groups_for_shared_x(structure, rule, cols);
-        if groups.len() < 2 { continue; }
+        if groups.len() < 2 {
+            continue;
+        }
 
         let mut x_min = f64::INFINITY;
         let mut x_max = f64::NEG_INFINITY;
@@ -718,7 +1110,8 @@ fn apply_shared_axes(
             }
         }
 
-        let bottommost_row = groups.iter()
+        let bottommost_row = groups
+            .iter()
             .filter_map(|&idx| subplot_grid_pos(structure, idx, cols))
             .map(|(row, _)| row)
             .max()
@@ -738,37 +1131,53 @@ fn apply_shared_axes(
     }
 }
 
-fn matching_groups_for_shared_y(structure: &[Vec<usize>], rule: &SharedAxis, cols: usize) -> Vec<usize> {
+fn matching_groups_for_shared_y(
+    structure: &[Vec<usize>],
+    rule: &SharedAxis,
+    cols: usize,
+) -> Vec<usize> {
     let mut result = Vec::new();
     for (idx, _) in structure.iter().enumerate() {
         if let Some((row, col)) = subplot_grid_pos(structure, idx, cols) {
             let matches = match rule {
                 SharedAxis::AllRows => true,
                 SharedAxis::Row(r) => row == *r,
-                SharedAxis::RowSlice { row: r, col_start, col_end } => {
-                    row == *r && col >= *col_start && col <= *col_end
-                }
+                SharedAxis::RowSlice {
+                    row: r,
+                    col_start,
+                    col_end,
+                } => row == *r && col >= *col_start && col <= *col_end,
                 _ => false,
             };
-            if matches { result.push(idx); }
+            if matches {
+                result.push(idx);
+            }
         }
     }
     result
 }
 
-fn matching_groups_for_shared_x(structure: &[Vec<usize>], rule: &SharedAxis, cols: usize) -> Vec<usize> {
+fn matching_groups_for_shared_x(
+    structure: &[Vec<usize>],
+    rule: &SharedAxis,
+    cols: usize,
+) -> Vec<usize> {
     let mut result = Vec::new();
     for (idx, _) in structure.iter().enumerate() {
         if let Some((row, col)) = subplot_grid_pos(structure, idx, cols) {
             let matches = match rule {
                 SharedAxis::AllColumns => true,
                 SharedAxis::Column(c) => col == *c,
-                SharedAxis::ColumnSlice { col: c, row_start, row_end } => {
-                    col == *c && row >= *row_start && row <= *row_end
-                }
+                SharedAxis::ColumnSlice {
+                    col: c,
+                    row_start,
+                    row_end,
+                } => col == *c && row >= *row_start && row <= *row_end,
                 _ => false,
             };
-            if matches { result.push(idx); }
+            if matches {
+                result.push(idx);
+            }
         }
     }
     result

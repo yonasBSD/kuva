@@ -1,5 +1,3 @@
-
-
 /// compute ticks so things look nice
 /// compute_tick_step(min, max, target_ticks)
 pub fn compute_tick_step(min: f64, max: f64, target_ticks: usize) -> f64 {
@@ -9,20 +7,19 @@ pub fn compute_tick_step(min: f64, max: f64, target_ticks: usize) -> f64 {
 
     // handle between 1 and 10
     let nice_residual = if residual < 1.5 {
-                                1.0
-                            } else if residual < 2.25 {
-                                2.0
-                            } else if residual < 3.5 {
-                                2.5
-                            } else if residual < 7.5 {
-                                5.0
-                            } else {
-                                10.0
-                            };
+        1.0
+    } else if residual < 2.25 {
+        2.0
+    } else if residual < 3.5 {
+        2.5
+    } else if residual < 7.5 {
+        5.0
+    } else {
+        10.0
+    };
     // now multiply the nice value by the mag to get the nice tick
     nice_residual * magnitude
 }
-
 
 /// Generate nice ticks for an axis
 pub fn generate_ticks(min: f64, max: f64, target_ticks: usize) -> Vec<f64> {
@@ -48,7 +45,12 @@ pub fn generate_ticks(min: f64, max: f64, target_ticks: usize) -> Vec<f64> {
 /// Finds the smallest integer multiplier `n` such that `n` divides `total_bins`
 /// evenly and the resulting tick count stays within `target_ticks`.  The tick
 /// step is then `n * bin_width`, guaranteeing alignment with bar edges.
-pub fn generate_ticks_bin_aligned(x_min: f64, x_max: f64, bin_width: f64, target_ticks: usize) -> Vec<f64> {
+pub fn generate_ticks_bin_aligned(
+    x_min: f64,
+    x_max: f64,
+    bin_width: f64,
+    target_ticks: usize,
+) -> Vec<f64> {
     if bin_width <= 0.0 || x_max <= x_min {
         return generate_ticks(x_min, x_max, target_ticks);
     }
@@ -79,9 +81,11 @@ pub fn generate_ticks_bin_aligned(x_min: f64, x_max: f64, bin_width: f64, target
 
 /// Generate ticks at exact multiples of `step` within [min, max].
 pub fn generate_ticks_with_step(min: f64, max: f64, step: f64) -> Vec<f64> {
-    if step <= 0.0 { return generate_ticks(min, max, 5); }
+    if step <= 0.0 {
+        return generate_ticks(min, max, 5);
+    }
     let start = (min / step).ceil() * step;
-    let end   = (max / step).floor() * step;
+    let end = (max / step).floor() * step;
     let mut ticks = Vec::new();
     let mut tick = start;
     while tick <= end + 1e-9 * step.abs().max(1e-10) {
@@ -94,11 +98,13 @@ pub fn generate_ticks_with_step(min: f64, max: f64, step: f64) -> Vec<f64> {
 /// Generate minor tick positions between each pair of consecutive major ticks.
 /// `subdivisions` is the total number of sub-intervals (e.g. 5 → 4 minor marks per gap).
 pub fn generate_minor_ticks(major_ticks: &[f64], subdivisions: u32) -> Vec<f64> {
-    if major_ticks.len() < 2 || subdivisions < 2 { return Vec::new(); }
+    if major_ticks.len() < 2 || subdivisions < 2 {
+        return Vec::new();
+    }
     let mut minor = Vec::new();
     for pair in major_ticks.windows(2) {
-        let lo   = pair[0];
-        let hi   = pair[1];
+        let lo = pair[0];
+        let hi = pair[1];
         let step = (hi - lo) / subdivisions as f64;
         for k in 1..subdivisions {
             let v = lo + k as f64 * step;
@@ -133,7 +139,10 @@ pub fn auto_nice_range(data_min: f64, data_max: f64, target_ticks: usize) -> (f6
 /// Rounds to powers of 10 so boundaries always align with generated ticks.
 pub fn auto_nice_range_log(data_min: f64, data_max: f64) -> (f64, f64) {
     let clamped_max = if data_max <= 0.0 {
-        eprintln!("warning: log scale data_max ({}) <= 0, clamping to 1.0", data_max);
+        eprintln!(
+            "warning: log scale data_max ({}) <= 0, clamping to 1.0",
+            data_max
+        );
         1.0
     } else {
         data_max
@@ -216,23 +225,29 @@ pub fn percentile(sorted: &[f64], p: f64) -> f64 {
     sorted[low] * (1.0 - weight) + sorted[high] * weight
 }
 
-
 /// Silverman's rule of thumb for automatic KDE bandwidth selection.
 /// h = 0.9 * A * n^(-1/5), where A = min(σ, IQR/1.34)
 pub fn silverman_bandwidth(values: &[f64]) -> f64 {
     let n = values.len();
-    if n < 2 { return 1.0; }
+    if n < 2 {
+        return 1.0;
+    }
 
     let mean = values.iter().sum::<f64>() / n as f64;
-    let std_dev = (values.iter().map(|x| (x - mean).powi(2)).sum::<f64>()
-        / (n - 1) as f64).sqrt();
+    let std_dev = (values.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (n - 1) as f64).sqrt();
 
     let mut sorted = values.to_vec();
     sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     let iqr = percentile(&sorted, 75.0) - percentile(&sorted, 25.0);
 
-    let a = if iqr > 0.0 { std_dev.min(iqr / 1.34) } else { std_dev };
-    if a == 0.0 { return 1.0; } // degenerate: all identical values
+    let a = if iqr > 0.0 {
+        std_dev.min(iqr / 1.34)
+    } else {
+        std_dev
+    };
+    if a == 0.0 {
+        return 1.0;
+    } // degenerate: all identical values
 
     0.9 * a * (n as f64).powf(-0.2)
 }
@@ -246,7 +261,9 @@ pub fn silverman_bandwidth(values: &[f64]) -> f64 {
 /// This gives O(window × samples) instead of O(n × samples).
 pub fn simple_kde(values: &[f64], bandwidth: f64, samples: usize) -> Vec<(f64, f64)> {
     use std::cmp::Ordering;
-    if values.is_empty() || samples == 0 { return Vec::new(); }
+    if values.is_empty() || samples == 0 {
+        return Vec::new();
+    }
 
     let mut sorted = values.to_vec();
     sorted.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
@@ -256,18 +273,22 @@ pub fn simple_kde(values: &[f64], bandwidth: f64, samples: usize) -> Vec<(f64, f
     let step = (hi - lo) / (samples - 1).max(1) as f64;
     let cutoff = 4.0 * bandwidth;
 
-    (0..samples).map(|i| {
-        let x = lo + i as f64 * step;
-        let lo_idx = sorted.partition_point(|v| *v < x - cutoff);
-        let hi_idx = sorted.partition_point(|v| *v <= x + cutoff);
-        let y: f64 = sorted[lo_idx..hi_idx].iter().map(|v| {
-            let u = (x - v) / bandwidth;
-            (-0.5 * u * u).exp()
-        }).sum();
-        (x, y)
-    }).collect()
+    (0..samples)
+        .map(|i| {
+            let x = lo + i as f64 * step;
+            let lo_idx = sorted.partition_point(|v| *v < x - cutoff);
+            let hi_idx = sorted.partition_point(|v| *v <= x + cutoff);
+            let y: f64 = sorted[lo_idx..hi_idx]
+                .iter()
+                .map(|v| {
+                    let u = (x - v) / bandwidth;
+                    (-0.5 * u * u).exp()
+                })
+                .sum();
+            (x, y)
+        })
+        .collect()
 }
-
 
 /// Gaussian KDE with boundary reflection for bounded domains.
 ///
@@ -295,7 +316,9 @@ pub fn simple_kde_reflect(
     reflect_hi: bool,
 ) -> Vec<(f64, f64)> {
     use std::cmp::Ordering;
-    if values.is_empty() || samples == 0 || lo >= hi { return Vec::new(); }
+    if values.is_empty() || samples == 0 || lo >= hi {
+        return Vec::new();
+    }
 
     let reflect_threshold = 3.0 * bandwidth;
     let mut aug: Vec<f64> = Vec::with_capacity(values.len() * 3);
@@ -313,32 +336,38 @@ pub fn simple_kde_reflect(
     let step = (hi - lo) / (samples - 1).max(1) as f64;
     let cutoff = 4.0 * bandwidth;
 
-    (0..samples).map(|i| {
-        let x = lo + i as f64 * step;
-        let lo_idx = aug.partition_point(|v| *v < x - cutoff);
-        let hi_idx = aug.partition_point(|v| *v <= x + cutoff);
-        let y: f64 = aug[lo_idx..hi_idx].iter().map(|v| {
-            let u = (x - v) / bandwidth;
-            (-0.5 * u * u).exp()
-        }).sum();
-        (x, y)
-    }).collect()
+    (0..samples)
+        .map(|i| {
+            let x = lo + i as f64 * step;
+            let lo_idx = aug.partition_point(|v| *v < x - cutoff);
+            let hi_idx = aug.partition_point(|v| *v <= x + cutoff);
+            let y: f64 = aug[lo_idx..hi_idx]
+                .iter()
+                .map(|v| {
+                    let u = (x - v) / bandwidth;
+                    (-0.5 * u * u).exp()
+                })
+                .sum();
+            (x, y)
+        })
+        .collect()
 }
 
 /// linear regression of a scatter plot so we can make the equation and get correlation
-pub fn linear_regression<I>(points: I) -> Option<(f64, f64, f64)> 
-    where
-        I: IntoIterator,
-        I::Item: Into<(f64, f64)>,
-    {
-
+pub fn linear_regression<I>(points: I) -> Option<(f64, f64, f64)>
+where
+    I: IntoIterator,
+    I::Item: Into<(f64, f64)>,
+{
     let mut vals = Vec::new();
 
     for (x, y) in points.into_iter().map(Into::into) {
         vals.push((x, y));
     }
 
-    if vals.len() < 2 { return None; }
+    if vals.len() < 2 {
+        return None;
+    }
 
     let n = vals.len() as f64;
     let (sum_x, sum_y, sum_xy, sum_x2) = vals.iter().fold((0.0, 0.0, 0.0, 0.0), |acc, (x, y)| {
@@ -346,7 +375,9 @@ pub fn linear_regression<I>(points: I) -> Option<(f64, f64, f64)>
     });
 
     let denom = n * sum_x2 - sum_x * sum_x;
-    if denom.abs() < 1e-8 { return None; }
+    if denom.abs() < 1e-8 {
+        return None;
+    }
 
     let slope = (n * sum_xy - sum_x * sum_y) / denom;
     let intercept = (sum_y - slope * sum_x) / n;
@@ -357,7 +388,6 @@ pub fn linear_regression<I>(points: I) -> Option<(f64, f64, f64)>
     // y = mx+b and r
     Some((slope, intercept, r))
 }
-
 
 /// Greedy beeswarm layout: returns x pixel offsets from group center for each
 /// point such that no two points overlap (Euclidean distance ≥ 2*point_r).
@@ -370,7 +400,11 @@ pub fn beeswarm_positions(y_screen: &[f64], point_r: f64) -> Vec<f64> {
 
     let mut result = vec![0.0f64; n];
     let mut order: Vec<usize> = (0..n).collect();
-    order.sort_by(|&a, &b| y_screen[a].partial_cmp(&y_screen[b]).unwrap_or(std::cmp::Ordering::Equal));
+    order.sort_by(|&a, &b| {
+        y_screen[a]
+            .partial_cmp(&y_screen[b])
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     let mut placed: Vec<(f64, f64)> = Vec::with_capacity(n);
     let min_dist_sq = (2.0 * point_r) * (2.0 * point_r);
@@ -386,7 +420,11 @@ pub fn beeswarm_positions(y_screen: &[f64], point_r: f64) -> Vec<f64> {
                 0.0
             } else {
                 let magnitude = k.div_ceil(2) as f64 * step;
-                if k % 2 == 1 { magnitude } else { -magnitude }
+                if k % 2 == 1 {
+                    magnitude
+                } else {
+                    -magnitude
+                }
             };
             let ok = placed.iter().all(|&(px, py)| {
                 let dx = x_try - px;
@@ -450,16 +488,20 @@ pub fn upgma(labels: &[&str], dist: &[Vec<f64>]) -> (Vec<crate::plot::phylo::Phy
     assert!(n >= 1, "UPGMA requires at least one label");
 
     // Create leaf nodes
-    let mut nodes: Vec<PhyloNode> = (0..n).map(|i| PhyloNode {
-        id: i,
-        label: Some(labels[i].to_string()),
-        parent: None,
-        children: Vec::new(),
-        branch_length: 0.0,
-        support: None,
-    }).collect();
+    let mut nodes: Vec<PhyloNode> = (0..n)
+        .map(|i| PhyloNode {
+            id: i,
+            label: Some(labels[i].to_string()),
+            parent: None,
+            children: Vec::new(),
+            branch_length: 0.0,
+            support: None,
+        })
+        .collect();
 
-    if n == 1 { return (nodes, 0); }
+    if n == 1 {
+        return (nodes, 0);
+    }
 
     // Working distance matrix (extended to hold internal nodes)
     let total = 2 * n - 1;
@@ -471,20 +513,20 @@ pub fn upgma(labels: &[&str], dist: &[Vec<f64>]) -> (Vec<crate::plot::phylo::Phy
     }
 
     let mut active: Vec<usize> = (0..n).collect();
-    let mut size:   Vec<usize> = vec![1; total];
-    let mut height: Vec<f64>   = vec![0.0; total];
+    let mut size: Vec<usize> = vec![1; total];
+    let mut height: Vec<f64> = vec![0.0; total];
     let mut next_id = n;
 
     while active.len() > 1 {
         // Find the pair with minimum distance
         let mut min_d = f64::INFINITY;
-        let mut best  = (0usize, 1usize); // indices into `active`
+        let mut best = (0usize, 1usize); // indices into `active`
         for ai in 0..active.len() {
             for aj in (ai + 1)..active.len() {
                 let d = dm[active[ai]][active[aj]];
                 if d < min_d {
                     min_d = d;
-                    best  = (ai, aj);
+                    best = (ai, aj);
                 }
             }
         }
@@ -492,14 +534,14 @@ pub fn upgma(labels: &[&str], dist: &[Vec<f64>]) -> (Vec<crate::plot::phylo::Phy
         let ci = active[ai];
         let cj = active[aj];
 
-        let h_new  = min_d / 2.0;
-        let bl_i   = (h_new - height[ci]).max(0.0);
-        let bl_j   = (h_new - height[cj]).max(0.0);
+        let h_new = min_d / 2.0;
+        let bl_i = (h_new - height[ci]).max(0.0);
+        let bl_j = (h_new - height[cj]).max(0.0);
 
         nodes[ci].branch_length = bl_i;
         nodes[cj].branch_length = bl_j;
 
-        let new_id   = next_id;
+        let new_id = next_id;
         let new_size = size[ci] + size[cj];
         next_id += 1;
 
@@ -514,15 +556,16 @@ pub fn upgma(labels: &[&str], dist: &[Vec<f64>]) -> (Vec<crate::plot::phylo::Phy
         nodes[ci].parent = Some(new_id);
         nodes[cj].parent = Some(new_id);
 
-        size[new_id]   = new_size;
+        size[new_id] = new_size;
         height[new_id] = h_new;
 
         // Update distances for the new cluster
         for &ck in &active {
-            if ck == ci || ck == cj { continue; }
-            let d_new = (dm[ck][ci] * size[ci] as f64
-                       + dm[ck][cj] * size[cj] as f64)
-                      / new_size as f64;
+            if ck == ci || ck == cj {
+                continue;
+            }
+            let d_new =
+                (dm[ck][ci] * size[ci] as f64 + dm[ck][cj] * size[cj] as f64) / new_size as f64;
             dm[ck][new_id] = d_new;
             dm[new_id][ck] = d_new;
         }
@@ -540,7 +583,9 @@ pub fn upgma(labels: &[&str], dist: &[Vec<f64>]) -> (Vec<crate::plot::phylo::Phy
 
     let root = active[0];
     // Ensure all node ids are consistent
-    for (i, node) in nodes.iter_mut().enumerate() { node.id = i; }
+    for (i, node) in nodes.iter_mut().enumerate() {
+        node.id = i;
+    }
     (nodes, root)
 }
 
@@ -549,44 +594,54 @@ pub fn upgma(labels: &[&str], dist: &[Vec<f64>]) -> (Vec<crate::plot::phylo::Phy
 /// Each row is `[left_idx, right_idx, distance, n_leaves]`.
 /// Original leaf indices are `0..n`; internal nodes get indices `n..`.
 pub fn linkage_to_nodes(
-    labels:  &[&str],
+    labels: &[&str],
     linkage: &[[f64; 4]],
 ) -> (Vec<crate::plot::phylo::PhyloNode>, usize) {
     use crate::plot::phylo::PhyloNode;
 
     let n = labels.len();
 
-    let mut nodes: Vec<PhyloNode> = (0..n).map(|i| PhyloNode {
-        id: i,
-        label: Some(labels[i].to_string()),
-        parent: None,
-        children: Vec::new(),
-        branch_length: 0.0,
-        support: None,
-    }).collect();
+    let mut nodes: Vec<PhyloNode> = (0..n)
+        .map(|i| PhyloNode {
+            id: i,
+            label: Some(labels[i].to_string()),
+            parent: None,
+            children: Vec::new(),
+            branch_length: 0.0,
+            support: None,
+        })
+        .collect();
 
     for (row_idx, row) in linkage.iter().enumerate() {
-        let left  = row[0] as usize;
+        let left = row[0] as usize;
         let right = row[1] as usize;
-        let dist  = row[2];
+        let dist = row[2];
         let new_id = n + row_idx;
 
         // Height of a cluster = half its merge distance
-        let height_left  = if left  < n { 0.0 } else { linkage[left  - n][2] / 2.0 };
-        let height_right = if right < n { 0.0 } else { linkage[right - n][2] / 2.0 };
-        let h_new        = dist / 2.0;
+        let height_left = if left < n {
+            0.0
+        } else {
+            linkage[left - n][2] / 2.0
+        };
+        let height_right = if right < n {
+            0.0
+        } else {
+            linkage[right - n][2] / 2.0
+        };
+        let h_new = dist / 2.0;
 
-        let bl_left  = (h_new - height_left ).max(0.0);
+        let bl_left = (h_new - height_left).max(0.0);
         let bl_right = (h_new - height_right).max(0.0);
 
         // Apply branch lengths to the children that already exist in nodes
         if left < nodes.len() {
             nodes[left].branch_length = bl_left;
-            nodes[left].parent        = Some(new_id);
+            nodes[left].parent = Some(new_id);
         }
         if right < nodes.len() {
             nodes[right].branch_length = bl_right;
-            nodes[right].parent        = Some(new_id);
+            nodes[right].parent = Some(new_id);
         }
 
         nodes.push(PhyloNode {
@@ -601,4 +656,264 @@ pub fn linkage_to_nodes(
 
     let root = nodes.len() - 1;
     (nodes, root)
+}
+
+// ── Text utilities ───────────────────────────────────────────────────────────
+
+/// Estimate the rendered pixel width of `text` at the given `font_size`.
+///
+/// Uses a fixed character-width-to-font-size ratio of 0.6, which is the
+/// standard heuristic used throughout the layout and rendering code.
+#[allow(dead_code)]
+pub(crate) fn estimate_text_width(text: &str, font_size: f64) -> f64 {
+    text.chars().count() as f64 * font_size * 0.6
+}
+
+/// Wrap `text` if `max_chars` is `Some`, otherwise return the text as a single-element vec.
+///
+/// Convenience wrapper around [`wrap_text`] for call sites that hold an
+/// `Option<usize>` wrap setting.
+pub fn wrap_or_single(text: &str, max_chars: Option<usize>) -> Vec<String> {
+    match max_chars {
+        Some(mc) => wrap_text(text, mc),
+        None => vec![text.to_string()],
+    }
+}
+
+/// Word-wrap `text` so that no line exceeds `max_chars` characters.
+///
+/// - Splits on existing `\n` first (preserving intentional line breaks).
+/// - Within each segment, breaks at whitespace boundaries.
+/// - A single word longer than `max_chars` is hard-broken at the limit.
+/// - Returns `vec![text.to_string()]` when wrapping is unnecessary or disabled
+///   (`max_chars == 0`).
+pub fn wrap_text(text: &str, max_chars: usize) -> Vec<String> {
+    if max_chars == 0 || (text.chars().count() <= max_chars && !text.contains('\n')) {
+        return vec![text.to_string()];
+    }
+
+    let mut result = Vec::new();
+    for paragraph in text.split('\n') {
+        if paragraph.is_empty() {
+            result.push(String::new());
+            continue;
+        }
+        let words: Vec<&str> = paragraph.split_whitespace().collect();
+        if words.is_empty() {
+            result.push(String::new());
+            continue;
+        }
+        let mut line = String::new();
+        let mut line_chars: usize = 0;
+        for word in words {
+            let word_chars = word.chars().count();
+            if word_chars > max_chars {
+                // Flush current line if non-empty.
+                if !line.is_empty() {
+                    result.push(std::mem::take(&mut line));
+                }
+                // Hard-break the long word.
+                let mut chunk = String::new();
+                let mut chunk_len = 0;
+                for c in word.chars() {
+                    chunk.push(c);
+                    chunk_len += 1;
+                    if chunk_len == max_chars {
+                        result.push(chunk);
+                        chunk = String::new();
+                        chunk_len = 0;
+                    }
+                }
+                // Leftover becomes the start of the next line.
+                line = chunk;
+                line_chars = chunk_len;
+            } else if line.is_empty() {
+                line = word.to_string();
+                line_chars = word_chars;
+            } else if line_chars + 1 + word_chars <= max_chars {
+                line.push(' ');
+                line.push_str(word);
+                line_chars += 1 + word_chars;
+            } else {
+                result.push(line);
+                line = word.to_string();
+                line_chars = word_chars;
+            }
+        }
+        if !line.is_empty() {
+            result.push(line);
+        }
+    }
+    if result.is_empty() {
+        result.push(String::new());
+    }
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── estimate_text_width ──────────────────────────────────────────────
+
+    #[test]
+    fn text_width_ascii() {
+        let w = estimate_text_width("Hello", 10.0);
+        assert!((w - 30.0).abs() < 1e-9); // 5 chars * 10 * 0.6
+    }
+
+    #[test]
+    fn text_width_empty() {
+        assert!((estimate_text_width("", 14.0)).abs() < 1e-9);
+    }
+
+    #[test]
+    fn text_width_unicode() {
+        // 4 characters (c, a, f, é), each counted once regardless of byte length
+        let w = estimate_text_width("café", 10.0);
+        assert!((w - 24.0).abs() < 1e-9);
+    }
+
+    // ── wrap_text ────────────────────────────────────────────────────────
+
+    #[test]
+    fn wrap_no_op_when_short() {
+        assert_eq!(wrap_text("short", 20), vec!["short"]);
+    }
+
+    #[test]
+    fn wrap_disabled_when_zero() {
+        assert_eq!(wrap_text("hello world", 0), vec!["hello world"]);
+    }
+
+    #[test]
+    fn wrap_empty_string() {
+        assert_eq!(wrap_text("", 10), vec![""]);
+    }
+
+    #[test]
+    fn wrap_basic_word_boundary() {
+        assert_eq!(wrap_text("hello world foo", 11), vec!["hello world", "foo"]);
+    }
+
+    #[test]
+    fn wrap_multiple_lines() {
+        assert_eq!(
+            wrap_text("one two three four five", 10),
+            vec!["one two", "three four", "five"]
+        );
+    }
+
+    #[test]
+    fn wrap_exact_fit() {
+        // "hello" is exactly 5 chars with max_chars=5 → no wrap
+        assert_eq!(wrap_text("hello", 5), vec!["hello"]);
+    }
+
+    #[test]
+    fn wrap_one_char_over() {
+        assert_eq!(wrap_text("hello world", 10), vec!["hello", "world"]);
+    }
+
+    #[test]
+    fn wrap_long_word_hard_break() {
+        assert_eq!(wrap_text("abcdefghij", 4), vec!["abcd", "efgh", "ij"]);
+    }
+
+    #[test]
+    fn wrap_long_word_mixed() {
+        assert_eq!(
+            wrap_text("hi abcdefghij bye", 5),
+            vec!["hi", "abcde", "fghij", "bye"]
+        );
+    }
+
+    #[test]
+    fn wrap_preserves_newlines() {
+        assert_eq!(
+            wrap_text("line one\nline two", 20),
+            vec!["line one", "line two"]
+        );
+    }
+
+    #[test]
+    fn wrap_newline_plus_wrapping() {
+        assert_eq!(
+            wrap_text("hello world\nfoo bar baz", 8),
+            vec!["hello", "world", "foo bar", "baz"]
+        );
+    }
+
+    #[test]
+    fn wrap_max_chars_one() {
+        assert_eq!(wrap_text("ab cd", 1), vec!["a", "b", "c", "d"]);
+    }
+
+    #[test]
+    fn wrap_consecutive_newlines() {
+        assert_eq!(wrap_text("a\n\nb", 10), vec!["a", "", "b"]);
+    }
+}
+
+/// Inverse normal CDF (probit function) — Acklam's rational approximation.
+/// Accurate to ~9 significant digits for p ∈ (0, 1).
+pub fn probit(p: f64) -> f64 {
+    if p <= 0.0 {
+        return f64::NEG_INFINITY;
+    }
+    if p >= 1.0 {
+        return f64::INFINITY;
+    }
+
+    #[allow(clippy::excessive_precision)]
+    const A: [f64; 6] = [
+        -3.969683028665376e+01,
+        2.209460984245205e+02,
+        -2.759285104469687e+02,
+        1.38357751867269e+02,
+        -3.066479806614716e+01,
+        2.506628277459239e+00,
+    ];
+    #[allow(clippy::excessive_precision)]
+    const B: [f64; 5] = [
+        -5.447609879822406e+01,
+        1.615858368580409e+02,
+        -1.556989798598866e+02,
+        6.680131188771972e+01,
+        -1.328068155288572e+01,
+    ];
+    #[allow(clippy::excessive_precision)]
+    const C: [f64; 6] = [
+        -7.784894002430293e-03,
+        -3.223964580411365e-01,
+        -2.400758277161838e+00,
+        -2.549732539343734e+00,
+        4.374664141464968e+00,
+        2.938163982698783e+00,
+    ];
+    #[allow(clippy::excessive_precision)]
+    const D: [f64; 4] = [
+        7.784695709041462e-03,
+        3.224671290700398e-01,
+        2.445134137142996e+00,
+        3.754408661907416e+00,
+    ];
+
+    const P_LOW: f64 = 0.02425;
+    const P_HIGH: f64 = 1.0 - P_LOW;
+
+    if p < P_LOW {
+        let q = (-2.0 * p.ln()).sqrt();
+        (((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
+            / ((((D[0] * q + D[1]) * q + D[2]) * q + D[3]) * q + 1.0)
+    } else if p <= P_HIGH {
+        let q = p - 0.5;
+        let r = q * q;
+        q * (((((A[0] * r + A[1]) * r + A[2]) * r + A[3]) * r + A[4]) * r + A[5])
+            / (((((B[0] * r + B[1]) * r + B[2]) * r + B[3]) * r + B[4]) * r + 1.0)
+    } else {
+        let q = (-2.0 * (1.0 - p).ln()).sqrt();
+        -(((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
+            / ((((D[0] * q + D[1]) * q + D[2]) * q + D[3]) * q + 1.0)
+    }
 }

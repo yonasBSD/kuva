@@ -1,6 +1,6 @@
-use kuva::plot::ChordPlot;
-use kuva::render::{plots::Plot, layout::Layout, render::render_multiple};
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::ChordPlot;
+use kuva::render::{layout::Layout, plots::Plot, render::render_multiple};
 
 #[test]
 fn chord_basic() {
@@ -14,8 +14,7 @@ fn chord_basic() {
         .with_labels(["A", "B", "C"])
         .with_opacity(0.7);
     let plots = vec![Plot::Chord(chord)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Chord Diagram");
+    let layout = Layout::auto_from_plots(&plots).with_title("Chord Diagram");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/chord_basic.svg", svg).unwrap();
 }
@@ -36,8 +35,7 @@ fn chord_asymmetric() {
         .with_opacity(0.65)
         .with_legend("Flows");
     let plots = vec![Plot::Chord(chord)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Asymmetric Chord Diagram");
+    let layout = Layout::auto_from_plots(&plots).with_title("Asymmetric Chord Diagram");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write("test_outputs/chord_asymmetric.svg", svg).unwrap();
 }

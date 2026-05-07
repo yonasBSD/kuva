@@ -1,5 +1,17 @@
 use std::collections::HashMap;
 
+/// Controls horizontal alignment of brick rows.
+///
+/// Used with [`BrickPlot::with_anchor`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum BrickAnchor {
+    /// Rows are left-aligned (default): each row starts at its offset.
+    #[default]
+    Left,
+    /// Rows are right-aligned: trailing edges of all rows line up on the right.
+    Right,
+}
+
 /// Allows `with_x_offsets` to accept plain `f64` values (auto-wrapped as `Some`)
 /// as well as explicit `Option<f64>` values (for `None` fallback entries).
 pub trait IntoRowOffset {
@@ -7,17 +19,22 @@ pub trait IntoRowOffset {
 }
 
 impl IntoRowOffset for f64 {
-    fn into_row_offset(self) -> Option<f64> { Some(self) }
+    fn into_row_offset(self) -> Option<f64> {
+        Some(self)
+    }
 }
 
 impl IntoRowOffset for Option<f64> {
-    fn into_row_offset(self) -> Option<f64> { self }
+    fn into_row_offset(self) -> Option<f64> {
+        self
+    }
 }
-
 
 fn canonical_rotation(s: &str) -> String {
     let n = s.len();
-    if n == 0 { return String::new(); }
+    if n == 0 {
+        return String::new();
+    }
     let doubled = format!("{}{}", s, s);
     (0..n)
         .map(|i| &doubled[i..i + n])
@@ -57,9 +74,10 @@ pub struct BrickTemplate {
     pub template: HashMap<char, String>,
 }
 
-
 impl Default for BrickTemplate {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BrickTemplate {
@@ -165,10 +183,37 @@ pub struct BrickPlot {
     pub motif_lengths: Option<HashMap<char, usize>>,
     /// When `true`, draw the character label inside each brick.
     pub show_values: bool,
+    /// User-supplied color palette for strigar mode. When set, overrides the
+    /// built-in 20-color default. Colors are assigned in global-letter order
+    /// (most-frequent motif first) and cycle if there are more motifs than colors.
+    pub strigar_palette: Option<Vec<String>>,
+    /// Horizontal alignment of rows. Default: `BrickAnchor::Left`.
+    pub anchor: BrickAnchor,
+    /// Per-row left flanking DNA sequences (set by [`with_flanked_strigars`](Self::with_flanked_strigars)).
+    pub left_flanks: Option<Vec<String>>,
+    /// Per-row right flanking DNA sequences (set by [`with_flanked_strigars`](Self::with_flanked_strigars)).
+    pub right_flanks: Option<Vec<String>>,
+    /// Append `*` to the legend label for the primary (most-frequent) motif (global letter A).
+    pub mark_primary: bool,
+    /// Row index whose motif rotations seed the global display labels.
+    /// Set this **before** calling [`with_strigars`](Self::with_strigars) or
+    /// [`with_flanked_strigars`](Self::with_flanked_strigars).
+    pub consensus_row: Option<usize>,
+    /// Pre-computed human-readable notation strings, one per row.
+    /// `None` entries render nothing above that row.
+    /// E.g. `Some("(CAG)12(GAA)1".to_string())`.
+    pub notations: Option<Vec<Option<String>>>,
+    /// Desired pixel height per brick row. When set, `auto_from_plots` computes
+    /// the canvas height as `row_height_px * num_rows + margin_overhead`, and
+    /// `Figure` computes per-grid-row heights so that panels with different read
+    /// counts still have identically-sized bricks.
+    pub row_height_px: Option<f64>,
 }
 
 impl Default for BrickPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl BrickPlot {
@@ -186,6 +231,14 @@ impl BrickPlot {
             x_offsets: None,
             x_origin: 0.0,
             show_values: false,
+            strigar_palette: None,
+            anchor: BrickAnchor::Left,
+            left_flanks: None,
+            right_flanks: None,
+            mark_primary: false,
+            consensus_row: None,
+            notations: None,
+            row_height_px: None,
         }
     }
 
@@ -253,15 +306,45 @@ impl BrickPlot {
     ///     .with_names(vec!["read_1", "read_2"])
     ///     .with_strigars(strigars);
     /// ```
+    /// Override the auto-generated motif colors used in strigar mode.
+    ///
+    /// Colors are assigned to global letters in order of motif frequency
+    /// (most frequent motif gets the first color). If fewer colors are
+    /// supplied than there are motifs, the list cycles. Gap bricks (`@`)
+    /// always render as light grey regardless of this setting.
+    ///
+    /// Call this **before** [`with_strigars`](Self::with_strigars) so the
+    /// palette is available during color assignment.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BrickPlot;
+    /// let plot = BrickPlot::new()
+    ///     .with_strigar_colors(["#e41a1c", "#377eb8", "#4daf4a", "#984ea3"])
+    ///     .with_strigars(vec![
+    ///         ("CAT:A,C:B".to_string(), "12A1B3A".to_string()),
+    ///     ]);
+    /// ```
+    pub fn with_strigar_colors<I, S>(mut self, colors: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.strigar_palette = Some(colors.into_iter().map(|s| s.into()).collect());
+        self
+    }
+
     pub fn with_strigars<T, U, I>(mut self, strigars: I) -> Self
     where
         I: IntoIterator<Item = (T, U)>,
         T: Into<String>,
         U: Into<String>,
     {
-        self.strigars = Some(strigars.into_iter()
-                                .map(|(motif, strigar)| (motif.into(), strigar.into()))
-                                .collect());
+        self.strigars = Some(
+            strigars
+                .into_iter()
+                .map(|(motif, strigar)| (motif.into(), strigar.into()))
+                .collect(),
+        );
 
         // Returns Some(N) if `seg` is a pure gap token of the form "N@" (only digits + @),
         // which means it is an inter-candidate gap of N nucleotides.
@@ -301,29 +384,99 @@ impl BrickPlot {
         let mut rotation_freq: HashMap<String, HashMap<String, usize>> = HashMap::new();
 
         for (motif_str, strigar_str) in strigars_ref {
-            let motif_segs: Vec<&str> = motif_str.split('|').map(str::trim)
-                .filter(|s| !s.is_empty()).collect();
-            let strigar_segs: Vec<&str> = strigar_str.split('|').map(str::trim)
-                .filter(|s| !s.is_empty()).collect();
+            let motif_segs: Vec<&str> = motif_str
+                .split('|')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .collect();
+            let strigar_segs: Vec<&str> = strigar_str
+                .split('|')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .collect();
 
             let mut motif_idx = 0usize;
             for strigar_seg in &strigar_segs {
                 if parse_gap(strigar_seg).is_some() {
                     // Gap segment: advance motif_idx only if it's a small-gap with motif entry
                     let is_small_gap = motif_idx < motif_segs.len()
-                        && motif_segs[motif_idx].trim_start_matches(|c: char| c.is_whitespace())
+                        && motif_segs[motif_idx]
+                            .trim_start_matches(|c: char| c.is_whitespace())
                             .starts_with("@:");
-                    if is_small_gap { motif_idx += 1; }
-                } else {
-                    // Candidate segment: collect kmers from its motif block
-                    if motif_idx < motif_segs.len() {
-                        for (_, kmer) in parse_motif_seg(motif_segs[motif_idx]) {
-                            let canon = canonical_rotation(&kmer);
-                            *canonical_freq.entry(canon.clone()).or_insert(0) += 1;
-                            *rotation_freq.entry(canon).or_default()
-                                .entry(kmer).or_insert(0) += 1;
-                        }
+                    if is_small_gap {
                         motif_idx += 1;
+                    }
+                } else {
+                    // Candidate segment: parse the STRIGAR tokens ("2A1B2A...") to get
+                    // actual brick counts per letter, then map to canonical kmers.
+                    // This counts bricks, not read presence, so a kmer appearing 14
+                    // times across reads scores 14 rather than the same as a kmer that
+                    // appears once in every read's motif string.
+                    if motif_idx < motif_segs.len() {
+                        let local_map = parse_motif_seg(motif_segs[motif_idx]);
+                        motif_idx += 1;
+
+                        let mut chars = strigar_seg.chars().peekable();
+                        while chars.peek().is_some() {
+                            let mut num_str = String::new();
+                            while let Some(&c) = chars.peek() {
+                                if c.is_ascii_digit() {
+                                    num_str.push(chars.next().expect("peeked"));
+                                } else {
+                                    break;
+                                }
+                            }
+                            if let Some(letter_char) = chars.next() {
+                                let count: usize = num_str.parse().unwrap_or(1);
+                                if let Some(kmer) = local_map.get(&letter_char) {
+                                    let canon = canonical_rotation(kmer);
+                                    *canonical_freq.entry(canon.clone()).or_insert(0) += count;
+                                    *rotation_freq
+                                        .entry(canon)
+                                        .or_default()
+                                        .entry(kmer.clone())
+                                        .or_insert(0) += count;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Phase B.5: If consensus_row is set, extract that row's motif rotations so
+        // Phase C can lock the display label to what the consensus sequence uses.
+        let mut consensus_rotations: HashMap<String, String> = HashMap::new();
+        if let Some(cons_row) = self.consensus_row {
+            if let Some((motif_str, strigar_str)) = strigars_ref.get(cons_row) {
+                let motif_segs: Vec<&str> = motif_str
+                    .split('|')
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+                    .collect();
+                let strigar_segs: Vec<&str> = strigar_str
+                    .split('|')
+                    .map(str::trim)
+                    .filter(|s| !s.is_empty())
+                    .collect();
+                let mut midx = 0usize;
+                for strigar_seg in &strigar_segs {
+                    if parse_gap(strigar_seg).is_some() {
+                        let is_small_gap =
+                            midx < motif_segs.len() && motif_segs[midx].starts_with("@:");
+                        if is_small_gap {
+                            midx += 1;
+                        }
+                    } else if midx < motif_segs.len() {
+                        let local_map = parse_motif_seg(motif_segs[midx]);
+                        midx += 1;
+                        for kmer in local_map.values() {
+                            let canon = canonical_rotation(kmer);
+                            // First occurrence per canonical wins; entry() guarantees determinism.
+                            consensus_rotations
+                                .entry(canon)
+                                .or_insert_with(|| kmer.clone());
+                        }
                     }
                 }
             }
@@ -341,13 +494,21 @@ impl BrickPlot {
             let global_letter = (b'A' + idx as u8) as char;
             canonical_to_global.insert(canon.clone(), global_letter);
 
-            // Pick the most-frequent original rotation as the display label.
-            // Tiebreak ascending so the result is deterministic regardless of HashMap order.
-            let rotations = rotation_freq.get(canon).expect("canon derived from rotation_freq keys");
-            let display = rotations.iter()
-                .max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0)))
-                .expect("rotation_freq entry is non-empty")
-                .0.clone();
+            // Pick the display rotation: consensus row's rotation takes priority;
+            // fall back to most-frequent rotation (tiebreak: prefer lexicographically larger).
+            let rotations = rotation_freq
+                .get(canon)
+                .expect("canon derived from rotation_freq keys");
+            let display = if let Some(cons_rot) = consensus_rotations.get(canon) {
+                cons_rot.clone()
+            } else {
+                rotations
+                    .iter()
+                    .max_by(|a, b| a.1.cmp(b.1).then_with(|| b.0.cmp(a.0)))
+                    .expect("rotation_freq entry is non-empty")
+                    .0
+                    .clone()
+            };
             global_to_display.insert(global_letter, display.clone());
             global_to_length.insert(global_letter, display.len());
         }
@@ -367,10 +528,16 @@ impl BrickPlot {
         let mut has_gaps = false;
 
         for (motif_str, strigar_str) in strigars_ref {
-            let motif_segs: Vec<&str> = motif_str.split('|').map(str::trim)
-                .filter(|s| !s.is_empty()).collect();
-            let strigar_segs: Vec<&str> = strigar_str.split('|').map(str::trim)
-                .filter(|s| !s.is_empty()).collect();
+            let motif_segs: Vec<&str> = motif_str
+                .split('|')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .collect();
+            let strigar_segs: Vec<&str> = strigar_str
+                .split('|')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .collect();
 
             let mut expanded = String::new();
             let mut motif_idx = 0usize;
@@ -379,17 +546,22 @@ impl BrickPlot {
                 if let Some(gap_n) = parse_gap(strigar_seg) {
                     // Small gap: motif block contains "@:seq" for this segment
                     let is_small_gap = motif_idx < motif_segs.len()
-                        && motif_segs[motif_idx].trim_start_matches(|c: char| c.is_whitespace())
+                        && motif_segs[motif_idx]
+                            .trim_start_matches(|c: char| c.is_whitespace())
                             .starts_with("@:");
                     let gap_nt = if is_small_gap {
-                        let gap_seq = motif_segs[motif_idx].split_once(':')
-                            .map(|x| x.1.trim()).unwrap_or("");
+                        let gap_seq = motif_segs[motif_idx]
+                            .split_once(':')
+                            .map(|x| x.1.trim())
+                            .unwrap_or("");
                         motif_idx += 1;
-                        gap_seq.len() * gap_n      // typically gap_n == 1
+                        gap_seq.len() * gap_n // typically gap_n == 1
                     } else {
-                        gap_n                      // large gap: N is already in nt
+                        gap_n // large gap: N is already in nt
                     };
-                    for _ in 0..gap_nt { expanded.push('@'); }
+                    for _ in 0..gap_nt {
+                        expanded.push('@');
+                    }
                     has_gaps = true;
                 } else {
                     // Candidate segment
@@ -411,14 +583,18 @@ impl BrickPlot {
                         while chars.peek().is_some() {
                             let mut num_str = String::new();
                             while let Some(&c) = chars.peek() {
-                                if c.is_ascii_digit() { num_str.push(chars.next().unwrap()); }
-                                else { break; }
+                                if c.is_ascii_digit() {
+                                    num_str.push(chars.next().unwrap());
+                                } else {
+                                    break;
+                                }
                             }
                             if let Some(letter_char) = chars.next() {
-                                let count: usize = num_str.parse()
+                                let count: usize = num_str
+                                    .parse()
                                     .expect("STRIGAR repeat count is a valid integer");
-                                let global = *local_to_global.get(&letter_char)
-                                    .unwrap_or(&letter_char);
+                                let global =
+                                    *local_to_global.get(&letter_char).unwrap_or(&letter_char);
                                 expanded.push_str(&global.to_string().repeat(count));
                             }
                         }
@@ -430,26 +606,50 @@ impl BrickPlot {
         }
 
         if has_gaps {
-            global_to_display.entry('@').or_insert_with(|| "@".to_string());
+            global_to_display
+                .entry('@')
+                .or_insert_with(|| "@".to_string());
         }
 
         // Phase E: Auto-generate template colours
-        let motif_colors: &[&str] = &[
-            "rgb(31,119,180)",   // blue
-            "rgb(255,127,14)",   // orange
-            "rgb(44,160,44)",    // green
-            "rgb(214,39,40)",    // red
-            "rgb(148,103,189)",  // purple
-            "rgb(140,86,75)",    // brown
-            "rgb(227,119,194)",  // pink
-            "rgb(127,127,127)",  // gray
-            "rgb(188,189,34)",   // olive
-            "rgb(23,190,207)",   // cyan
+        // Default 20-color palette (tab10 + tab20 lighter variants).
+        // Override with `with_strigar_colors` before calling `with_strigars`.
+        const DEFAULT_COLORS: &[&str] = &[
+            "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
+            "#bcbd22", "#17becf", "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94",
+            "#f7b6d2", "#c7c7c7", "#dbdb8d", "#9edae5",
         ];
+        let palette: Vec<&str> = match &self.strigar_palette {
+            Some(p) => p.iter().map(|s| s.as_str()).collect(),
+            None => DEFAULT_COLORS.to_vec(),
+        };
+        // Single-base motifs use the same DNA colors as the flanking-base renderer
+        // so that A/T/C/G bricks are visually consistent with flanking sequence bricks.
+        // Multi-base motifs consume palette slots in order, skipping single-base motifs.
+        let dna_brick_color = |canon: &str| -> Option<&'static str> {
+            if canon.len() != 1 {
+                return None;
+            }
+            match canon {
+                "A" | "a" => Some("rgb(0,150,0)"),
+                "C" | "c" => Some("rgb(0,0,255)"),
+                "G" | "g" => Some("rgb(209,113,5)"),
+                "T" | "t" => Some("rgb(255,0,0)"),
+                _ => None,
+            }
+        };
         let mut auto_template: HashMap<char, String> = HashMap::new();
-        for (idx, (canon, _)) in sorted_canonicals.iter().enumerate() {
+        let mut palette_idx = 0usize;
+        for (canon, _) in sorted_canonicals.iter() {
             let global_letter = canonical_to_global[canon];
-            auto_template.insert(global_letter, motif_colors[idx % motif_colors.len()].to_string());
+            let color = if let Some(dna) = dna_brick_color(canon) {
+                dna.to_string()
+            } else {
+                let c = palette[palette_idx % palette.len()].to_string();
+                palette_idx += 1;
+                c
+            };
+            auto_template.insert(global_letter, color);
         }
         // Gaps render as light grey
         if has_gaps {
@@ -462,7 +662,6 @@ impl BrickPlot {
         self.motif_lengths = Some(global_to_length);
 
         self
-
     }
 
     /// Set the character-to-color template.
@@ -557,9 +756,7 @@ impl BrickPlot {
         I: IntoIterator<Item = T>,
         T: Into<f64>,
     {
-        let offsets: Vec<Option<f64>> = positions.into_iter()
-            .map(|p| Some(-p.into()))
-            .collect();
+        let offsets: Vec<Option<f64>> = positions.into_iter().map(|p| Some(-p.into())).collect();
         self.with_x_offsets(offsets)
     }
 
@@ -585,6 +782,127 @@ impl BrickPlot {
         self
     }
 
+    /// Load flanked strigar data: left flank DNA, STR motif/strigar, right flank DNA.
+    ///
+    /// Each item is a `(left_seq, motif_string, strigar_string, right_seq)` tuple.
+    /// The left and right sequences are raw DNA strings (one character = 1 nucleotide
+    /// = 1 unit of axis space). The STR region is decoded the same way as
+    /// [`with_strigars`](Self::with_strigars).
+    ///
+    /// The rendered layout per row is:
+    /// `[left_flank] [STR bricks] [right_flank]`
+    ///
+    /// Flanks are drawn using the standard DNA colour template
+    /// (A = green, C = blue, G = orange/gold, T = red).
+    ///
+    /// Set [`with_consensus_row`](Self::with_consensus_row) **before** calling this
+    /// method if you want consensus-anchored rotation labels.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BrickPlot;
+    /// let plot = BrickPlot::new()
+    ///     .with_names(vec!["consensus", "read_1"])
+    ///     .with_consensus_row(0)
+    ///     .with_flanked_strigars(vec![
+    ///         ("ACGTACGT", "CAG:A",  "12A", "TGCATGCA"),
+    ///         ("ACGTACGT", "CAG:A",  "10A", "TGCATGCA"),
+    ///     ]);
+    /// ```
+    pub fn with_flanked_strigars<L, M, S, R, I>(mut self, flanked: I) -> Self
+    where
+        I: IntoIterator<Item = (L, M, S, R)>,
+        L: Into<String>,
+        M: Into<String>,
+        S: Into<String>,
+        R: Into<String>,
+    {
+        let mut lefts = Vec::new();
+        let mut strigars = Vec::new();
+        let mut rights = Vec::new();
+        for (left, motif, strigar, right) in flanked {
+            lefts.push(left.into());
+            strigars.push((motif.into(), strigar.into()));
+            rights.push(right.into());
+        }
+        self.left_flanks = Some(lefts);
+        self.right_flanks = Some(rights);
+        self.with_strigars(strigars)
+    }
+
+    /// Set horizontal alignment for all rows.
+    ///
+    /// `BrickAnchor::Left` (default) — rows start at their offset.
+    /// `BrickAnchor::Right` — trailing edges of all rows align on the right.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BrickPlot;
+    /// # use kuva::plot::brick::BrickAnchor;
+    /// let plot = BrickPlot::new()
+    ///     .with_anchor(BrickAnchor::Right);
+    /// ```
+    pub fn with_anchor(mut self, anchor: BrickAnchor) -> Self {
+        self.anchor = anchor;
+        self
+    }
+
+    /// Append `*` to the legend label of the primary (most-frequent) motif.
+    ///
+    /// In strigar mode the most-frequent motif is always assigned global letter A.
+    /// Calling this method marks it in the legend as, e.g. `"CAG*"`.
+    pub fn with_mark_primary(mut self) -> Self {
+        self.mark_primary = true;
+        self
+    }
+
+    /// Lock display rotations to the rotations used by a specific row (the consensus).
+    ///
+    /// When set, `with_strigars` / `with_flanked_strigars` seed the global display
+    /// labels from this row's motif strings, so every read shows the same rotation as
+    /// the consensus rather than the most-frequent rotation across all reads.
+    ///
+    /// **Must be called before** [`with_strigars`](Self::with_strigars) or
+    /// [`with_flanked_strigars`](Self::with_flanked_strigars).
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BrickPlot;
+    /// let plot = BrickPlot::new()
+    ///     .with_names(vec!["consensus", "read_1", "read_2"])
+    ///     .with_consensus_row(0)          // row 0 is the consensus
+    ///     .with_strigars(vec![
+    ///         ("CAG:A".to_string(), "12A".to_string()),
+    ///         ("AGC:A".to_string(), "10A".to_string()), // same kmer, different rotation
+    ///         ("GCA:A".to_string(),  "9A".to_string()),
+    ///     ]);
+    /// ```
+    pub fn with_consensus_row(mut self, row: usize) -> Self {
+        self.consensus_row = Some(row);
+        self
+    }
+
+    /// Set pre-computed human-readable notation strings, one per row.
+    ///
+    /// Each element is `Some(text)` to render a centred label above that row,
+    /// or `None` to draw nothing. Typically the consensus row has a notation
+    /// and reads may or may not.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BrickPlot;
+    /// let plot = BrickPlot::new()
+    ///     .with_names(vec!["consensus", "read_1"])
+    ///     .with_notations(vec![
+    ///         Some("(CAG)12".to_string()),
+    ///         None,
+    ///     ]);
+    /// ```
+    pub fn with_notations<I, T>(mut self, notations: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<Option<String>>,
+    {
+        self.notations = Some(notations.into_iter().map(|n| n.into()).collect());
+        self
+    }
+
     /// Overlay the character label inside each brick.
     ///
     /// Useful for short sequences or large bricks where the letter is readable.
@@ -592,5 +910,37 @@ impl BrickPlot {
     pub fn with_values(mut self) -> Self {
         self.show_values = true;
         self
+    }
+
+    /// Set the desired pixel height per brick row.
+    ///
+    /// When set, `auto_from_plots` computes the canvas height so that each row
+    /// is exactly `px` pixels tall. In a [`Figure`](crate::render::figure::Figure),
+    /// panels in the same grid row auto-size so that all brick rows across
+    /// different read-count plots remain identically sized — making hap1 (3 reads)
+    /// and hap2 (50 reads) render with the same brick dimensions on a shared x-axis.
+    ///
+    /// ```rust,no_run
+    /// # use kuva::plot::BrickPlot;
+    /// # use kuva::plot::brick::BrickTemplate;
+    /// let tmpl = BrickTemplate::new().dna();
+    /// let brick = BrickPlot::new()
+    ///     .with_sequences(vec!["ACGT", "ACGTACGT", "ACGT"])
+    ///     .with_names(vec!["r1", "r2", "r3"])
+    ///     .with_template(tmpl.template)
+    ///     .with_row_height(20.0);   // 20 px per row → canvas auto-sized to 3*20 + margins
+    /// ```
+    pub fn with_row_height(mut self, px: f64) -> Self {
+        self.row_height_px = Some(px);
+        self
+    }
+
+    /// Return the number of rows (reads) in this brick plot.
+    pub fn num_rows(&self) -> usize {
+        if let Some(ref exp) = self.strigar_exp {
+            exp.len()
+        } else {
+            self.sequences.len()
+        }
     }
 }

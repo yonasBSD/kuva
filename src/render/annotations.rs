@@ -1,6 +1,6 @@
-use crate::render::render::{Scene, Primitive, PathData, TextAnchor};
 use crate::render::color::Color;
 use crate::render::layout::ComputedLayout;
+use crate::render::render::{PathData, Primitive, Scene, TextAnchor};
 
 #[derive(Clone)]
 pub enum Orientation {
@@ -225,12 +225,17 @@ pub fn add_reference_lines(lines: &[ReferenceLine], scene: &mut Scene, computed:
                 anchor,
                 rotate: None,
                 bold: false,
+                color: None,
             });
         }
     }
 }
 
-pub fn add_text_annotations(annotations: &[TextAnnotation], scene: &mut Scene, computed: &ComputedLayout) {
+pub fn add_text_annotations(
+    annotations: &[TextAnnotation],
+    scene: &mut Scene,
+    computed: &ComputedLayout,
+) {
     for ann in annotations {
         let tx = computed.map_x(ann.text_x);
         let ty = computed.map_y(ann.text_y);
@@ -310,6 +315,7 @@ pub fn add_text_annotations(annotations: &[TextAnnotation], scene: &mut Scene, c
             anchor: TextAnchor::Middle,
             rotate: None,
             bold: false,
+            color: None,
         });
     }
 }

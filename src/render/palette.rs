@@ -23,7 +23,10 @@ impl Palette {
     }
 
     pub fn iter(&self) -> PaletteCycleIter<'_> {
-        PaletteCycleIter { palette: self, index: 0 }
+        PaletteCycleIter {
+            palette: self,
+            index: 0,
+        }
     }
 
     // ── Colorblind-safe palettes ──
@@ -33,9 +36,12 @@ impl Palette {
         Self {
             name: "wong",
             colors: vec![
-                "#E69F00", "#56B4E9", "#009E73", "#F0E442",
-                "#0072B2", "#D55E00", "#CC79A7", "#000000",
-            ].into_iter().map(Into::into).collect(),
+                "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7",
+                "#000000",
+            ]
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         }
     }
 
@@ -51,9 +57,11 @@ impl Palette {
         Self {
             name: "tol_bright",
             colors: vec![
-                "#4477AA", "#EE6677", "#228833", "#CCBB44",
-                "#66CCEE", "#AA3377", "#BBBBBB",
-            ].into_iter().map(Into::into).collect(),
+                "#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#BBBBBB",
+            ]
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         }
     }
 
@@ -62,10 +70,12 @@ impl Palette {
         Self {
             name: "tol_muted",
             colors: vec![
-                "#CC6677", "#332288", "#DDCC77", "#117733",
-                "#88CCEE", "#882255", "#44AA99", "#999933",
-                "#AA4499", "#DDDDDD",
-            ].into_iter().map(Into::into).collect(),
+                "#CC6677", "#332288", "#DDCC77", "#117733", "#88CCEE", "#882255", "#44AA99",
+                "#999933", "#AA4499", "#DDDDDD",
+            ]
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         }
     }
 
@@ -74,10 +84,12 @@ impl Palette {
         Self {
             name: "tol_light",
             colors: vec![
-                "#77AADD", "#EE8866", "#EEDD88", "#FFAABB",
-                "#99DDFF", "#44BB99", "#BBCC33", "#AAAA00",
-                "#DDDDDD",
-            ].into_iter().map(Into::into).collect(),
+                "#77AADD", "#EE8866", "#EEDD88", "#FFAABB", "#99DDFF", "#44BB99", "#BBCC33",
+                "#AAAA00", "#DDDDDD",
+            ]
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         }
     }
 
@@ -85,9 +97,10 @@ impl Palette {
     pub fn ibm() -> Self {
         Self {
             name: "ibm",
-            colors: vec![
-                "#648FFF", "#785EF0", "#DC267F", "#FE6100", "#FFB000",
-            ].into_iter().map(Into::into).collect(),
+            colors: vec!["#648FFF", "#785EF0", "#DC267F", "#FE6100", "#FFB000"]
+                .into_iter()
+                .map(Into::into)
+                .collect(),
         }
     }
 
@@ -121,10 +134,12 @@ impl Palette {
         Self {
             name: "category10",
             colors: vec![
-                "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
-                "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
-                "#bcbd22", "#17becf",
-            ].into_iter().map(Into::into).collect(),
+                "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2",
+                "#7f7f7f", "#bcbd22", "#17becf",
+            ]
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         }
     }
 
@@ -133,10 +148,12 @@ impl Palette {
         Self {
             name: "pastel",
             colors: vec![
-                "#aec7e8", "#ffbb78", "#98df8a", "#ff9896",
-                "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7",
-                "#dbdb8d", "#9edae5",
-            ].into_iter().map(Into::into).collect(),
+                "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2",
+                "#c7c7c7", "#dbdb8d", "#9edae5",
+            ]
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         }
     }
 
@@ -145,10 +162,12 @@ impl Palette {
         Self {
             name: "bold",
             colors: vec![
-                "#e41a1c", "#377eb8", "#4daf4a", "#984ea3",
-                "#ff7f00", "#a65628", "#f781bf", "#999999",
-                "#66c2a5", "#fc8d62",
-            ].into_iter().map(Into::into).collect(),
+                "#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#a65628", "#f781bf",
+                "#999999", "#66c2a5", "#fc8d62",
+            ]
+            .into_iter()
+            .map(Into::into)
+            .collect(),
         }
     }
 }

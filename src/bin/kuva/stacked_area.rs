@@ -7,7 +7,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args, palette_from_name};
+use crate::layout_args::{apply_axis_args, apply_base_args, palette_from_name, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Stacked area chart from x, group, and y columns.
@@ -57,7 +57,10 @@ pub fn run(args: StackedAreaArgs) -> Result<(), String> {
     let groups = table.group_by(&group_col)?;
 
     // Choose palette: use --palette arg if given, else category10
-    let palette = args.base.palette.as_deref()
+    let palette = args
+        .base
+        .palette
+        .as_deref()
         .and_then(palette_from_name)
         .unwrap_or_else(Palette::category10);
 
@@ -81,10 +84,7 @@ pub fn run(args: StackedAreaArgs) -> Result<(), String> {
         }
 
         let color = palette[i].to_string();
-        plot = plot
-            .with_series(ys)
-            .with_color(color)
-            .with_legend(name);
+        plot = plot.with_series(ys).with_color(color).with_legend(name);
     }
 
     let plots = vec![Plot::StackedArea(plot)];

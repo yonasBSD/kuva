@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Forest plot — point estimates with confidence intervals on a categorical Y-axis.
@@ -86,7 +86,10 @@ pub fn run(args: ForestArgs) -> Result<(), String> {
     if estimates.len() != n || ci_lowers.len() != n || ci_uppers.len() != n {
         return Err(format!(
             "column length mismatch: labels={}, estimates={}, ci_lower={}, ci_upper={}",
-            n, estimates.len(), ci_lowers.len(), ci_uppers.len()
+            n,
+            estimates.len(),
+            ci_lowers.len(),
+            ci_uppers.len()
         ));
     }
 
@@ -94,7 +97,9 @@ pub fn run(args: ForestArgs) -> Result<(), String> {
         let w = table.col_f64(wc)?;
         if w.len() != n {
             return Err(format!(
-                "weight column length ({}) does not match label column ({})", w.len(), n
+                "weight column length ({}) does not match label column ({})",
+                w.len(),
+                n
             ));
         }
         Some(w)

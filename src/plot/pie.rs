@@ -80,7 +80,9 @@ pub struct PieSlice {
 }
 
 impl Default for PiePlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PiePlot {
@@ -209,7 +211,10 @@ impl PiePlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

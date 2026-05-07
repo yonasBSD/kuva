@@ -1,23 +1,20 @@
 #![cfg(feature = "pdf")]
 
 use kuva::plot::scatter::ScatterPlot;
-use kuva::plot::LinePlot;
 use kuva::plot::BarPlot;
 use kuva::plot::Histogram;
-use kuva::PdfBackend;
-use kuva::render::render::render_scatter;
+use kuva::plot::LinePlot;
+use kuva::render::annotations::{ReferenceLine, ShadedRegion, TextAnnotation};
+use kuva::render::figure::Figure;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-use kuva::render::figure::Figure;
-use kuva::render::annotations::{TextAnnotation, ReferenceLine, ShadedRegion};
+use kuva::render::render::render_scatter;
+use kuva::PdfBackend;
 
 fn make_scatter_scene() -> kuva::render::render::Scene {
     let data = vec![(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)];
-    let plot = ScatterPlot::new()
-        .with_data(data)
-        .with_color("steelblue");
-    let layout = Layout::new((0.0, 6.0), (0.0, 8.0))
-        .with_title("PDF test");
+    let plot = ScatterPlot::new().with_data(data).with_color("steelblue");
+    let layout = Layout::new((0.0, 6.0), (0.0, 8.0)).with_title("PDF test");
     render_scatter(&plot, layout).with_background(Some("white"))
 }
 
@@ -45,12 +42,24 @@ fn pdf_rich_figure() {
     // --- Panel A: scatter with two series, shaded region, reference line,
     //              and an annotated outlier ---
     let series1 = ScatterPlot::new()
-        .with_data(vec![(1.0, 2.0), (2.0, 4.5), (3.0, 3.2), (4.0, 5.8), (5.0, 4.1)])
+        .with_data(vec![
+            (1.0, 2.0),
+            (2.0, 4.5),
+            (3.0, 3.2),
+            (4.0, 5.8),
+            (5.0, 4.1),
+        ])
         .with_color("steelblue")
         .with_size(5.0)
         .with_legend("Control");
     let series2 = ScatterPlot::new()
-        .with_data(vec![(1.0, 3.5), (2.0, 6.0), (3.0, 5.1), (4.0, 8.2), (5.0, 7.0)])
+        .with_data(vec![
+            (1.0, 3.5),
+            (2.0, 6.0),
+            (3.0, 5.1),
+            (4.0, 8.2),
+            (5.0, 7.0),
+        ])
         .with_color("tomato")
         .with_size(5.0)
         .with_legend("Treatment");
@@ -139,8 +148,8 @@ fn pdf_rich_figure() {
 
     // --- Panel D: histogram with a mean reference line ---
     let values: Vec<f64> = vec![
-        1.2, 1.5, 1.8, 2.1, 2.3, 2.5, 2.6, 2.8, 2.9, 3.0,
-        3.1, 3.3, 3.5, 3.7, 4.0, 4.2, 4.5, 4.8, 5.0, 5.3,
+        1.2, 1.5, 1.8, 2.1, 2.3, 2.5, 2.6, 2.8, 2.9, 3.0, 3.1, 3.3, 3.5, 3.7, 4.0, 4.2, 4.5, 4.8,
+        5.0, 5.3,
     ];
     let mean = values.iter().sum::<f64>() / values.len() as f64;
     let hist = Histogram::new()
@@ -174,7 +183,9 @@ fn pdf_rich_figure() {
         .with_shared_legend();
 
     let scene = figure.render();
-    let bytes = PdfBackend::new().render_scene(&scene).expect("PDF render failed");
+    let bytes = PdfBackend::new()
+        .render_scene(&scene)
+        .expect("PDF render failed");
 
     assert_eq!(&bytes[..5], b"%PDF-", "output is not a valid PDF");
     std::fs::write("test_outputs/pdf_rich_figure.pdf", &bytes).unwrap();

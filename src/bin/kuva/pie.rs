@@ -2,15 +2,15 @@ use std::collections::BTreeMap;
 
 use clap::Args;
 
-use kuva::plot::PiePlot;
 use kuva::plot::pie::PieLabelPosition;
+use kuva::plot::PiePlot;
 use kuva::render::layout::Layout;
+use kuva::render::palette::Palette;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::render::palette::Palette;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Pie or donut chart from label and value columns.

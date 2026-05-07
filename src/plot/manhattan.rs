@@ -1,5 +1,5 @@
-use crate::render::palette::Palette;
 use crate::plot::volcano::LabelStyle;
+use crate::render::palette::Palette;
 
 /// A single SNP or variant displayed in a Manhattan plot.
 pub struct ManhattanPoint {
@@ -150,30 +150,87 @@ pub enum GenomeBuild {
 // ── Chromosome size tables ──────────────────────────────────────────────────
 
 const HG19_SIZES: &[(&str, u64)] = &[
-    ("1",249_250_621),("2",243_199_373),("3",198_022_430),("4",191_154_276),
-    ("5",180_915_260),("6",171_115_067),("7",159_138_663),("8",146_364_022),
-    ("9",141_213_431),("10",135_534_747),("11",135_006_516),("12",133_851_895),
-    ("13",115_169_878),("14",107_349_540),("15",102_531_392),("16",90_354_753),
-    ("17",81_195_210),("18",78_077_248),("19",59_128_983),("20",63_025_520),
-    ("21",48_129_895),("22",51_304_566),("X",155_270_560),("Y",59_373_566),("MT",16_571),
+    ("1", 249_250_621),
+    ("2", 243_199_373),
+    ("3", 198_022_430),
+    ("4", 191_154_276),
+    ("5", 180_915_260),
+    ("6", 171_115_067),
+    ("7", 159_138_663),
+    ("8", 146_364_022),
+    ("9", 141_213_431),
+    ("10", 135_534_747),
+    ("11", 135_006_516),
+    ("12", 133_851_895),
+    ("13", 115_169_878),
+    ("14", 107_349_540),
+    ("15", 102_531_392),
+    ("16", 90_354_753),
+    ("17", 81_195_210),
+    ("18", 78_077_248),
+    ("19", 59_128_983),
+    ("20", 63_025_520),
+    ("21", 48_129_895),
+    ("22", 51_304_566),
+    ("X", 155_270_560),
+    ("Y", 59_373_566),
+    ("MT", 16_571),
 ];
 
 const HG38_SIZES: &[(&str, u64)] = &[
-    ("1",248_956_422),("2",242_193_529),("3",198_295_559),("4",190_214_555),
-    ("5",181_538_259),("6",170_805_979),("7",159_345_973),("8",145_138_636),
-    ("9",138_394_717),("10",133_797_422),("11",135_086_622),("12",133_275_309),
-    ("13",114_364_328),("14",107_043_718),("15",101_991_189),("16",90_338_345),
-    ("17",83_257_441),("18",80_373_285),("19",58_617_616),("20",64_444_167),
-    ("21",46_709_983),("22",50_818_468),("X",156_040_895),("Y",57_227_415),("MT",16_569),
+    ("1", 248_956_422),
+    ("2", 242_193_529),
+    ("3", 198_295_559),
+    ("4", 190_214_555),
+    ("5", 181_538_259),
+    ("6", 170_805_979),
+    ("7", 159_345_973),
+    ("8", 145_138_636),
+    ("9", 138_394_717),
+    ("10", 133_797_422),
+    ("11", 135_086_622),
+    ("12", 133_275_309),
+    ("13", 114_364_328),
+    ("14", 107_043_718),
+    ("15", 101_991_189),
+    ("16", 90_338_345),
+    ("17", 83_257_441),
+    ("18", 80_373_285),
+    ("19", 58_617_616),
+    ("20", 64_444_167),
+    ("21", 46_709_983),
+    ("22", 50_818_468),
+    ("X", 156_040_895),
+    ("Y", 57_227_415),
+    ("MT", 16_569),
 ];
 
 const T2T_SIZES: &[(&str, u64)] = &[
-    ("1",248_387_328),("2",242_696_752),("3",201_105_948),("4",193_574_945),
-    ("5",182_045_439),("6",172_126_628),("7",160_567_428),("8",146_259_331),
-    ("9",150_617_247),("10",134_758_134),("11",135_127_769),("12",133_324_548),
-    ("13",113_566_686),("14",101_161_492),("15",99_753_195),("16",96_330_374),
-    ("17",84_276_897),("18",80_542_538),("19",61_707_364),("20",66_210_255),
-    ("21",45_090_682),("22",51_324_926),("X",154_259_566),("Y",62_460_029),("MT",16_569),
+    ("1", 248_387_328),
+    ("2", 242_696_752),
+    ("3", 201_105_948),
+    ("4", 193_574_945),
+    ("5", 182_045_439),
+    ("6", 172_126_628),
+    ("7", 160_567_428),
+    ("8", 146_259_331),
+    ("9", 150_617_247),
+    ("10", 134_758_134),
+    ("11", 135_127_769),
+    ("12", 133_324_548),
+    ("13", 113_566_686),
+    ("14", 101_161_492),
+    ("15", 99_753_195),
+    ("16", 96_330_374),
+    ("17", 84_276_897),
+    ("18", 80_542_538),
+    ("19", 61_707_364),
+    ("20", 66_210_255),
+    ("21", 45_090_682),
+    ("22", 51_324_926),
+    ("X", 154_259_566),
+    ("Y", 62_460_029),
+    ("MT", 16_569),
 ];
 
 // ── Private helpers ─────────────────────────────────────────────────────────
@@ -205,7 +262,7 @@ fn build_sizes(build: &GenomeBuild) -> Vec<(&str, u64)> {
     match build {
         GenomeBuild::Hg19 => HG19_SIZES.iter().map(|&(n, s)| (n, s)).collect(),
         GenomeBuild::Hg38 => HG38_SIZES.iter().map(|&(n, s)| (n, s)).collect(),
-        GenomeBuild::T2T  => T2T_SIZES.iter().map(|&(n, s)| (n, s)).collect(),
+        GenomeBuild::T2T => T2T_SIZES.iter().map(|&(n, s)| (n, s)).collect(),
         GenomeBuild::Custom(v) => v.iter().map(|(n, s)| (strip_chr(n.as_str()), *s)).collect(),
     }
 }
@@ -213,7 +270,9 @@ fn build_sizes(build: &GenomeBuild) -> Vec<(&str, u64)> {
 // ── ManhattanPlot ────────────────────────────────────────────────────────────
 
 impl Default for ManhattanPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ManhattanPlot {
@@ -243,8 +302,11 @@ impl ManhattanPlot {
 
     /// Compute the p-value floor used for -log10 transformation.
     pub fn floor(&self) -> f64 {
-        if let Some(f) = self.pvalue_floor { return f; }
-        self.points.iter()
+        if let Some(f) = self.pvalue_floor {
+            return f;
+        }
+        self.points
+            .iter()
             .map(|p| p.pvalue)
             .filter(|&p| p > 0.0)
             .fold(f64::INFINITY, f64::min)
@@ -293,7 +355,9 @@ impl ManhattanPlot {
         let mut points = Vec::new();
 
         for chrom in &chrom_order {
-            let pvalues = by_chrom.get(chrom).expect("chrom_order derived from by_chrom keys");
+            let pvalues = by_chrom
+                .get(chrom)
+                .expect("chrom_order derived from by_chrom keys");
             let x_start = span_offset;
             for (i, &pvalue) in pvalues.iter().enumerate() {
                 points.push(ManhattanPoint {
@@ -304,7 +368,11 @@ impl ManhattanPlot {
                 });
             }
             let x_end = span_offset + pvalues.len() as f64 - 1.0;
-            spans.push(ChromSpan { name: chrom.clone(), x_start, x_end });
+            spans.push(ChromSpan {
+                name: chrom.clone(),
+                x_start,
+                x_end,
+            });
             span_offset += pvalues.len() as f64;
         }
 
@@ -337,7 +405,8 @@ impl ManhattanPlot {
         G: Into<f64>,
     {
         // Normalise chromosome names (strip "chr" prefix) at ingestion time.
-        let raw: Vec<(String, f64, f64)> = iter.into_iter()
+        let raw: Vec<(String, f64, f64)> = iter
+            .into_iter()
             .map(|(s, f, g)| {
                 let chrom_raw: String = s.into();
                 let chrom = strip_chr(&chrom_raw).to_string();
@@ -401,10 +470,16 @@ impl ManhattanPlot {
         if !unknown_bounds.is_empty() {
             let mut extra: Vec<ChromSpan> = unknown_bounds
                 .into_iter()
-                .map(|(name, (xs, xe))| ChromSpan { name, x_start: xs, x_end: xe })
+                .map(|(name, (xs, xe))| ChromSpan {
+                    name,
+                    x_start: xs,
+                    x_end: xe,
+                })
                 .collect();
             extra.sort_by(|a, b| {
-                a.x_start.partial_cmp(&b.x_start).unwrap_or(std::cmp::Ordering::Equal)
+                a.x_start
+                    .partial_cmp(&b.x_start)
+                    .unwrap_or(std::cmp::Ordering::Equal)
             });
             spans.extend(extra);
         }
@@ -438,7 +513,8 @@ impl ManhattanPlot {
         F: Into<f64>,
         G: Into<f64>,
     {
-        let raw: Vec<(String, f64, f64)> = iter.into_iter()
+        let raw: Vec<(String, f64, f64)> = iter
+            .into_iter()
             .map(|(s, f, g)| (s.into(), f.into(), g.into()))
             .collect();
 
@@ -458,7 +534,9 @@ impl ManhattanPlot {
                 seen_chroms.push(chrom.clone());
                 chrom_bounds.insert(chrom.clone(), (*x, *x));
             } else {
-                let e = chrom_bounds.get_mut(chrom).expect("chrom already inserted in seen_chroms");
+                let e = chrom_bounds
+                    .get_mut(chrom)
+                    .expect("chrom already inserted in seen_chroms");
                 e.0 = e.0.min(*x);
                 e.1 = e.1.max(*x);
             }
@@ -468,11 +546,17 @@ impl ManhattanPlot {
             .into_iter()
             .map(|name| {
                 let (x_start, x_end) = chrom_bounds[&name];
-                ChromSpan { name, x_start, x_end }
+                ChromSpan {
+                    name,
+                    x_start,
+                    x_end,
+                }
             })
             .collect();
         spans.sort_by(|a, b| {
-            a.x_start.partial_cmp(&b.x_start).unwrap_or(std::cmp::Ordering::Equal)
+            a.x_start
+                .partial_cmp(&b.x_start)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         self.points = points;
@@ -642,7 +726,9 @@ impl ManhattanPlot {
             let chrom: String = s.into();
             let x: f64 = f.into();
             let label: String = l.into();
-            if let Some(pt) = self.points.iter_mut()
+            if let Some(pt) = self
+                .points
+                .iter_mut()
                 .find(|p| p.chromosome == chrom && (p.x - x).abs() < 0.5)
             {
                 pt.label = Some(label);
@@ -656,7 +742,10 @@ impl ManhattanPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

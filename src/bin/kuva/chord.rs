@@ -6,7 +6,7 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Chord diagram from an N×N flow matrix.
@@ -51,17 +51,24 @@ pub fn run(args: ChordArgs) -> Result<(), String> {
     };
 
     // Parse N×N matrix from columns [1..].
-    let matrix: Vec<Vec<f64>> = table.rows.iter().enumerate().map(|(r, row)| {
-        row[1..].iter().enumerate().map(|(c, cell)| {
-            cell.trim().parse::<f64>().map_err(|_| {
-                format!("row {r}, col {}: '{}' is not a number", c + 1, cell)
-            })
-        }).collect::<Result<Vec<f64>, String>>()
-    }).collect::<Result<Vec<_>, _>>()?;
+    let matrix: Vec<Vec<f64>> = table
+        .rows
+        .iter()
+        .enumerate()
+        .map(|(r, row)| {
+            row[1..]
+                .iter()
+                .enumerate()
+                .map(|(c, cell)| {
+                    cell.trim()
+                        .parse::<f64>()
+                        .map_err(|_| format!("row {r}, col {}: '{}' is not a number", c + 1, cell))
+                })
+                .collect::<Result<Vec<f64>, String>>()
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
-    let mut plot = ChordPlot::new()
-        .with_matrix(matrix)
-        .with_labels(labels);
+    let mut plot = ChordPlot::new().with_matrix(matrix).with_labels(labels);
 
     if let Some(g) = args.gap {
         plot = plot.with_gap(g);

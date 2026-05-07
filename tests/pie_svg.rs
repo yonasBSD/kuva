@@ -1,23 +1,20 @@
-use kuva::plot::{PiePlot, PieLabelPosition};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::{render_pie, render_multiple};
+use kuva::plot::{PieLabelPosition, PiePlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-
+use kuva::render::render::{render_multiple, render_pie};
 
 #[test]
 fn test_pie_basic() {
     let pie = PiePlot::new()
-                    .with_slice("hot sauce", 35.0, "green")
-                    .with_slice("cheese", 25.0, "orange")
-                    .with_slice("beans", 40.0, "tomato")
-                    .with_inner_radius(60.0);
-
+        .with_slice("hot sauce", 35.0, "green")
+        .with_slice("cheese", 25.0, "orange")
+        .with_slice("beans", 40.0, "tomato")
+        .with_inner_radius(60.0);
 
     let plots = vec![Plot::Pie(pie.clone())];
 
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Pie Plot");
+    let layout = Layout::auto_from_plots(&plots).with_title("Pie Plot");
 
     let scene = render_pie(&pie, &layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -40,8 +37,7 @@ fn test_pie_outside_labels_with_percent() {
         .with_label_position(PieLabelPosition::Outside);
 
     let plots = vec![Plot::Pie(pie.clone())];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Pie - Outside Labels + Percent");
+    let layout = Layout::auto_from_plots(&plots).with_title("Pie - Outside Labels + Percent");
 
     let scene = render_pie(&pie, &layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -66,8 +62,7 @@ fn test_pie_auto_labels() {
         .with_inner_radius(50.0);
 
     let plots = vec![Plot::Pie(pie.clone())];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Pie - Auto Label Position");
+    let layout = Layout::auto_from_plots(&plots).with_title("Pie - Auto Label Position");
 
     let scene = render_pie(&pie, &layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -87,8 +82,7 @@ fn test_pie_no_labels() {
         .with_label_position(PieLabelPosition::None);
 
     let plots = vec![Plot::Pie(pie.clone())];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Pie - No Labels");
+    let layout = Layout::auto_from_plots(&plots).with_title("Pie - No Labels");
 
     let scene = render_pie(&pie, &layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -111,8 +105,7 @@ fn test_pie_legend_per_slice() {
         .with_percent();
 
     let plots = vec![Plot::Pie(pie)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Pie with Legend");
+    let layout = Layout::auto_from_plots(&plots).with_title("Pie with Legend");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -170,11 +163,15 @@ fn test_pie_outside_labels_large_font() {
 
     // Render with default body_size (12) and large body_size (20)
     let plots_default = vec![Plot::Pie(pie.clone())];
-    let layout_default = Layout::auto_from_plots(&plots_default)
-        .with_title("Pie - Default Font Size");
+    let layout_default =
+        Layout::auto_from_plots(&plots_default).with_title("Pie - Default Font Size");
     let scene_default = render_pie(&pie, &layout_default);
     let svg_default = SvgBackend.render_scene(&scene_default);
-    std::fs::write("test_outputs/pie_outside_default_font.svg", svg_default.clone()).unwrap();
+    std::fs::write(
+        "test_outputs/pie_outside_default_font.svg",
+        svg_default.clone(),
+    )
+    .unwrap();
 
     let plots_large = vec![Plot::Pie(pie.clone())];
     let layout_large = Layout::auto_from_plots(&plots_large)

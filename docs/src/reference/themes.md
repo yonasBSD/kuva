@@ -90,6 +90,30 @@ Warm cream background based on Ethan Schoonover's Solarized palette.
 
 ---
 
+## Fonts and portability
+
+The default font stack — `DejaVu Sans, Liberation Sans, Arial, sans-serif` — is resolved by the viewer or renderer at display time. This works on any desktop system but can fail in minimal environments (containers, CI pipelines, bioconda recipes) where no system fonts are installed.
+
+kuva handles this in two ways depending on output format:
+
+**PNG and PDF** always work, regardless of system fonts. DejaVu Sans is bundled inside the crate and loaded into the font database before the system font scan, so text renders correctly even in a bare container.
+
+**SVG** references fonts by name and relies on the viewer. If your SVG will be processed by `rsvg-convert`, Inkscape, or a similar tool on a font-free system, pass `--embed-font` on the CLI or call `.with_embedded_font(true)` on `SvgBackend`:
+
+```rust
+use kuva::backend::svg::SvgBackend;
+use kuva::render::render::render_multiple;
+
+let scene = render_multiple(plots, layout);
+let svg = SvgBackend::new()
+    .with_embedded_font(true)
+    .render_scene(&scene);
+```
+
+This injects a base64 `@font-face` block into the SVG, making it self-contained at the cost of roughly 1 MB of added file size. Leave it off (the default) for normal SVG output where smaller files are preferable.
+
+---
+
 ## Custom themes
 
 Build a `Theme` struct directly to set any combination of properties:

@@ -1,12 +1,12 @@
 use clap::Args;
 
-use kuva::plot::{PhyloTree, TreeOrientation, TreeBranchStyle};
+use kuva::plot::{PhyloTree, TreeBranchStyle, TreeOrientation};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, apply_base_args};
+use crate::layout_args::{apply_base_args, BaseArgs};
 use crate::output::write_output;
 
 /// Phylogenetic tree from a Newick string or edge list.
@@ -86,20 +86,24 @@ pub fn run(args: PhyloArgs) -> Result<(), String> {
         let children = table.col_str(&child_col)?;
         let lengths = table.col_f64(&length_col)?;
 
-        let edges: Vec<(String, String, f64)> = parents.into_iter()
+        let edges: Vec<(String, String, f64)> = parents
+            .into_iter()
             .zip(children)
             .zip(lengths)
             .map(|((p, c), l)| (p, c, l))
             .collect();
 
-        let edge_refs: Vec<(&str, &str, f64)> = edges.iter()
+        let edge_refs: Vec<(&str, &str, f64)> = edges
+            .iter()
             .map(|(p, c, l)| (p.as_str(), c.as_str(), *l))
             .collect();
 
         PhyloTree::from_edges(&edge_refs)
     };
 
-    tree = tree.with_orientation(orientation).with_branch_style(branch_style);
+    tree = tree
+        .with_orientation(orientation)
+        .with_branch_style(branch_style);
 
     if let Some(ref color) = args.branch_color {
         tree = tree.with_branch_color(color.clone());

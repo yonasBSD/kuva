@@ -9,13 +9,13 @@
 //!
 //! SVGs are written to `docs/src/assets/violin/`.
 
-use rand::SeedableRng;
-use rand_distr::{Distribution, Normal, Exp};
-use kuva::plot::ViolinPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::ViolinPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
+use rand::SeedableRng;
+use rand_distr::{Distribution, Exp, Normal};
 
 const OUT: &str = "docs/src/assets/violin";
 
@@ -32,7 +32,8 @@ fn main() {
 
 fn normal_samples(mean: f64, std: f64, n: usize, seed: u64) -> Vec<f64> {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
-    Normal::new(mean, std).unwrap()
+    Normal::new(mean, std)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(n)
         .collect()
@@ -43,14 +44,16 @@ fn bimodal_samples(mean1: f64, mean2: f64, std: f64, n: usize, seed: u64) -> Vec
     let d1 = Normal::new(mean1, std).unwrap();
     let d2 = Normal::new(mean2, std).unwrap();
     let half = n / 2;
-    d1.sample_iter(&mut rng.clone()).take(half)
+    d1.sample_iter(&mut rng.clone())
+        .take(half)
         .chain(d2.sample_iter(&mut rng).take(n - half))
         .collect()
 }
 
 fn skewed_samples(n: usize, seed: u64) -> Vec<f64> {
     let mut rng = rand::rngs::SmallRng::seed_from_u64(seed);
-    Exp::new(0.8_f64).unwrap()
+    Exp::new(0.8_f64)
+        .unwrap()
         .sample_iter(&mut rng)
         .take(n)
         .collect()
@@ -59,9 +62,9 @@ fn skewed_samples(n: usize, seed: u64) -> Vec<f64> {
 /// Three groups with distinct distribution shapes — the core use-case for violins.
 fn basic() {
     let plot = ViolinPlot::new()
-        .with_group("Normal",  normal_samples(0.0, 1.0, 500, 1))
+        .with_group("Normal", normal_samples(0.0, 1.0, 500, 1))
         .with_group("Bimodal", bimodal_samples(-2.0, 2.0, 0.6, 500, 2))
-        .with_group("Skewed",  skewed_samples(500, 3))
+        .with_group("Skewed", skewed_samples(500, 3))
         .with_color("steelblue")
         .with_width(30.0);
 
@@ -91,8 +94,8 @@ fn bandwidth() {
 
         let title = match name {
             "narrow" => "Narrow (h = 0.15)",
-            "wide"   => "Wide (h = 2.0)",
-            _        => "Auto (Silverman)",
+            "wide" => "Wide (h = 2.0)",
+            _ => "Auto (Silverman)",
         };
         let plots = vec![Plot::Violin(plot)];
         let layout = Layout::auto_from_plots(&plots).with_title(title);
@@ -104,9 +107,9 @@ fn bandwidth() {
 /// Three groups each with a distinct fill color.
 fn group_colors() {
     let plot = ViolinPlot::new()
-        .with_group("Normal",  normal_samples(0.0, 1.0, 300, 1))
+        .with_group("Normal", normal_samples(0.0, 1.0, 300, 1))
         .with_group("Bimodal", bimodal_samples(-2.0, 2.0, 0.6, 300, 2))
-        .with_group("Skewed",  skewed_samples(300, 3))
+        .with_group("Skewed", skewed_samples(300, 3))
         .with_group_colors(["steelblue", "tomato", "seagreen"])
         .with_width(30.0);
 
@@ -122,9 +125,9 @@ fn group_colors() {
 /// Bimodal violin with a beeswarm overlay showing individual points.
 fn swarm_overlay() {
     let plot = ViolinPlot::new()
-        .with_group("Normal",  normal_samples(0.0, 1.0, 120, 1))
+        .with_group("Normal", normal_samples(0.0, 1.0, 120, 1))
         .with_group("Bimodal", bimodal_samples(-2.0, 2.0, 0.6, 120, 2))
-        .with_group("Skewed",  skewed_samples(120, 3))
+        .with_group("Skewed", skewed_samples(120, 3))
         .with_color("steelblue")
         .with_width(30.0)
         .with_swarm_overlay()

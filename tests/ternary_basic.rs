@@ -1,8 +1,8 @@
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::ternary::TernaryPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
-use kuva::backend::svg::SvgBackend;
 
 fn render(plot: TernaryPlot) -> String {
     let plots = vec![Plot::Ternary(plot)];
@@ -105,7 +105,10 @@ fn test_ternary_fine_grid() {
         .with_grid(true)
         .with_grid_lines(4);
     let coarse_count = render(coarse).matches("<path").count();
-    assert!(fine_count > coarse_count, "10-line grid should have more paths than 4-line grid");
+    assert!(
+        fine_count > coarse_count,
+        "10-line grid should have more paths than 4-line grid"
+    );
     write("ternary_fine_grid", &svg);
 }
 
@@ -140,7 +143,10 @@ fn test_ternary_no_percentages() {
 
     let count_with = svg_with.matches("<text").count();
     let count_without = svg_without.matches("<text").count();
-    assert!(count_with > count_without, "show_percentages=true should add more text elements");
+    assert!(
+        count_with > count_without,
+        "show_percentages=true should add more text elements"
+    );
     write("ternary_percentages", &svg_with);
     write("ternary_no_percentages", &svg_without);
 }
@@ -217,7 +223,9 @@ fn test_ternary_feldspar() {
     // Deterministic pseudo-random points using simple LCG
     let mut state: u64 = 12345;
     let mut lcg = || -> f64 {
-        state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (state >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
@@ -294,14 +302,14 @@ fn test_ternary_normalize_counts() {
     // Raw read counts — wildly different scales, normalize=true projects to simplex
     let samples: &[(f64, f64, f64, &str)] = &[
         (1200.0, 300.0, 100.0, "High-A"),
-        (1500.0, 250.0, 80.0,  "High-A"),
-        (900.0,  400.0, 120.0, "High-A"),
-        (80.0,   1400.0, 200.0, "High-B"),
-        (100.0,  1600.0, 180.0, "High-B"),
-        (90.0,   1200.0, 250.0, "High-B"),
-        (150.0,  200.0,  2000.0, "High-C"),
-        (120.0,  180.0,  1800.0, "High-C"),
-        (130.0,  220.0,  2200.0, "High-C"),
+        (1500.0, 250.0, 80.0, "High-A"),
+        (900.0, 400.0, 120.0, "High-A"),
+        (80.0, 1400.0, 200.0, "High-B"),
+        (100.0, 1600.0, 180.0, "High-B"),
+        (90.0, 1200.0, 250.0, "High-B"),
+        (150.0, 200.0, 2000.0, "High-C"),
+        (120.0, 180.0, 1800.0, "High-C"),
+        (130.0, 220.0, 2200.0, "High-C"),
     ];
     let mut plot = TernaryPlot::new()
         .with_normalize(true)
@@ -325,7 +333,9 @@ fn test_ternary_normalize_counts() {
 fn test_ternary_dense_no_pct() {
     let mut state: u64 = 99991;
     let mut lcg = || -> f64 {
-        state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (state >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
@@ -358,7 +368,11 @@ fn test_ternary_dense_no_pct() {
 fn test_ternary_mixing_diagram() {
     // Helper: linear interpolate between two compositions
     let mix = |a: (f64, f64, f64), b: (f64, f64, f64), t: f64| -> (f64, f64, f64) {
-        (a.0 + t * (b.0 - a.0), a.1 + t * (b.1 - a.1), a.2 + t * (b.2 - a.2))
+        (
+            a.0 + t * (b.0 - a.0),
+            a.1 + t * (b.1 - a.1),
+            a.2 + t * (b.2 - a.2),
+        )
     };
 
     let em_a = (0.90, 0.05, 0.05); // A-rich end-member
@@ -415,7 +429,9 @@ fn test_ternary_mixing_diagram() {
 fn test_ternary_allele_frequencies() {
     let mut state: u64 = 54321;
     let mut lcg = || -> f64 {
-        state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (state >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
@@ -446,8 +462,7 @@ fn test_ternary_allele_frequencies() {
     }
 
     let plots = vec![Plot::Ternary(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Triallelic SNP — Allele Frequencies");
+    let layout = Layout::auto_from_plots(&plots).with_title("Triallelic SNP — Allele Frequencies");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<svg"));
     assert!(svg.contains("Population A"));
@@ -466,17 +481,19 @@ fn test_ternary_allele_frequencies() {
 fn test_ternary_rna_composition() {
     let mut state: u64 = 99001;
     let mut lcg = || -> f64 {
-        state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (state >> 33) as f64 / (u64::MAX >> 33) as f64
     };
 
     // Biologically approximate cluster centers (fractions sum to 1)
     // A%, U%, GC% — real RNA has ~25% each, but classes differ subtly
     let classes: &[(&str, (f64, f64, f64))] = &[
-        ("CDS",        (0.28, 0.22, 0.50)), // coding: high GC, balanced AU
-        ("3′ UTR",     (0.32, 0.35, 0.33)), // 3′ UTR: slightly AU-rich
-        ("lncRNA",     (0.24, 0.18, 0.58)), // lncRNA: high GC content
-        ("miRNA",      (0.20, 0.28, 0.52)), // miRNA: U-biased, high GC
+        ("CDS", (0.28, 0.22, 0.50)),    // coding: high GC, balanced AU
+        ("3′ UTR", (0.32, 0.35, 0.33)), // 3′ UTR: slightly AU-rich
+        ("lncRNA", (0.24, 0.18, 0.58)), // lncRNA: high GC content
+        ("miRNA", (0.20, 0.28, 0.52)),  // miRNA: U-biased, high GC
     ];
 
     let mut plot = TernaryPlot::new()
@@ -498,8 +515,8 @@ fn test_ternary_rna_composition() {
     }
 
     let plots = vec![Plot::Ternary(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("RNA Base Composition by Transcript Class");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("RNA Base Composition by Transcript Class");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<svg"));
     assert!(svg.contains("CDS"));
@@ -541,8 +558,7 @@ fn test_ternary_simplex_lattice() {
     }
 
     let plots = vec![Plot::Ternary(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Simplex Lattice (0.1 step)");
+    let layout = Layout::auto_from_plots(&plots).with_title("Simplex Lattice (0.1 step)");
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     assert!(svg.contains("<svg"));
     assert!(svg.contains("A dominant"));
@@ -550,6 +566,9 @@ fn test_ternary_simplex_lattice() {
     assert!(svg.contains("C dominant"));
     // 66 lattice points for a 0.1-step triangular grid (n=10: sum i from 0..=10 of (n-i+1) = 66)
     let marker_count = svg.matches("<circle").count();
-    assert!(marker_count >= 66, "Expected 66 lattice circles, got {marker_count}");
+    assert!(
+        marker_count >= 66,
+        "Expected 66 lattice circles, got {marker_count}"
+    );
     write("ternary_simplex_lattice", &svg);
 }

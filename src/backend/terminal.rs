@@ -24,29 +24,29 @@ use crate::render::render::{Primitive, Scene, TextAnchor};
 
 // ── Box-drawing bit constants ─────────────────────────────────────────────────
 
-const TOP: u8    = 1;
-const RIGHT: u8  = 2;
+const TOP: u8 = 1;
+const RIGHT: u8 = 2;
 const BOTTOM: u8 = 4;
-const LEFT: u8   = 8;
+const LEFT: u8 = 8;
 
 fn bitmask_to_char(bits: u8) -> char {
     match bits {
-        1  => '╵',
-        2  => '╶',
-        3  => '└',
-        4  => '╷',
-        5  => '│',
-        6  => '┌',
-        7  => '├',
-        8  => '╴',
-        9  => '┘',
+        1 => '╵',
+        2 => '╶',
+        3 => '└',
+        4 => '╷',
+        5 => '│',
+        6 => '┌',
+        7 => '├',
+        8 => '╴',
+        9 => '┘',
         10 => '─',
         11 => '┴',
         12 => '┐',
         13 => '┤',
         14 => '┬',
         15 => '┼',
-        _  => ' ',
+        _ => ' ',
     }
 }
 
@@ -121,12 +121,12 @@ impl Canvas {
             rows,
             scene_width,
             scene_height,
-            braille:           vec![vec![0u8; cols]; rows],
-            braille_color:     vec![vec![None; cols]; rows],
-            line_char_bits:    vec![vec![0u8; cols]; rows],
-            line_char_color:   vec![vec![None; cols]; rows],
-            char_grid:         vec![vec![None; cols]; rows],
-            transform_stack:   vec![(0.0, 0.0)],
+            braille: vec![vec![0u8; cols]; rows],
+            braille_color: vec![vec![None; cols]; rows],
+            line_char_bits: vec![vec![0u8; cols]; rows],
+            line_char_color: vec![vec![None; cols]; rows],
+            char_grid: vec![vec![None; cols]; rows],
+            transform_stack: vec![(0.0, 0.0)],
             text_color,
         }
     }
@@ -241,7 +241,8 @@ impl Canvas {
                 let on_legend_bg = if cx >= 0 && cy >= 0 {
                     let cxu = cx as usize;
                     let cyu = cy as usize;
-                    cxu < self.cols && cyu < self.rows
+                    cxu < self.cols
+                        && cyu < self.rows
                         && matches!(self.char_grid[cyu][cxu], Some(('█', _)))
                 } else {
                     false
@@ -320,9 +321,15 @@ impl Canvas {
             .map(|&(sx, sy)| (self.to_bx(sx) as f64, self.to_by(sy) as f64))
             .collect();
 
-        let by_min = bpts.iter().map(|p| p.1).fold(f64::INFINITY, f64::min)
+        let by_min = bpts
+            .iter()
+            .map(|p| p.1)
+            .fold(f64::INFINITY, f64::min)
             .max(0.0) as isize;
-        let by_max = bpts.iter().map(|p| p.1).fold(f64::NEG_INFINITY, f64::max)
+        let by_max = bpts
+            .iter()
+            .map(|p| p.1)
+            .fold(f64::NEG_INFINITY, f64::max)
             .min((bh - 1) as f64) as isize;
 
         let n = bpts.len();
@@ -403,7 +410,7 @@ impl Canvas {
         // Step 1: midpoint in rotated frame
         let dx = (x1 - x2) / 2.0;
         let dy = (y1 - y2) / 2.0;
-        let x1p =  cos_phi * dx + sin_phi * dy;
+        let x1p = cos_phi * dx + sin_phi * dy;
         let y1p = -sin_phi * dx + cos_phi * dy;
 
         // Step 2: ensure radii are large enough
@@ -419,9 +426,13 @@ impl Canvas {
         // Step 3: center in rotated frame
         let num = (rx * rx * ry * ry) - (rx * rx * y1p * y1p) - (ry * ry * x1p * x1p);
         let den = (rx * rx * y1p * y1p) + (ry * ry * x1p * x1p);
-        let sq = if den < 1e-10 { 0.0 } else { (num / den).max(0.0).sqrt() };
+        let sq = if den < 1e-10 {
+            0.0
+        } else {
+            (num / den).max(0.0).sqrt()
+        };
         let sq = if large_arc == sweep { -sq } else { sq };
-        let cxp =  sq * rx * y1p / ry;
+        let cxp = sq * rx * y1p / ry;
         let cyp = -sq * ry * x1p / rx;
 
         // Step 4: center in scene space
@@ -433,7 +444,11 @@ impl Canvas {
             let n = ((ux * ux + uy * uy) * (vx * vx + vy * vy)).sqrt();
             let c = ((ux * vx + uy * vy) / n).clamp(-1.0, 1.0);
             let a = c.acos();
-            if ux * vy - uy * vx < 0.0 { -a } else { a }
+            if ux * vy - uy * vx < 0.0 {
+                -a
+            } else {
+                a
+            }
         }
 
         let ux = (x1p - cxp) / rx;
@@ -468,7 +483,9 @@ impl Canvas {
         let (tx, ty) = self.current_offset();
 
         match p {
-            Primitive::Circle { cx, cy, r, fill, .. } => {
+            Primitive::Circle {
+                cx, cy, r, fill, ..
+            } => {
                 let rgb = css_to_rgb(&fill.to_svg_string());
                 let cx_s = cx + tx;
                 let cy_s = cy + ty;
@@ -498,13 +515,21 @@ impl Canvas {
                     && center_row >= 0
                     && (center_row as usize) < self.rows
                 {
-                    if let Some(('█', _)) = self.char_grid[center_row as usize][center_col as usize] {
+                    if let Some(('█', _)) = self.char_grid[center_row as usize][center_col as usize]
+                    {
                         self.set_char(center_col, center_row, '█', rgb);
                     }
                 }
             }
 
-            Primitive::Line { x1, y1, x2, y2, stroke, .. } => {
+            Primitive::Line {
+                x1,
+                y1,
+                x2,
+                y2,
+                stroke,
+                ..
+            } => {
                 let rgb = css_to_rgb(&stroke.to_svg_string());
                 // Strictly horizontal or vertical lines (within half a scene pixel)
                 // are drawn with box-drawing characters for clean axis rendering.
@@ -532,7 +557,11 @@ impl Canvas {
 
             Primitive::Path(pd) => {
                 let has_stroke = !matches!(pd.stroke, crate::render::color::Color::None);
-                let fill_str_owned = pd.fill.as_ref().map(|c| c.to_svg_string()).unwrap_or_else(|| "none".to_string());
+                let fill_str_owned = pd
+                    .fill
+                    .as_ref()
+                    .map(|c| c.to_svg_string())
+                    .unwrap_or_else(|| "none".to_string());
                 let fill_str = fill_str_owned.as_str();
                 // SVG gradient references (url(#...)) can't be resolved in the
                 // terminal; treat them as a neutral grey.
@@ -549,10 +578,8 @@ impl Canvas {
                     return;
                 }
 
-                // Fill-only paths (Sankey bands, chord ribbons, pie slices, etc.)
-                // are scanline-filled in the braille dot grid, giving them a solid
-                // shaded interior rather than just their outline edges.
-                if has_fill && !has_stroke {
+                // Scanline-fill the interior when a fill color is present.
+                if has_fill {
                     let rgb = fill_rgb.unwrap();
                     let mut poly: Vec<(f64, f64)> = Vec::new();
                     let mut cur = (tx, ty);
@@ -580,9 +607,24 @@ impl Canvas {
                                 poly.extend_from_slice(&pts[1..]);
                                 cur = p3;
                             }
-                            PathCmd::Arc { rx, ry, x_rot, large_arc, sweep, x, y } => {
+                            PathCmd::Arc {
+                                rx,
+                                ry,
+                                x_rot,
+                                large_arc,
+                                sweep,
+                                x,
+                                y,
+                            } => {
                                 let end = (x + tx, y + ty);
-                                let pts = Self::tessellate_arc(cur, (rx, ry), x_rot, large_arc, sweep, end);
+                                let pts = Self::tessellate_arc(
+                                    cur,
+                                    (rx, ry),
+                                    x_rot,
+                                    large_arc,
+                                    sweep,
+                                    end,
+                                );
                                 poly.extend_from_slice(&pts[1..]);
                                 cur = end;
                             }
@@ -595,10 +637,12 @@ impl Canvas {
                     if poly.len() >= 3 {
                         self.fill_braille_polygon(&poly, rgb);
                     }
-                    return;
+                    if !has_stroke {
+                        return;
+                    }
                 }
 
-                // Stroked paths — draw outline with Bresenham as before.
+                // Stroked paths — draw outline with Bresenham on top of fill.
                 let rgb = if has_stroke {
                     css_to_rgb(&pd.stroke.to_svg_string())
                 } else {
@@ -639,9 +683,18 @@ impl Canvas {
                             }
                             cur = (x + tx, y + ty);
                         }
-                        PathCmd::Arc { rx, ry, x_rot, large_arc, sweep, x, y } => {
+                        PathCmd::Arc {
+                            rx,
+                            ry,
+                            x_rot,
+                            large_arc,
+                            sweep,
+                            x,
+                            y,
+                        } => {
                             let end = (x + tx, y + ty);
-                            let pts = Self::tessellate_arc(cur, (rx, ry), x_rot, large_arc, sweep, end);
+                            let pts =
+                                Self::tessellate_arc(cur, (rx, ry), x_rot, large_arc, sweep, end);
                             for w in pts.windows(2) {
                                 self.bresenham(
                                     self.to_bx(w[0].0),
@@ -667,7 +720,14 @@ impl Canvas {
                 }
             }
 
-            Primitive::Rect { x, y, width, height, fill, .. } => {
+            Primitive::Rect {
+                x,
+                y,
+                width,
+                height,
+                fill,
+                ..
+            } => {
                 if matches!(fill, crate::render::color::Color::None) {
                     return;
                 }
@@ -684,7 +744,8 @@ impl Canvas {
                 let cell_w = self.scene_width / self.cols as f64;
                 let cell_h = self.scene_height / self.rows as f64;
                 let (cx0, cx1) = if width < cell_w {
-                    let c = self.to_cx(x_s + width * 0.5)
+                    let c = self
+                        .to_cx(x_s + width * 0.5)
                         .max(0)
                         .min(self.cols as isize - 1);
                     (c, c)
@@ -700,7 +761,8 @@ impl Canvas {
                 // Small rects (legend swatches, markers) snap to the single
                 // cell containing the rect's vertical centre.
                 let (cy0, cy1) = if height < cell_h.max(16.0) {
-                    let r = self.to_cy(y_s + height * 0.5)
+                    let r = self
+                        .to_cy(y_s + height * 0.5)
                         .max(0)
                         .min(self.rows as isize - 1);
                     (r, r)
@@ -717,7 +779,15 @@ impl Canvas {
                 }
             }
 
-            Primitive::Text { x, y, content, size, anchor, rotate, .. } => {
+            Primitive::Text {
+                x,
+                y,
+                content,
+                size,
+                anchor,
+                rotate,
+                ..
+            } => {
                 let rgb = self.text_color;
                 let x_s = x + tx;
                 let y_s = y + ty;
@@ -735,15 +805,16 @@ impl Canvas {
                 let abs_angle = angle.abs() % 180.0;
 
                 if abs_angle > 45.0 && abs_angle < 135.0 {
-                    // ~90°: sideways (y-axis label). Cannot rotate in terminal —
-                    // render vertically (one character per row, stacked) at column 0,
-                    // centered on the original row position.
+                    // ~90°: sideways text. Cannot rotate in terminal —
+                    // render vertically (one character per row, stacked)
+                    // at the text's x position, centered on the original row.
+                    let col = self.to_cx(x_s);
                     let half = len / 2;
                     let start_row = row - half;
                     for (i, ch) in chars.iter().enumerate() {
                         let r = start_row + i as isize;
                         if r >= 0 && (r as usize) < self.rows {
-                            self.set_char(0, r, *ch, rgb);
+                            self.set_char(col, r, *ch, rgb);
                         }
                     }
                 } else {
@@ -762,10 +833,13 @@ impl Canvas {
                             // at least one blank column between them.
                             let collides = (0..len + 2).any(|i| {
                                 let c = start_col - 1 + i;
-                                c >= 0 && (c as usize) < self.cols
+                                c >= 0
+                                    && (c as usize) < self.cols
                                     && self.char_grid[draw_row as usize][c as usize].is_some()
                             });
-                            if !collides { break; }
+                            if !collides {
+                                break;
+                            }
                             draw_row += 1;
                         }
                         for (i, ch) in chars.iter().enumerate() {
@@ -777,14 +851,42 @@ impl Canvas {
                         // collision stacking.  The swatch █ immediately to the left
                         // of a legend label must not be treated as a collision.
                         let start_col = match anchor {
-                            TextAnchor::Start  => col,
+                            TextAnchor::Start => col,
                             TextAnchor::Middle => col - len / 2,
-                            TextAnchor::End    => col - len,
+                            TextAnchor::End => col - len,
                         };
                         for (i, ch) in chars.iter().enumerate() {
                             self.set_char(start_col + i as isize, row, *ch, rgb);
                         }
                     }
+                }
+            }
+
+            Primitive::RichText {
+                x,
+                y,
+                spans,
+                size,
+                anchor,
+                ..
+            } => {
+                // Flatten spans to plain text; terminal doesn't support inline styling.
+                let content: String = spans.iter().map(|s| s.text.as_str()).collect();
+                let rgb = self.text_color;
+                let x_s = x + tx;
+                let y_s = y + ty;
+                let baseline = *size as f64 * 0.35;
+                let row = self.to_cy(y_s - baseline);
+                let chars: Vec<char> = content.chars().collect();
+                let len = chars.len() as isize;
+                let col = self.to_cx(x_s);
+                let start_col = match anchor {
+                    TextAnchor::Start => col,
+                    TextAnchor::Middle => col - len / 2,
+                    TextAnchor::End => col - len,
+                };
+                for (i, ch) in chars.iter().enumerate() {
+                    self.set_char(start_col + i as isize, row, *ch, rgb);
                 }
             }
 
@@ -804,7 +906,9 @@ impl Canvas {
                 }
             }
 
-            Primitive::CircleBatch { cx, cy, r, fill, .. } => {
+            Primitive::CircleBatch {
+                cx, cy, r, fill, ..
+            } => {
                 let rgb = css_to_rgb(&fill.to_svg_string());
                 for i in 0..cx.len() {
                     let cx_s = cx[i] + tx;
@@ -903,7 +1007,15 @@ enum PathCmd {
     LineTo(f64, f64),
     CubicTo(f64, f64, f64, f64, f64, f64),
     /// SVG arc: radii (rx,ry), x-axis rotation (deg), large-arc flag, sweep flag, endpoint (x,y).
-    Arc { rx: f64, ry: f64, x_rot: f64, large_arc: bool, sweep: bool, x: f64, y: f64 },
+    Arc {
+        rx: f64,
+        ry: f64,
+        x_rot: f64,
+        large_arc: bool,
+        sweep: bool,
+        x: f64,
+        y: f64,
+    },
     ClosePath,
 }
 
@@ -1015,7 +1127,10 @@ fn parse_path(d: &str) -> Vec<PathCmd> {
             'M' => match (ts.next_num(), ts.next_num()) {
                 (Some(x), Some(y)) => {
                     cmds.push(PathCmd::MoveTo(x, y));
-                    cur_x = x; cur_y = y; start_x = x; start_y = y;
+                    cur_x = x;
+                    cur_y = y;
+                    start_x = x;
+                    start_y = y;
                     cur_cmd = 'L';
                     true
                 }
@@ -1023,9 +1138,11 @@ fn parse_path(d: &str) -> Vec<PathCmd> {
             },
             'm' => match (ts.next_num(), ts.next_num()) {
                 (Some(dx), Some(dy)) => {
-                    cur_x += dx; cur_y += dy;
+                    cur_x += dx;
+                    cur_y += dy;
                     cmds.push(PathCmd::MoveTo(cur_x, cur_y));
-                    start_x = cur_x; start_y = cur_y;
+                    start_x = cur_x;
+                    start_y = cur_y;
                     cur_cmd = 'l';
                     true
                 }
@@ -1034,99 +1151,168 @@ fn parse_path(d: &str) -> Vec<PathCmd> {
             'L' => match (ts.next_num(), ts.next_num()) {
                 (Some(x), Some(y)) => {
                     cmds.push(PathCmd::LineTo(x, y));
-                    cur_x = x; cur_y = y;
+                    cur_x = x;
+                    cur_y = y;
                     true
                 }
                 _ => false,
             },
             'l' => match (ts.next_num(), ts.next_num()) {
                 (Some(dx), Some(dy)) => {
-                    cur_x += dx; cur_y += dy;
+                    cur_x += dx;
+                    cur_y += dy;
                     cmds.push(PathCmd::LineTo(cur_x, cur_y));
                     true
                 }
                 _ => false,
             },
             'H' => match ts.next_num() {
-                Some(x) => { cmds.push(PathCmd::LineTo(x, cur_y)); cur_x = x; true }
+                Some(x) => {
+                    cmds.push(PathCmd::LineTo(x, cur_y));
+                    cur_x = x;
+                    true
+                }
                 None => false,
             },
             'h' => match ts.next_num() {
-                Some(dx) => { cur_x += dx; cmds.push(PathCmd::LineTo(cur_x, cur_y)); true }
+                Some(dx) => {
+                    cur_x += dx;
+                    cmds.push(PathCmd::LineTo(cur_x, cur_y));
+                    true
+                }
                 None => false,
             },
             'V' => match ts.next_num() {
-                Some(y) => { cmds.push(PathCmd::LineTo(cur_x, y)); cur_y = y; true }
+                Some(y) => {
+                    cmds.push(PathCmd::LineTo(cur_x, y));
+                    cur_y = y;
+                    true
+                }
                 None => false,
             },
             'v' => match ts.next_num() {
-                Some(dy) => { cur_y += dy; cmds.push(PathCmd::LineTo(cur_x, cur_y)); true }
+                Some(dy) => {
+                    cur_y += dy;
+                    cmds.push(PathCmd::LineTo(cur_x, cur_y));
+                    true
+                }
                 None => false,
             },
             'C' => match (
-                ts.next_num(), ts.next_num(), ts.next_num(),
-                ts.next_num(), ts.next_num(), ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
             ) {
                 (Some(x1), Some(y1), Some(x2), Some(y2), Some(x), Some(y)) => {
                     cmds.push(PathCmd::CubicTo(x1, y1, x2, y2, x, y));
-                    cur_x = x; cur_y = y;
+                    cur_x = x;
+                    cur_y = y;
                     true
                 }
                 _ => false,
             },
             'c' => match (
-                ts.next_num(), ts.next_num(), ts.next_num(),
-                ts.next_num(), ts.next_num(), ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
             ) {
                 (Some(dx1), Some(dy1), Some(dx2), Some(dy2), Some(dx), Some(dy)) => {
                     cmds.push(PathCmd::CubicTo(
-                        cur_x + dx1, cur_y + dy1,
-                        cur_x + dx2, cur_y + dy2,
-                        cur_x + dx,  cur_y + dy,
+                        cur_x + dx1,
+                        cur_y + dy1,
+                        cur_x + dx2,
+                        cur_y + dy2,
+                        cur_x + dx,
+                        cur_y + dy,
                     ));
-                    cur_x += dx; cur_y += dy;
+                    cur_x += dx;
+                    cur_y += dy;
                     true
                 }
                 _ => false,
             },
             'Z' | 'z' => {
                 cmds.push(PathCmd::ClosePath);
-                cur_x = start_x; cur_y = start_y;
+                cur_x = start_x;
+                cur_y = start_y;
                 true
             }
             'A' => match (
-                ts.next_num(), ts.next_num(), ts.next_num(),
-                ts.next_num(), ts.next_num(), ts.next_num(), ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
             ) {
                 (Some(rx), Some(ry), Some(x_rot), Some(la), Some(sw), Some(x), Some(y)) => {
-                    cmds.push(PathCmd::Arc { rx, ry, x_rot, large_arc: la != 0.0, sweep: sw != 0.0, x, y });
-                    cur_x = x; cur_y = y;
+                    cmds.push(PathCmd::Arc {
+                        rx,
+                        ry,
+                        x_rot,
+                        large_arc: la != 0.0,
+                        sweep: sw != 0.0,
+                        x,
+                        y,
+                    });
+                    cur_x = x;
+                    cur_y = y;
                     true
                 }
                 _ => false,
             },
             'a' => match (
-                ts.next_num(), ts.next_num(), ts.next_num(),
-                ts.next_num(), ts.next_num(), ts.next_num(), ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
+                ts.next_num(),
             ) {
                 (Some(rx), Some(ry), Some(x_rot), Some(la), Some(sw), Some(dx), Some(dy)) => {
-                    cur_x += dx; cur_y += dy;
-                    cmds.push(PathCmd::Arc { rx, ry, x_rot, large_arc: la != 0.0, sweep: sw != 0.0, x: cur_x, y: cur_y });
+                    cur_x += dx;
+                    cur_y += dy;
+                    cmds.push(PathCmd::Arc {
+                        rx,
+                        ry,
+                        x_rot,
+                        large_arc: la != 0.0,
+                        sweep: sw != 0.0,
+                        x: cur_x,
+                        y: cur_y,
+                    });
                     true
                 }
                 _ => false,
             },
             'S' | 's' | 'Q' | 'q' => {
                 let mut n = 0;
-                while ts.is_at_num() && n < 4 { ts.next_num(); n += 1; }
+                while ts.is_at_num() && n < 4 {
+                    ts.next_num();
+                    n += 1;
+                }
                 n > 0
             }
             'T' | 't' => {
                 let mut n = 0;
-                while ts.is_at_num() && n < 2 { ts.next_num(); n += 1; }
+                while ts.is_at_num() && n < 2 {
+                    ts.next_num();
+                    n += 1;
+                }
                 n > 0
             }
-            _ => { ts.pos += 1; true }
+            _ => {
+                ts.pos += 1;
+                true
+            }
         };
 
         if !consumed {
@@ -1151,8 +1337,8 @@ fn parse_translate(t: &str) -> (f64, f64) {
         .collect();
     match nums.as_slice() {
         [x, y, ..] => (*x, *y),
-        [x]        => (*x, 0.0),
-        _          => (0.0, 0.0),
+        [x] => (*x, 0.0),
+        _ => (0.0, 0.0),
     }
 }
 
@@ -1199,59 +1385,59 @@ fn css_to_rgb(s: &str) -> Rgb {
 
 fn named_color(s: &str) -> Rgb {
     match s {
-        "black"                             => (0, 0, 0),
-        "white"                             => (255, 255, 255),
-        "red"                               => (255, 0, 0),
-        "green"                             => (0, 128, 0),
-        "lime"                              => (0, 255, 0),
-        "blue"                              => (0, 0, 255),
-        "gray"  | "grey"                    => (128, 128, 128),
-        "lightgray" | "lightgrey"           => (211, 211, 211),
-        "darkgray"  | "darkgrey"            => (169, 169, 169),
-        "silver"                            => (192, 192, 192),
-        "steelblue"                         => (70, 130, 180),
-        "orange"                            => (255, 165, 0),
-        "darkorange"                        => (255, 140, 0),
-        "purple"                            => (128, 0, 128),
-        "yellow"                            => (255, 255, 0),
-        "cyan"  | "aqua"                    => (0, 255, 255),
-        "magenta" | "fuchsia"               => (255, 0, 255),
-        "darkred"                           => (139, 0, 0),
-        "darkgreen"                         => (0, 100, 0),
-        "darkblue"                          => (0, 0, 139),
-        "salmon"                            => (250, 128, 114),
-        "teal"                              => (0, 128, 128),
-        "coral"                             => (255, 127, 80),
-        "indigo"                            => (75, 0, 130),
-        "pink"                              => (255, 192, 203),
-        "hotpink"                           => (255, 105, 180),
-        "gold"                              => (255, 215, 0),
-        "olive"                             => (128, 128, 0),
-        "navy"                              => (0, 0, 128),
-        "maroon"                            => (128, 0, 0),
-        "crimson"                           => (220, 20, 60),
-        "tomato"                            => (255, 99, 71),
-        "chocolate"                         => (210, 105, 30),
-        "sienna"                            => (160, 82, 45),
-        "tan"                               => (210, 180, 140),
-        "khaki"                             => (240, 230, 140),
-        "limegreen"                         => (50, 205, 50),
-        "forestgreen"                       => (34, 139, 34),
-        "seagreen"                          => (46, 139, 87),
-        "darkturquoise"                     => (0, 206, 209),
-        "royalblue"                         => (65, 105, 225),
-        "slateblue"                         => (106, 90, 205),
-        "mediumpurple"                      => (147, 112, 219),
-        "orchid"                            => (218, 112, 214),
-        "plum"                              => (221, 160, 221),
-        "violet"                            => (238, 130, 238),
-        "deeppink"                          => (255, 20, 147),
-        "orangered"                         => (255, 69, 0),
-        "firebrick"                         => (178, 34, 34),
-        "brown"                             => (165, 42, 42),
-        "saddlebrown"                       => (139, 69, 19),
-        "slategray"  | "slategrey"          => (112, 128, 144),
-        "darkslategray" | "darkslategrey"   => (47, 79, 79),
-        _                                   => (150, 150, 150),
+        "black" => (0, 0, 0),
+        "white" => (255, 255, 255),
+        "red" => (255, 0, 0),
+        "green" => (0, 128, 0),
+        "lime" => (0, 255, 0),
+        "blue" => (0, 0, 255),
+        "gray" | "grey" => (128, 128, 128),
+        "lightgray" | "lightgrey" => (211, 211, 211),
+        "darkgray" | "darkgrey" => (169, 169, 169),
+        "silver" => (192, 192, 192),
+        "steelblue" => (70, 130, 180),
+        "orange" => (255, 165, 0),
+        "darkorange" => (255, 140, 0),
+        "purple" => (128, 0, 128),
+        "yellow" => (255, 255, 0),
+        "cyan" | "aqua" => (0, 255, 255),
+        "magenta" | "fuchsia" => (255, 0, 255),
+        "darkred" => (139, 0, 0),
+        "darkgreen" => (0, 100, 0),
+        "darkblue" => (0, 0, 139),
+        "salmon" => (250, 128, 114),
+        "teal" => (0, 128, 128),
+        "coral" => (255, 127, 80),
+        "indigo" => (75, 0, 130),
+        "pink" => (255, 192, 203),
+        "hotpink" => (255, 105, 180),
+        "gold" => (255, 215, 0),
+        "olive" => (128, 128, 0),
+        "navy" => (0, 0, 128),
+        "maroon" => (128, 0, 0),
+        "crimson" => (220, 20, 60),
+        "tomato" => (255, 99, 71),
+        "chocolate" => (210, 105, 30),
+        "sienna" => (160, 82, 45),
+        "tan" => (210, 180, 140),
+        "khaki" => (240, 230, 140),
+        "limegreen" => (50, 205, 50),
+        "forestgreen" => (34, 139, 34),
+        "seagreen" => (46, 139, 87),
+        "darkturquoise" => (0, 206, 209),
+        "royalblue" => (65, 105, 225),
+        "slateblue" => (106, 90, 205),
+        "mediumpurple" => (147, 112, 219),
+        "orchid" => (218, 112, 214),
+        "plum" => (221, 160, 221),
+        "violet" => (238, 130, 238),
+        "deeppink" => (255, 20, 147),
+        "orangered" => (255, 69, 0),
+        "firebrick" => (178, 34, 34),
+        "brown" => (165, 42, 42),
+        "saddlebrown" => (139, 69, 19),
+        "slategray" | "slategrey" => (112, 128, 144),
+        "darkslategray" | "darkslategrey" => (47, 79, 79),
+        _ => (150, 150, 150),
     }
 }

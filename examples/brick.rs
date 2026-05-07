@@ -9,13 +9,13 @@
 //!
 //! SVGs are written to `docs/src/assets/brick/`.
 
-use std::collections::HashMap;
-use kuva::plot::BrickPlot;
-use kuva::plot::brick::BrickTemplate;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::brick::BrickTemplate;
+use kuva::plot::BrickPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
+use std::collections::HashMap;
 
 const OUT: &str = "docs/src/assets/brick";
 
@@ -45,9 +45,7 @@ fn dna() {
         "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCATCATCATCCATCATCATCATCATCATCAT",
     ];
 
-    let names = vec![
-        "read_1", "read_2", "read_3", "read_4", "read_5", "read_6",
-    ];
+    let names = vec!["read_1", "read_2", "read_3", "read_4", "read_5", "read_6"];
 
     let tmpl = BrickTemplate::new().dna();
 
@@ -55,11 +53,10 @@ fn dna() {
         .with_sequences(sequences)
         .with_names(names)
         .with_template(tmpl.template)
-        .with_x_offset(18.0);  // skip the 18-base flanking region
+        .with_x_offset(18.0); // skip the 18-base flanking region
 
     let plots = vec![Plot::Brick(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Brick Plot — DNA Sequences");
+    let layout = Layout::auto_from_plots(&plots).with_title("Brick Plot — DNA Sequences");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/dna.svg"), svg).unwrap();
@@ -71,11 +68,11 @@ fn dna() {
 /// that should fall back to the global `x_offset`.
 fn per_row_offsets() {
     let sequences = vec![
-        "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCAT",  // offset 18
-        "GCACTCATCATCATCATCATCATCATCATCATCAT",          // offset 10
-        "ATCAGGCCGCACTCATCATCATCATCATCATCATCATCAT",    // offset 16
-        "CACTCATCATCATCATCATCAT",                        // offset  5
-        "AGGCCGCACTCATCATCATCATCATCATCATCATCATCAT",    // None → global 12
+        "CGGCGATCAGGCCGCACTCATCATCATCATCATCATCATCAT", // offset 18
+        "GCACTCATCATCATCATCATCATCATCATCATCAT",        // offset 10
+        "ATCAGGCCGCACTCATCATCATCATCATCATCATCATCAT",   // offset 16
+        "CACTCATCATCATCATCATCAT",                     // offset  5
+        "AGGCCGCACTCATCATCATCATCATCATCATCATCATCAT",   // None → global 12
     ];
 
     let names = vec!["read_1", "read_2", "read_3", "read_4", "read_5"];
@@ -86,14 +83,17 @@ fn per_row_offsets() {
         .with_sequences(sequences)
         .with_names(names)
         .with_template(tmpl.template)
-        .with_x_offset(12.0)                            // global fallback
+        .with_x_offset(12.0) // global fallback
         .with_x_offsets(vec![
-            Some(18.0_f64), Some(10.0), Some(16.0), Some(5.0), None,
+            Some(18.0_f64),
+            Some(10.0),
+            Some(16.0),
+            Some(5.0),
+            None,
         ]);
 
     let plots = vec![Plot::Brick(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Brick Plot — Per-row Offsets");
+    let layout = Layout::auto_from_plots(&plots).with_title("Brick Plot — Per-row Offsets");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/per_row_offsets.svg"), svg).unwrap();
@@ -107,10 +107,10 @@ fn per_row_offsets() {
 /// each brick.
 fn custom_template() {
     let mut tmpl: HashMap<char, String> = HashMap::new();
-    tmpl.insert('H', "steelblue".into());    // α-helix
-    tmpl.insert('E', "firebrick".into());    // β-strand
-    tmpl.insert('C', "#aaaaaa".into());      // coil
-    tmpl.insert('T', "seagreen".into());     // turn
+    tmpl.insert('H', "steelblue".into()); // α-helix
+    tmpl.insert('E', "firebrick".into()); // β-strand
+    tmpl.insert('C', "#aaaaaa".into()); // coil
+    tmpl.insert('T', "seagreen".into()); // turn
 
     let sequences = vec![
         "CCCCCHHHHHHHHHHCCCCEEEEEECCCTTCCCEEEEECCC",
@@ -129,8 +129,8 @@ fn custom_template() {
         .with_values();
 
     let plots = vec![Plot::Brick(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Brick Plot — Protein Secondary Structure");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("Brick Plot — Protein Secondary Structure");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/custom.svg"), svg).unwrap();
@@ -147,28 +147,25 @@ fn custom_template() {
 fn strigar() {
     // Simulated CAT-repeat region with occasional single-nucleotide interruptions.
     let strigars: Vec<(String, String)> = vec![
-        ("CAT:A,C:B,T:C".to_string(),   "10A1B4A1C1A".to_string()),
-        ("CAT:A,T:B".to_string(),        "14A1B1A".to_string()),
-        ("CAT:A,T:B".to_string(),        "14A1B1A".to_string()),
-        ("CAT:A,C:B,T:C".to_string(),   "10A1B4A1C1A".to_string()),
-        ("CAT:A,C:B,T:C".to_string(),   "10A1B4A1C1A".to_string()),
+        ("CAT:A,C:B,T:C".to_string(), "10A1B4A1C1A".to_string()),
+        ("CAT:A,T:B".to_string(), "14A1B1A".to_string()),
+        ("CAT:A,T:B".to_string(), "14A1B1A".to_string()),
+        ("CAT:A,C:B,T:C".to_string(), "10A1B4A1C1A".to_string()),
+        ("CAT:A,C:B,T:C".to_string(), "10A1B4A1C1A".to_string()),
         ("CAT:A,C:B,GGT:C".to_string(), "10A1B8A1C5A".to_string()),
-        ("CAT:A,C:B".to_string(),        "10A1B5A".to_string()),
-        ("CAT:A,C:B,T:C".to_string(),   "10A1B4A1C1A".to_string()),
+        ("CAT:A,C:B".to_string(), "10A1B5A".to_string()),
+        ("CAT:A,C:B,T:C".to_string(), "10A1B4A1C1A".to_string()),
     ];
 
     let names = vec![
-        "read_1", "read_2", "read_3", "read_4",
-        "read_5", "read_6", "read_7", "read_8",
+        "read_1", "read_2", "read_3", "read_4", "read_5", "read_6", "read_7", "read_8",
     ];
 
-    let plot = BrickPlot::new()
-        .with_names(names)
-        .with_strigars(strigars);
+    let plot = BrickPlot::new().with_names(names).with_strigars(strigars);
 
     let plots = vec![Plot::Brick(plot)];
-    let layout = Layout::auto_from_plots(&plots)
-        .with_title("Brick Plot — Strigar Mode (CAT repeats)");
+    let layout =
+        Layout::auto_from_plots(&plots).with_title("Brick Plot — Strigar Mode (CAT repeats)");
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/strigar.svg"), svg).unwrap();

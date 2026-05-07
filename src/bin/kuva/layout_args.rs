@@ -1,5 +1,5 @@
 use clap::Args;
-use kuva::render::layout::Layout;
+use kuva::render::layout::{Layout, TickFormat};
 use kuva::render::palette::Palette;
 use kuva::render::theme::Theme;
 
@@ -72,6 +72,38 @@ pub struct BaseArgs {
     /// Enable SVG interactivity: hover highlight, click-to-pin, search, and coordinate readout.
     #[arg(long)]
     pub interactive: bool,
+
+    /// Wrap all text (title, axis labels, legend) at N characters.
+    /// Per-element flags (--title-wrap, etc.) override this when set.
+    #[arg(long, value_name = "CHARS")]
+    pub wrap: Option<usize>,
+
+    /// Wrap the plot title at N characters.
+    #[arg(long, value_name = "CHARS")]
+    pub title_wrap: Option<usize>,
+
+    /// Wrap the x-axis label at N characters.
+    #[arg(long, value_name = "CHARS")]
+    pub x_label_wrap: Option<usize>,
+
+    /// Wrap the y-axis label at N characters.
+    #[arg(long, value_name = "CHARS")]
+    pub y_label_wrap: Option<usize>,
+
+    /// Wrap the secondary y-axis label at N characters.
+    #[arg(long, value_name = "CHARS")]
+    pub y2_label_wrap: Option<usize>,
+
+    /// Wrap legend labels and titles at N characters.
+    #[arg(long, value_name = "CHARS")]
+    pub legend_wrap: Option<usize>,
+
+    /// Embed DejaVu Sans font directly in SVG output.
+    /// Use this when rendering SVG in environments without system fonts
+    /// (headless servers, containers, CI pipelines). Adds ~1 MB to the SVG.
+    /// Has no effect on PNG/PDF output (those backends always have the font).
+    #[arg(long, conflicts_with = "terminal")]
+    pub embed_font: bool,
 }
 
 #[derive(Args, Debug)]
@@ -130,6 +162,16 @@ pub struct AxisArgs {
     /// Draw faint gridlines at minor tick positions (requires --minor-ticks).
     #[arg(long)]
     pub minor_grid: bool,
+
+    /// Tick label format for the X axis.
+    /// auto (default), int, sci, percent, or fixed:N (e.g. fixed:2 → "3.14").
+    #[arg(long, value_name = "FORMAT")]
+    pub x_tick_format: Option<String>,
+
+    /// Tick label format for the Y axis.
+    /// auto (default), int, sci, percent, or fixed:N (e.g. fixed:2 → "3.14").
+    #[arg(long, value_name = "FORMAT")]
+    pub y_tick_format: Option<String>,
 }
 
 #[derive(Args, Debug)]
@@ -148,8 +190,12 @@ pub struct LogArgs {
 
 /// Apply base output/appearance args to a layout.
 pub fn apply_base_args(mut layout: Layout, args: &BaseArgs) -> Layout {
-    if let Some(w) = args.width { layout = layout.with_width(w); }
-    if let Some(h) = args.height { layout = layout.with_height(h); }
+    if let Some(w) = args.width {
+        layout = layout.with_width(w);
+    }
+    if let Some(h) = args.height {
+        layout = layout.with_height(h);
+    }
     if let Some(ref t) = args.title {
         layout = layout.with_title(t.clone());
     }
@@ -171,7 +217,8 @@ pub fn apply_base_args(mut layout: Layout, args: &BaseArgs) -> Layout {
     // the theme's value, so this must come last).
     if args.terminal {
         layout = layout.with_show_grid(false);
-        let rows = args.term_height
+        let rows = args
+            .term_height
             .map(|h| h as u32)
             .or_else(|| std::env::var("LINES").ok().and_then(|s| s.parse().ok()))
             .unwrap_or(24u32);
@@ -194,6 +241,25 @@ pub fn apply_base_args(mut layout: Layout, args: &BaseArgs) -> Layout {
     if args.interactive {
         layout = layout.with_interactive();
     }
+    // Global wrap first, then per-element overrides.
+    if let Some(n) = args.wrap {
+        layout = layout.with_wrap(n);
+    }
+    if let Some(n) = args.title_wrap {
+        layout = layout.with_title_wrap(n);
+    }
+    if let Some(n) = args.x_label_wrap {
+        layout = layout.with_x_label_wrap(n);
+    }
+    if let Some(n) = args.y_label_wrap {
+        layout = layout.with_y_label_wrap(n);
+    }
+    if let Some(n) = args.y2_label_wrap {
+        layout = layout.with_y2_label_wrap(n);
+    }
+    if let Some(n) = args.legend_wrap {
+        layout = layout.with_legend_wrap(n);
+    }
     layout
 }
 
@@ -211,14 +277,40 @@ pub fn apply_axis_args(mut layout: Layout, args: &AxisArgs) -> Layout {
     if args.no_grid {
         layout = layout.with_show_grid(false);
     }
-    if let Some(v) = args.x_min { layout = layout.with_x_axis_min(v); }
-    if let Some(v) = args.x_max { layout = layout.with_x_axis_max(v); }
-    if let Some(v) = args.y_min { layout = layout.with_y_axis_min(v); }
-    if let Some(v) = args.y_max { layout = layout.with_y_axis_max(v); }
-    if let Some(s) = args.x_tick_step { layout = layout.with_x_tick_step(s); }
-    if let Some(s) = args.y_tick_step { layout = layout.with_y_tick_step(s); }
-    if let Some(n) = args.minor_ticks { layout = layout.with_minor_ticks(n); }
-    if args.minor_grid { layout = layout.with_show_minor_grid(true); }
+    if let Some(v) = args.x_min {
+        layout = layout.with_x_axis_min(v);
+    }
+    if let Some(v) = args.x_max {
+        layout = layout.with_x_axis_max(v);
+    }
+    if let Some(v) = args.y_min {
+        layout = layout.with_y_axis_min(v);
+    }
+    if let Some(v) = args.y_max {
+        layout = layout.with_y_axis_max(v);
+    }
+    if let Some(s) = args.x_tick_step {
+        layout = layout.with_x_tick_step(s);
+    }
+    if let Some(s) = args.y_tick_step {
+        layout = layout.with_y_tick_step(s);
+    }
+    if let Some(n) = args.minor_ticks {
+        layout = layout.with_minor_ticks(n);
+    }
+    if args.minor_grid {
+        layout = layout.with_show_minor_grid(true);
+    }
+    if let Some(ref fmt) = args.x_tick_format {
+        if let Some(tf) = parse_tick_format(fmt) {
+            layout = layout.with_x_tick_format(tf);
+        }
+    }
+    if let Some(ref fmt) = args.y_tick_format {
+        if let Some(tf) = parse_tick_format(fmt) {
+            layout = layout.with_y_tick_format(tf);
+        }
+    }
     layout
 }
 
@@ -264,6 +356,22 @@ fn colourblind_palette(condition: &str) -> Option<Palette> {
         "deuteranopia" | "deuter" => Some(Palette::deuteranopia()),
         "protanopia" | "protan" => Some(Palette::protanopia()),
         "tritanopia" | "tritan" => Some(Palette::tritanopia()),
+        _ => None,
+    }
+}
+
+/// Parse a tick format string from the CLI.
+/// Accepted values: auto, int, sci, percent, fixed:N
+fn parse_tick_format(s: &str) -> Option<TickFormat> {
+    match s {
+        "auto" => Some(TickFormat::Auto),
+        "int" => Some(TickFormat::Integer),
+        "sci" => Some(TickFormat::Sci),
+        "percent" => Some(TickFormat::Percent),
+        _ if s.starts_with("fixed:") => s["fixed:".len()..]
+            .parse::<usize>()
+            .ok()
+            .map(TickFormat::Fixed),
         _ => None,
     }
 }

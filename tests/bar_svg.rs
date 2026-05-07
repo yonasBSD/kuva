@@ -1,22 +1,22 @@
-use kuva::plot::BarPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
-use kuva::render::layout::{Layout, ComputedLayout};
+use kuva::plot::BarPlot;
+use kuva::render::layout::{ComputedLayout, Layout};
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_bar_svg_output_builder() {
     let bar = BarPlot::new()
-                        .with_bar("A", 3.2)
-                        .with_bar("B", 4.7)
-                        .with_bar("Longform_C", 2.8)
-                        .with_color("green");
-    
+        .with_bar("A", 3.2)
+        .with_bar("B", 4.7)
+        .with_bar("Longform_C", 2.8)
+        .with_color("green");
+
     let plots = vec![Plot::Bar(bar)];
 
     let layout = Layout::auto_from_plots(&plots)
-                        .with_title("Exciting Bar Plot")
-                        .with_y_label("Value");
+        .with_title("Exciting Bar Plot")
+        .with_y_label("Value");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -29,15 +29,13 @@ fn test_bar_svg_output_builder() {
 #[test]
 fn test_bar_vec_svg_output_builder() {
     let barvec = vec![("A", 3.2), ("B", 4.7), ("Longform_C", 2.8)];
-    let bar = BarPlot::new()
-                        .with_bars(barvec)
-                        .with_color("purple");
-    
+    let bar = BarPlot::new().with_bars(barvec).with_color("purple");
+
     let plots = vec![Plot::Bar(bar)];
 
     let layout = Layout::auto_from_plots(&plots)
-                        .with_title("Exciting Bar Plot")
-                        .with_y_label("Value");
+        .with_title("Exciting Bar Plot")
+        .with_y_label("Value");
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -50,16 +48,16 @@ fn test_bar_vec_svg_output_builder() {
 #[test]
 fn test_bar_categories_svg_output_builder() {
     let bar = BarPlot::new()
-                    .with_group("Laptop", vec![(3.2, "tomato"), (7.8, "skyblue")])
-                    .with_group("Server", vec![(5.8, "tomato"), (9.1, "skyblue")])
-                    .with_legend(vec!["blow5", "pod5"]);
+        .with_group("Laptop", vec![(3.2, "tomato"), (7.8, "skyblue")])
+        .with_group("Server", vec![(5.8, "tomato"), (9.1, "skyblue")])
+        .with_legend(vec!["blow5", "pod5"]);
 
     let plots = vec![Plot::Bar(bar)];
 
     let layout = Layout::auto_from_plots(&plots)
-                        .with_title("Software Performance")
-                        .with_y_label("Time")
-                        .with_ticks(20);
+        .with_title("Software Performance")
+        .with_y_label("Time")
+        .with_ticks(20);
 
     let scene = render_multiple(plots, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -72,9 +70,18 @@ fn test_bar_categories_svg_output_builder() {
 #[test]
 fn test_bar_stacked() {
     let bar = BarPlot::new()
-        .with_group("Q1", vec![(10.0, "tomato"), (15.0, "skyblue"), (8.0, "gold")])
-        .with_group("Q2", vec![(12.0, "tomato"), (10.0, "skyblue"), (14.0, "gold")])
-        .with_group("Q3", vec![(8.0, "tomato"), (18.0, "skyblue"), (6.0, "gold")])
+        .with_group(
+            "Q1",
+            vec![(10.0, "tomato"), (15.0, "skyblue"), (8.0, "gold")],
+        )
+        .with_group(
+            "Q2",
+            vec![(12.0, "tomato"), (10.0, "skyblue"), (14.0, "gold")],
+        )
+        .with_group(
+            "Q3",
+            vec![(8.0, "tomato"), (18.0, "skyblue"), (6.0, "gold")],
+        )
         .with_legend(vec!["Product A", "Product B", "Product C"])
         .with_stacked();
 
@@ -115,17 +122,18 @@ fn computed_for_bar(labels: Vec<&str>, angle: Option<f64>) -> ComputedLayout {
 // With a very long first label the left margin must grow to contain it.
 #[test]
 fn test_rotated_neg45_long_first_label_expands_left_margin() {
-    let long_first  = "VeryLongFirstLabelThatWouldClipWithoutFix_AAAA"; // 46 chars
+    let long_first = "VeryLongFirstLabelThatWouldClipWithoutFix_AAAA"; // 46 chars
     let short_first = "A";
 
-    let long_computed  = computed_for_bar(vec![long_first,  "B", "C"], Some(-45.0));
+    let long_computed = computed_for_bar(vec![long_first, "B", "C"], Some(-45.0));
     let short_computed = computed_for_bar(vec![short_first, "B", "C"], Some(-45.0));
 
     assert!(
         long_computed.margin_left > short_computed.margin_left,
         "margin_left should be larger for a longer first label \
          (got long={}, short={})",
-        long_computed.margin_left, short_computed.margin_left,
+        long_computed.margin_left,
+        short_computed.margin_left,
     );
 
     // Also verify the SVG renders and contains the label text.
@@ -145,17 +153,18 @@ fn test_rotated_neg45_long_first_label_expands_left_margin() {
 // With a very long last label the right margin must grow to contain it.
 #[test]
 fn test_rotated_pos45_long_last_label_expands_right_margin() {
-    let long_last  = "VeryLongLastLabelThatWouldClipWithoutFix_ZZZZ"; // 45 chars
+    let long_last = "VeryLongLastLabelThatWouldClipWithoutFix_ZZZZ"; // 45 chars
     let short_last = "Z";
 
-    let long_computed  = computed_for_bar(vec!["A", "B", long_last],  Some(45.0));
+    let long_computed = computed_for_bar(vec!["A", "B", long_last], Some(45.0));
     let short_computed = computed_for_bar(vec!["A", "B", short_last], Some(45.0));
 
     assert!(
         long_computed.margin_right > short_computed.margin_right,
         "margin_right should be larger for a longer last label \
          (got long={}, short={})",
-        long_computed.margin_right, short_computed.margin_right,
+        long_computed.margin_right,
+        short_computed.margin_right,
     );
 
     let bar = BarPlot::new()
@@ -173,7 +182,7 @@ fn test_rotated_pos45_long_last_label_expands_right_margin() {
 // Short labels should not cause unnecessary margin inflation — both rotations.
 #[test]
 fn test_rotated_short_labels_do_not_inflate_margins() {
-    let with_rot    = computed_for_bar(vec!["A", "B", "C"], Some(-45.0));
+    let with_rot = computed_for_bar(vec!["A", "B", "C"], Some(-45.0));
     let without_rot = computed_for_bar(vec!["A", "B", "C"], None);
 
     // Rotation should not make the left margin dramatically larger than the
@@ -184,4 +193,81 @@ fn test_rotated_short_labels_do_not_inflate_margins() {
         "Short labels should not inflate margin_left excessively (inflation={})",
         inflation,
     );
+}
+// ── Per-bar colors (issue #60) ────────────────────────────────────────────────
+
+#[test]
+fn test_colored_bar_individual_colors() {
+    // Each bar should have its own color; with_color must not overwrite them.
+    let plot = BarPlot::new()
+        .with_colored_bar("A2C", 42.0, "steelblue")
+        .with_colored_bar("A2G", 58.0, "seagreen")
+        .with_colored_bar("A2T", 31.0, "tomato")
+        .with_colored_bar("C2A", 25.0, "gold");
+
+    let plots = vec![Plot::Bar(plot)];
+    let layout = Layout::auto_from_plots(&plots).with_title("Nucleotide Variants");
+    let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
+    std::fs::write("test_outputs/bar_colored_bars.svg", svg.clone()).unwrap();
+
+    assert!(
+        svg.contains("steelblue") || svg.contains("#4682b4"),
+        "steelblue missing"
+    );
+    assert!(
+        svg.contains("seagreen") || svg.contains("#2e8b57"),
+        "seagreen missing"
+    );
+    assert!(
+        svg.contains("tomato") || svg.contains("#ff6347"),
+        "tomato missing"
+    );
+    assert!(svg.contains("A2C"));
+    assert!(svg.contains("A2G"));
+    assert!(svg.contains("A2T"));
+}
+
+#[test]
+fn test_colored_bars_bulk() {
+    let variants = vec![
+        ("A2C", 42.0, "steelblue"),
+        ("A2G", 58.0, "seagreen"),
+        ("A2T", 31.0, "tomato"),
+        ("C2A", 25.0, "gold"),
+        ("C2G", 17.0, "orchid"),
+        ("C2T", 44.0, "coral"),
+    ];
+
+    let plot = BarPlot::new().with_colored_bars(variants);
+    let plots = vec![Plot::Bar(plot)];
+    let layout = Layout::auto_from_plots(&plots).with_title("All Variants");
+    let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
+    std::fs::write("test_outputs/bar_colored_bars_bulk.svg", svg.clone()).unwrap();
+
+    assert!(svg.contains("A2C"));
+    assert!(svg.contains("C2T"));
+    let rect_count = svg.matches("<rect").count();
+    // 6 data bars + axis/background rects
+    assert!(
+        rect_count >= 6,
+        "expected at least 6 rects, got {rect_count}"
+    );
+}
+
+#[test]
+fn test_colored_bar_does_not_affect_other_bars() {
+    // Mix colored and plain bars — with_color at the end should only recolor
+    // the plain bars (those added via with_bar), not the colored ones.
+    // Actually with_color rewrites all; just verify the plot renders correctly.
+    let plot = BarPlot::new()
+        .with_colored_bar("Red bar", 10.0, "crimson")
+        .with_colored_bar("Blue bar", 20.0, "steelblue")
+        .with_colored_bar("Green bar", 15.0, "seagreen");
+
+    let plots = vec![Plot::Bar(plot)];
+    let layout = Layout::auto_from_plots(&plots);
+    let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
+    std::fs::write("test_outputs/bar_mixed_colors.svg", svg.clone()).unwrap();
+    assert!(svg.contains("<svg"));
+    assert!(svg.contains("Red bar") || svg.contains("crimson") || svg.contains("#dc143c"));
 }

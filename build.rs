@@ -13,7 +13,7 @@ fn main() {
         let out = std::env::var("OUT_DIR").unwrap();
         let out = Path::new(&out);
         std::fs::write(out.join("doom.wasm"), b"").unwrap();
-        std::fs::write(out.join("doom.js"),   "").unwrap();
+        std::fs::write(out.join("doom.js"), "").unwrap();
         std::fs::write(out.join("doom1.wad"), b"").unwrap();
         return;
     }
@@ -24,8 +24,8 @@ fn main() {
     std::fs::create_dir_all(&cache).expect("failed to create doom-assets/");
 
     let wasm = cache.join("doom.wasm");
-    let js   = cache.join("doom.js");
-    let wad  = cache.join("doom1.wad");
+    let js = cache.join("doom.js");
+    let wad = cache.join("doom1.wad");
 
     // Tell Cargo to re-run this script if the cached files disappear.
     println!("cargo:rerun-if-changed=doom-assets/doom.wasm");
@@ -34,8 +34,7 @@ fn main() {
 
     // Download missing assets from the kuva doom-assets release.
     // These are uploaded once by .github/workflows/build-doom-assets.yml.
-    const BASE: &str =
-        "https://github.com/Psy-Fer/kuva/releases/download/doom-assets-v1";
+    const BASE: &str = "https://github.com/Psy-Fer/kuva/releases/download/doom-assets-v1";
 
     if !wasm.exists() {
         download(&format!("{BASE}/doom.wasm"), &wasm);
@@ -51,8 +50,8 @@ fn main() {
     let out = std::env::var("OUT_DIR").unwrap();
     let out = Path::new(&out);
     copy_asset(&wasm, out.join("doom.wasm"));
-    copy_asset(&js,   out.join("doom.js"));
-    copy_asset(&wad,  out.join("doom1.wad"));
+    copy_asset(&js, out.join("doom.js"));
+    copy_asset(&wad, out.join("doom1.wad"));
 }
 
 fn download(url: &str, dest: &Path) {
@@ -80,7 +79,6 @@ fn download(url: &str, dest: &Path) {
 }
 
 fn copy_asset(src: &Path, dest: PathBuf) {
-    std::fs::copy(src, &dest).unwrap_or_else(|e| {
-        panic!("failed to copy {} → {}: {e}", src.display(), dest.display())
-    });
+    std::fs::copy(src, &dest)
+        .unwrap_or_else(|e| panic!("failed to copy {} → {}: {e}", src.display(), dest.display()));
 }

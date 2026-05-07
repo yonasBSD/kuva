@@ -1,12 +1,12 @@
-use kuva::plot::line::LinePlot;
+use kuva::backend::svg::SvgBackend;
 use kuva::plot::bar::BarPlot;
 use kuva::plot::histogram::Histogram;
+use kuva::plot::line::LinePlot;
 use kuva::plot::scatter::ScatterPlot;
 use kuva::plot::LegendPosition;
-use kuva::render::layout::{Layout, ComputedLayout};
+use kuva::render::layout::{ComputedLayout, Layout};
 use kuva::render::plots::Plot;
 use kuva::render::render::render_twin_y;
-use kuva::backend::svg::SvgBackend;
 use kuva::Palette;
 
 fn extract_text_x(svg: &str, text: &str) -> Option<f64> {
@@ -21,16 +21,34 @@ fn extract_text_x(svg: &str, text: &str) -> Option<f64> {
 
 fn make_temperature_line() -> Plot {
     let points: Vec<(f64, f64)> = vec![
-        (1.0, 5.0), (2.0, 8.0), (3.0, 14.0), (4.0, 20.0), (5.0, 24.0), (6.0, 22.0),
+        (1.0, 5.0),
+        (2.0, 8.0),
+        (3.0, 14.0),
+        (4.0, 20.0),
+        (5.0, 24.0),
+        (6.0, 22.0),
     ];
-    Plot::Line(LinePlot::new().with_data(points).with_legend("Temperature (°C)"))
+    Plot::Line(
+        LinePlot::new()
+            .with_data(points)
+            .with_legend("Temperature (°C)"),
+    )
 }
 
 fn make_rainfall_line() -> Plot {
     let points: Vec<(f64, f64)> = vec![
-        (1.0, 80.0), (2.0, 60.0), (3.0, 45.0), (4.0, 30.0), (5.0, 20.0), (6.0, 35.0),
+        (1.0, 80.0),
+        (2.0, 60.0),
+        (3.0, 45.0),
+        (4.0, 30.0),
+        (5.0, 20.0),
+        (6.0, 35.0),
     ];
-    Plot::Line(LinePlot::new().with_data(points).with_legend("Rainfall (mm)"))
+    Plot::Line(
+        LinePlot::new()
+            .with_data(points)
+            .with_legend("Rainfall (mm)"),
+    )
 }
 
 #[test]
@@ -61,8 +79,14 @@ fn test_twin_y_labels() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/twin_y_labels.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("Rain"), "SVG should contain the y2 label 'Rain'");
-    assert!(svg.contains("Temp"), "SVG should contain the y label 'Temp'");
+    assert!(
+        svg.contains("Rain"),
+        "SVG should contain the y2 label 'Rain'"
+    );
+    assert!(
+        svg.contains("Temp"),
+        "SVG should contain the y label 'Temp'"
+    );
 }
 
 #[test]
@@ -84,32 +108,44 @@ fn test_twin_y_palette() {
     let primary = vec![make_temperature_line()];
     let secondary = vec![make_rainfall_line()];
 
-    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
-        .with_palette(Palette::wong());
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary).with_palette(Palette::wong());
 
     let scene = render_twin_y(primary, secondary, layout);
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/twin_y_palette.svg", svg.clone()).unwrap();
 
     // Wong palette first two colors: #e69f00, #56b4e9 (Color outputs lowercase hex)
-    assert!(svg.contains("#e69f00"), "SVG should contain wong palette color 1");
-    assert!(svg.contains("#56b4e9"), "SVG should contain wong palette color 2");
+    assert!(
+        svg.contains("#e69f00"),
+        "SVG should contain wong palette color 1"
+    );
+    assert!(
+        svg.contains("#56b4e9"),
+        "SVG should contain wong palette color 2"
+    );
 }
 
 #[test]
 fn test_twin_y_log_y2() {
     let primary_points: Vec<(f64, f64)> = vec![
-        (1.0, 10.0), (2.0, 20.0), (3.0, 30.0), (4.0, 40.0), (5.0, 50.0),
+        (1.0, 10.0),
+        (2.0, 20.0),
+        (3.0, 30.0),
+        (4.0, 40.0),
+        (5.0, 50.0),
     ];
     let secondary_points: Vec<(f64, f64)> = vec![
-        (1.0, 1.0), (2.0, 10.0), (3.0, 100.0), (4.0, 1000.0), (5.0, 10000.0),
+        (1.0, 1.0),
+        (2.0, 10.0),
+        (3.0, 100.0),
+        (4.0, 1000.0),
+        (5.0, 10000.0),
     ];
 
     let primary = vec![Plot::Line(LinePlot::new().with_data(primary_points))];
     let secondary = vec![Plot::Line(LinePlot::new().with_data(secondary_points))];
 
-    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
-        .with_log_y2();
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary).with_log_y2();
 
     let scene = render_twin_y(primary, secondary, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -120,7 +156,6 @@ fn test_twin_y_log_y2() {
     assert!(svg.contains(">1<"), "SVG should contain log tick '1'");
     assert!(svg.contains(">100<"), "SVG should contain log tick '100'");
 }
-
 
 #[test]
 fn test_twin_y_multiplot() {
@@ -135,9 +170,18 @@ fn test_twin_y_multiplot() {
     std::fs::write("test_outputs/twin_y_multiplot.svg", svg.clone()).unwrap();
 
     assert!(svg.contains("<svg"), "SVG should contain an <svg element");
-    assert!(svg.contains("rainfall and temperature twin y multiplot"), "SVG should contain the title");
-    assert!(svg.contains("Temperature"), "SVG should contain the primary series legend label");
-    assert!(svg.contains("Rainfall"), "SVG should contain the secondary series legend label");
+    assert!(
+        svg.contains("rainfall and temperature twin y multiplot"),
+        "SVG should contain the title"
+    );
+    assert!(
+        svg.contains("Temperature"),
+        "SVG should contain the primary series legend label"
+    );
+    assert!(
+        svg.contains("Rainfall"),
+        "SVG should contain the secondary series legend label"
+    );
     // RightTop legend is placed in the right margin — it should appear after the plot area elements
     assert!(svg.contains("x1="), "SVG should contain axis line elements");
 }
@@ -147,8 +191,7 @@ fn test_twin_y_y_label_position() {
     let primary = vec![make_temperature_line()];
     let secondary = vec![make_rainfall_line()];
 
-    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
-        .with_y_label("Temp");
+    let layout = Layout::auto_from_twin_y_plots(&primary, &secondary).with_y_label("Temp");
     let computed = ComputedLayout::from_layout(&layout);
     let scene = render_twin_y(primary, secondary, layout);
     let svg = SvgBackend.render_scene(&scene);
@@ -156,7 +199,10 @@ fn test_twin_y_y_label_position() {
 
     let label_x = extract_text_x(&svg, "Temp").expect("y-label 'Temp' not found in SVG");
     // Y label is placed just left of tick labels: margin_left - 8 - y_tick_label_px - 5 - label_size/2.
-    let expected_x = (computed.margin_left - 8.0 - computed.y_tick_label_px - 5.0
+    let expected_x = (computed.margin_left
+        - 8.0
+        - computed.y_tick_label_px
+        - 5.0
         - computed.label_size as f64 * 0.5)
         .max(computed.label_size as f64 * 0.5 + 3.0);
     assert!(
@@ -181,7 +227,10 @@ fn test_twin_y_bar_primary() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/twin_y_bar_primary.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("<rect"), "SVG should contain <rect elements (bars rendered)");
+    assert!(
+        svg.contains("<rect"),
+        "SVG should contain <rect elements (bars rendered)"
+    );
 }
 
 #[test]
@@ -200,17 +249,16 @@ fn test_twin_y_bar_secondary() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/twin_y_bar_secondary.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("<rect"), "SVG should contain <rect elements (bars rendered)");
+    assert!(
+        svg.contains("<rect"),
+        "SVG should contain <rect elements (bars rendered)"
+    );
 }
 
 #[test]
 fn test_twin_y_histogram_primary() {
     let data: Vec<f64> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
-    let hist = Plot::Histogram(
-        Histogram::new()
-            .with_data(data)
-            .with_range((0.0, 10.0)),
-    );
+    let hist = Plot::Histogram(Histogram::new().with_data(data).with_range((0.0, 10.0)));
     let primary = vec![hist];
     let secondary = vec![make_rainfall_line()];
 
@@ -219,7 +267,10 @@ fn test_twin_y_histogram_primary() {
     let svg = SvgBackend.render_scene(&scene);
     std::fs::write("test_outputs/twin_y_histogram_primary.svg", svg.clone()).unwrap();
 
-    assert!(svg.contains("<rect"), "SVG should contain <rect elements (histogram bars rendered)");
+    assert!(
+        svg.contains("<rect"),
+        "SVG should contain <rect elements (histogram bars rendered)"
+    );
 }
 
 /// GC bias-style showcase: Genome GC histogram + Coverage scatter on primary (Norm. Coverage);
@@ -230,10 +281,12 @@ fn test_twin_y_showcase() {
     // --- Genome GC histogram (primary axis, y 0–0.5) ---
     // Precomputed bell-curve fraction per 2 % GC bin, peak at ~38 % GC
     let edges: Vec<f64> = (0..=100).step_by(2).map(|x| x as f64).collect(); // 51 edges → 50 bins
-    let counts: Vec<f64> = (0..50_usize).map(|i| {
-        let gc_center = i as f64 * 2.0 + 1.0; // bin midpoint: 1, 3, 5, … 99
-        0.50 * (-0.5 * ((gc_center - 38.0) / 14.0).powi(2)).exp()
-    }).collect();
+    let counts: Vec<f64> = (0..50_usize)
+        .map(|i| {
+            let gc_center = i as f64 * 2.0 + 1.0; // bin midpoint: 1, 3, 5, … 99
+            0.50 * (-0.5 * ((gc_center - 38.0) / 14.0).powi(2)).exp()
+        })
+        .collect();
 
     let genome_gc = Plot::Histogram(
         Histogram::from_bins(edges, counts)
@@ -246,9 +299,17 @@ fn test_twin_y_showcase() {
     let coverage_pts: Vec<(f64, f64)> = {
         let mut v = Vec::new();
         // Extreme low GC — clamped
-        for gc in [2.0, 4.0, 6.0, 8.0, 10.0] { v.push((gc, 2.0)); }
+        for gc in [2.0, 4.0, 6.0, 8.0, 10.0] {
+            v.push((gc, 2.0));
+        }
         // Transition low
-        for (gc, cov) in [(12.0,1.70),(14.0,1.45),(16.0,1.35),(18.0,1.25),(20.0,1.15)] {
+        for (gc, cov) in [
+            (12.0, 1.70),
+            (14.0, 1.45),
+            (16.0, 1.35),
+            (18.0, 1.25),
+            (20.0, 1.15),
+        ] {
             v.push((gc, cov));
         }
         // Mid range — dense U-shaped minimum
@@ -258,12 +319,22 @@ fn test_twin_y_showcase() {
             v.push((gc, cov.min(2.0)));
         }
         // Transition high
-        for (gc, cov) in [(72.0,1.05),(74.0,1.10),(76.0,1.20),(78.0,1.30),(80.0,1.45)] {
+        for (gc, cov) in [
+            (72.0, 1.05),
+            (74.0, 1.10),
+            (76.0, 1.20),
+            (78.0, 1.30),
+            (80.0, 1.45),
+        ] {
             v.push((gc, cov));
         }
         // Extreme high GC — clamped
-        for (gc, cov) in [(82.0,1.60),(84.0,1.75),(86.0,1.80)] { v.push((gc, cov)); }
-        for gc in [88.0, 90.0, 92.0, 94.0, 96.0, 98.0] { v.push((gc, 2.0)); }
+        for (gc, cov) in [(82.0, 1.60), (84.0, 1.75), (86.0, 1.80)] {
+            v.push((gc, cov));
+        }
+        for gc in [88.0, 90.0, 92.0, 94.0, 96.0, 98.0] {
+            v.push((gc, 2.0));
+        }
         v
     };
 
@@ -277,26 +348,30 @@ fn test_twin_y_showcase() {
 
     // --- Reported BQ line (secondary axis, Base Quality 0–40) ---
     // Broadly flat ~28–30 across mid GC, falling off at extremes
-    let reported_bq: Vec<(f64, f64)> = (1..=20_u32).map(|i| {
-        let gc = i as f64 * 5.0;
-        let bq = if gc < 15.0 || gc > 85.0 {
-            22.0 - (gc - 50.0).abs() * 0.3
-        } else {
-            29.5 - (gc - 50.0).abs() * 0.025
-        };
-        (gc, bq.clamp(8.0, 40.0))
-    }).collect();
+    let reported_bq: Vec<(f64, f64)> = (1..=20_u32)
+        .map(|i| {
+            let gc = i as f64 * 5.0;
+            let bq = if gc < 15.0 || gc > 85.0 {
+                22.0 - (gc - 50.0).abs() * 0.3
+            } else {
+                29.5 - (gc - 50.0).abs() * 0.025
+            };
+            (gc, bq.clamp(8.0, 40.0))
+        })
+        .collect();
 
     // --- Empirical BQ line (secondary axis, lower trace ~14–16) ---
-    let empirical_bq: Vec<(f64, f64)> = (1..=20_u32).map(|i| {
-        let gc = i as f64 * 5.0;
-        let bq = if gc < 15.0 || gc > 85.0 {
-            10.0 - (gc - 50.0).abs() * 0.1
-        } else {
-            15.0 - (gc - 50.0).abs() * 0.01
-        };
-        (gc, bq.clamp(4.0, 40.0))
-    }).collect();
+    let empirical_bq: Vec<(f64, f64)> = (1..=20_u32)
+        .map(|i| {
+            let gc = i as f64 * 5.0;
+            let bq = if gc < 15.0 || gc > 85.0 {
+                10.0 - (gc - 50.0).abs() * 0.1
+            } else {
+                15.0 - (gc - 50.0).abs() * 0.01
+            };
+            (gc, bq.clamp(4.0, 40.0))
+        })
+        .collect();
 
     let reported = Plot::Line(
         LinePlot::new()
@@ -311,7 +386,7 @@ fn test_twin_y_showcase() {
             .with_legend("Empirical BQ"),
     );
 
-    let primary   = vec![genome_gc, coverage];
+    let primary = vec![genome_gc, coverage];
     let secondary = vec![reported, empirical];
 
     let layout = Layout::auto_from_twin_y_plots(&primary, &secondary)
@@ -327,9 +402,24 @@ fn test_twin_y_showcase() {
 
     assert!(svg.contains("<svg"), "SVG should be valid");
     assert!(svg.contains("GC Bias"), "SVG should contain the title");
-    assert!(svg.contains("Genome GC"), "SVG should contain Genome GC legend entry");
-    assert!(svg.contains("Coverage"), "SVG should contain Coverage legend entry");
-    assert!(svg.contains("Reported BQ"), "SVG should contain Reported BQ legend entry");
-    assert!(svg.contains("Empirical BQ"), "SVG should contain Empirical BQ legend entry");
-    assert!(svg.contains("<rect"), "SVG should contain histogram bars for Genome GC");
+    assert!(
+        svg.contains("Genome GC"),
+        "SVG should contain Genome GC legend entry"
+    );
+    assert!(
+        svg.contains("Coverage"),
+        "SVG should contain Coverage legend entry"
+    );
+    assert!(
+        svg.contains("Reported BQ"),
+        "SVG should contain Reported BQ legend entry"
+    );
+    assert!(
+        svg.contains("Empirical BQ"),
+        "SVG should contain Empirical BQ legend entry"
+    );
+    assert!(
+        svg.contains("<rect"),
+        "SVG should contain histogram bars for Genome GC"
+    );
 }

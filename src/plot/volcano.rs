@@ -26,7 +26,6 @@ pub enum LabelStyle {
     Arrow { offset_x: f64, offset_y: f64 },
 }
 
-
 /// A single gene (or feature) displayed in a volcano plot.
 pub struct VolcanoPoint {
     /// Gene or feature name, shown as a label when selected.
@@ -123,7 +122,9 @@ pub struct VolcanoPlot {
 }
 
 impl Default for VolcanoPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl VolcanoPlot {
@@ -152,8 +153,11 @@ impl VolcanoPlot {
     /// Compute the p-value floor used for -log10 transformation.
     /// Uses explicit floor if set, otherwise finds minimum non-zero p-value.
     pub fn floor(&self) -> f64 {
-        if let Some(f) = self.pvalue_floor { return f; }
-        self.points.iter()
+        if let Some(f) = self.pvalue_floor {
+            return f;
+        }
+        self.points
+            .iter()
             .map(|p| p.pvalue)
             .filter(|&p| p > 0.0)
             .fold(f64::INFINITY, f64::min)
@@ -351,7 +355,10 @@ impl VolcanoPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

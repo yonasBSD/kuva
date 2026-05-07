@@ -12,7 +12,6 @@ pub enum LineStyle {
     Custom(String),
 }
 
-
 impl LineStyle {
     pub fn dasharray(&self) -> Option<String> {
         match self {
@@ -55,7 +54,6 @@ impl ScatterPoint {
     }
 }
 
-
 use crate::plot::band::BandPlot;
 
 /// Builder for a line plot.
@@ -91,7 +89,7 @@ use crate::plot::band::BandPlot;
 /// let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
 /// std::fs::write("line.svg", svg).unwrap();
 /// ```
-#[derive(Debug, Clone,)]
+#[derive(Debug, Clone)]
 pub struct LinePlot {
     pub data: Vec<ScatterPoint>,
     pub color: String,
@@ -105,7 +103,9 @@ pub struct LinePlot {
 }
 
 impl Default for LinePlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LinePlot {
@@ -181,9 +181,9 @@ impl LinePlot {
     /// called after [`with_data`](Self::with_data).
     pub fn with_x_err_asymmetric<T, U, I>(mut self, errors: I) -> Self
     where
-    I: IntoIterator<Item = (T, U)>,
-    T: Into<f64>,
-    U: Into<f64>,
+        I: IntoIterator<Item = (T, U)>,
+        T: Into<f64>,
+        U: Into<f64>,
     {
         for (i, (neg, pos)) in errors.into_iter().enumerate() {
             if i < self.data.len() {
@@ -276,8 +276,7 @@ impl LinePlot {
         U: Into<f64>,
     {
         let x: Vec<f64> = self.data.iter().map(|p| p.x).collect();
-        let band = BandPlot::new(x, y_lower, y_upper)
-            .with_color(self.color.clone());
+        let band = BandPlot::new(x, y_lower, y_upper).with_color(self.color.clone());
         self.band = Some(band);
         self
     }

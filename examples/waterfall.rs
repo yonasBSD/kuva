@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/waterfall/`.
 
-use kuva::plot::WaterfallPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::WaterfallPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/waterfall";
 
@@ -31,13 +31,13 @@ fn main() {
 /// Classic delta-only waterfall — a running total that rises and falls.
 fn basic() {
     let wf = WaterfallPlot::new()
-        .with_delta("Revenue",        850.0)
+        .with_delta("Revenue", 850.0)
         .with_delta("Cost of goods", -340.0)
-        .with_delta("Personnel",     -180.0)
-        .with_delta("Operations",     -90.0)
-        .with_delta("Marketing",      -70.0)
-        .with_delta("Other income",    55.0)
-        .with_delta("Tax",            -85.0);
+        .with_delta("Personnel", -180.0)
+        .with_delta("Operations", -90.0)
+        .with_delta("Marketing", -70.0)
+        .with_delta("Other income", 55.0)
+        .with_delta("Tax", -85.0);
 
     let plots = vec![Plot::Waterfall(wf)];
     let layout = Layout::auto_from_plots(&plots)
@@ -54,22 +54,23 @@ fn basic() {
 /// total at that point, making subtotals visible alongside the individual items.
 fn totals() {
     let wf = WaterfallPlot::new()
-        .with_delta("Revenue",       850.0)
-        .with_delta("Cost of goods",-340.0)
+        .with_delta("Revenue", 850.0)
+        .with_delta("Cost of goods", -340.0)
         .with_total("Gross profit")
-        .with_delta("Personnel",    -180.0)
-        .with_delta("Operations",    -90.0)
-        .with_delta("Marketing",     -70.0)
+        .with_delta("Personnel", -180.0)
+        .with_delta("Operations", -90.0)
+        .with_delta("Marketing", -70.0)
         .with_total("EBITDA")
-        .with_delta("Depreciation",  -40.0)
-        .with_delta("Interest",      -20.0)
-        .with_delta("Tax",           -65.0)
+        .with_delta("Depreciation", -40.0)
+        .with_delta("Interest", -20.0)
+        .with_delta("Tax", -65.0)
         .with_total("Net income");
 
     let plots = vec![Plot::Waterfall(wf)];
     let layout = Layout::auto_from_plots(&plots)
         .with_title("Income Statement")
-        .with_y_label("USD (thousands)");
+        .with_y_label("USD (thousands)")
+        .with_x_tick_rotate(-45.0);
 
     let svg = SvgBackend.render_scene(&render_multiple(plots, layout));
     std::fs::write(format!("{OUT}/totals.svg"), svg).unwrap();
@@ -78,15 +79,15 @@ fn totals() {
 /// Connectors and value labels — dashed lines link bar tops, values annotate bars.
 fn connectors_values() {
     let wf = WaterfallPlot::new()
-        .with_delta("Q1 sales",    420.0)
-        .with_delta("Q2 sales",    380.0)
-        .with_delta("Returns",    -95.0)
-        .with_delta("Discounts",  -60.0)
+        .with_delta("Q1 sales", 420.0)
+        .with_delta("Q2 sales", 380.0)
+        .with_delta("Returns", -95.0)
+        .with_delta("Discounts", -60.0)
         .with_total("H1 net")
-        .with_delta("Q3 sales",   410.0)
-        .with_delta("Q4 sales",   455.0)
-        .with_delta("Returns",   -105.0)
-        .with_delta("Discounts",  -70.0)
+        .with_delta("Q3 sales", 410.0)
+        .with_delta("Q4 sales", 455.0)
+        .with_delta("Returns", -105.0)
+        .with_delta("Discounts", -70.0)
         .with_total("H2 net")
         .with_connectors()
         .with_values();
@@ -109,12 +110,12 @@ fn connectors_values() {
 /// sits exactly between those two reference levels and shows the +410 gain.
 fn difference() {
     let wf = WaterfallPlot::new()
-        .with_delta("Revenue",   500.0)   // RT = 500
-        .with_delta("Costs",    -180.0)   // RT = 320
-        .with_total("Period A")           // total bar: 0 → 320
-        .with_delta("Revenue",   600.0)   // RT = 920
-        .with_delta("Costs",    -190.0)   // RT = 730
-        .with_total("Period B")           // total bar: 0 → 730
+        .with_delta("Revenue", 500.0) // RT = 500
+        .with_delta("Costs", -180.0) // RT = 320
+        .with_total("Period A") // total bar: 0 → 320
+        .with_delta("Revenue", 600.0) // RT = 920
+        .with_delta("Costs", -190.0) // RT = 730
+        .with_total("Period B") // total bar: 0 → 730
         // from = Period A total (320), to = Period B total (730)
         .with_difference("Period A→B", 320.0, 730.0)
         .with_values();

@@ -9,18 +9,20 @@
 //!
 //! SVGs are written to `docs/src/assets/ridgeline/`.
 
-use kuva::plot::ridgeline::RidgelinePlot;
-use kuva::render::plots::Plot;
-use kuva::render::layout::Layout;
-use kuva::render::render::render_multiple;
 use kuva::backend::svg::SvgBackend;
+use kuva::plot::ridgeline::RidgelinePlot;
+use kuva::render::layout::Layout;
+use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/ridgeline";
 
 // ── Deterministic data generators ─────────────────────────────────────────────
 
 fn lcg(state: &mut u64) -> f64 {
-    *state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    *state = state
+        .wrapping_mul(6364136223846793005)
+        .wrapping_add(1442695040888963407);
     ((*state >> 33) as f64) / (u32::MAX as f64)
 }
 
@@ -50,29 +52,26 @@ fn main() {
 /// Seasonal temperature distributions — cold-to-warm gradient across months.
 fn temperature() {
     const MONTHS: [(&str, f64, f64); 12] = [
-        ("January",   -3.0, 5.0),
-        ("February",  -1.5, 5.5),
-        ("March",      4.0, 5.0),
-        ("April",     10.0, 4.0),
-        ("May",       15.5, 3.5),
-        ("June",      20.0, 3.0),
-        ("July",      23.0, 2.5),
-        ("August",    22.5, 2.5),
+        ("January", -3.0, 5.0),
+        ("February", -1.5, 5.5),
+        ("March", 4.0, 5.0),
+        ("April", 10.0, 4.0),
+        ("May", 15.5, 3.5),
+        ("June", 20.0, 3.0),
+        ("July", 23.0, 2.5),
+        ("August", 22.5, 2.5),
         ("September", 17.0, 3.0),
-        ("October",   10.5, 4.0),
-        ("November",   3.5, 5.0),
-        ("December",  -1.0, 5.5),
+        ("October", 10.5, 4.0),
+        ("November", 3.5, 5.0),
+        ("December", -1.0, 5.5),
     ];
 
     let colors = [
-        "#3a7abf", "#4589c4", "#6ba3d4", "#a0bfdc",
-        "#d4b8a0", "#e8c97a", "#f0a830", "#e86820",
+        "#3a7abf", "#4589c4", "#6ba3d4", "#a0bfdc", "#d4b8a0", "#e8c97a", "#f0a830", "#e86820",
         "#d44a10", "#c06030", "#9070a0", "#5060b0",
     ];
 
-    let mut plot = RidgelinePlot::new()
-        .with_overlap(0.6)
-        .with_opacity(0.75);
+    let mut plot = RidgelinePlot::new().with_overlap(0.6).with_opacity(0.75);
 
     for (i, &(month, mean, std)) in MONTHS.iter().enumerate() {
         let data = make_gaussian(i as u64 + 1, 200, mean, std);
@@ -92,7 +91,7 @@ fn temperature() {
 /// Basic ridgeline with 3 groups.
 fn basic() {
     let plot = RidgelinePlot::new()
-        .with_group("Control",     vec![1.2, 1.5, 1.8, 2.0, 2.2, 1.9, 1.6, 1.3])
+        .with_group("Control", vec![1.2, 1.5, 1.8, 2.0, 2.2, 1.9, 1.6, 1.3])
         .with_group("Treatment A", vec![2.5, 3.0, 3.5, 4.0, 3.8, 3.2, 2.8, 3.6])
         .with_group("Treatment B", vec![4.5, 5.0, 5.5, 6.0, 5.8, 5.2, 4.8, 5.3]);
 

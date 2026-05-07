@@ -9,11 +9,11 @@
 //!
 //! SVGs are written to `docs/src/assets/contour/`.
 
-use kuva::plot::{ContourPlot, ColorMap};
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::{ColorMap, ContourPlot};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
+use kuva::render::render::render_multiple;
 
 const OUT: &str = "docs/src/assets/contour";
 
@@ -83,8 +83,8 @@ fn lines() {
 fn filled() {
     // Bimodal surface: two overlapping Gaussian peaks
     let (z, xs, ys) = gaussian_grid(60, 60, (-4.0, 4.0), (-4.0, 4.0), |x, y| {
-        let peak1 = (- ((x - 1.2) * (x - 1.2) + (y - 1.0) * (y - 1.0)) / 1.5).exp();
-        let peak2 = 0.6 * (- ((x + 1.5) * (x + 1.5) + (y + 1.2) * (y + 1.2)) / 1.2).exp();
+        let peak1 = (-((x - 1.2) * (x - 1.2) + (y - 1.0) * (y - 1.0)) / 1.5).exp();
+        let peak2 = 0.6 * (-((x + 1.5) * (x + 1.5) + (y + 1.2) * (y + 1.2)) / 1.2).exp();
         peak1 + peak2
     });
 

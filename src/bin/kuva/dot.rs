@@ -1,12 +1,12 @@
 use clap::Args;
 
-use kuva::plot::{DotPlot, ColorMap};
+use kuva::plot::DotPlot;
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, apply_base_args, apply_axis_args};
+use crate::layout_args::{apply_axis_args, apply_base_args, AxisArgs, BaseArgs};
 use crate::output::write_output;
 
 /// Dot plot with size and colour encoding.
@@ -28,7 +28,7 @@ pub struct DotArgs {
     #[arg(long)]
     pub color_col: Option<ColSpec>,
 
-    /// Color map: viridis (default), inferno, grayscale.
+    /// Color map (default: viridis). Run `kuva dot --help` for accepted names.
     #[arg(long, default_value = "viridis")]
     pub colormap: String,
 
@@ -53,13 +53,7 @@ pub struct DotArgs {
     pub axis: AxisArgs,
 }
 
-fn parse_colormap(name: &str) -> ColorMap {
-    match name {
-        "inferno" => ColorMap::Inferno,
-        "grayscale" | "grey" | "gray" => ColorMap::Grayscale,
-        _ => ColorMap::Viridis,
-    }
-}
+use crate::data::parse_colormap;
 
 pub fn run(args: DotArgs) -> Result<(), String> {
     let table = DataTable::parse(
@@ -78,7 +72,8 @@ pub fn run(args: DotArgs) -> Result<(), String> {
     let sizes = table.col_f64(&size_col)?;
     let colors = table.col_f64(&color_col)?;
 
-    let pts: Vec<(String, String, f64, f64)> = xs.into_iter()
+    let pts: Vec<(String, String, f64, f64)> = xs
+        .into_iter()
         .zip(ys)
         .zip(sizes)
         .zip(colors)

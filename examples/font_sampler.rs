@@ -12,41 +12,47 @@ fn main() {
     // (display name, CSS font-family value)
     let fonts: &[(&str, &str)] = &[
         // ── Generics ────────────────────────────────────────────────────────
-        ("sans-serif",        "sans-serif"),
-        ("serif",             "serif"),
-        ("monospace",         "monospace"),
+        ("sans-serif", "sans-serif"),
+        ("serif", "serif"),
+        ("monospace", "monospace"),
         // ── Common Linux sans-serif ─────────────────────────────────────────
-        ("DejaVu Sans",       "DejaVu Sans, sans-serif"),
-        ("Liberation Sans",   "Liberation Sans, sans-serif"),
-        ("Noto Sans",         "Noto Sans, sans-serif"),
-        ("Ubuntu",            "Ubuntu, sans-serif"),
-        ("Cantarell",         "Cantarell, sans-serif"),
-        ("FreeSans",          "FreeSans, sans-serif"),
+        ("DejaVu Sans", "DejaVu Sans, sans-serif"),
+        ("Liberation Sans", "Liberation Sans, sans-serif"),
+        ("Noto Sans", "Noto Sans, sans-serif"),
+        ("Ubuntu", "Ubuntu, sans-serif"),
+        ("Cantarell", "Cantarell, sans-serif"),
+        ("FreeSans", "FreeSans, sans-serif"),
         // ── Cross-platform sans-serif ───────────────────────────────────────
-        ("Arial",             "Arial, sans-serif"),
-        ("Helvetica Neue",    "Helvetica Neue, Helvetica, sans-serif"),
-        ("Verdana",           "Verdana, sans-serif"),
-        ("Tahoma",            "Tahoma, sans-serif"),
-        ("Trebuchet MS",      "Trebuchet MS, sans-serif"),
-        ("Calibri",           "Calibri, sans-serif"),
-        ("Segoe UI",          "Segoe UI, sans-serif"),
+        ("Arial", "Arial, sans-serif"),
+        ("Helvetica Neue", "Helvetica Neue, Helvetica, sans-serif"),
+        ("Verdana", "Verdana, sans-serif"),
+        ("Tahoma", "Tahoma, sans-serif"),
+        ("Trebuchet MS", "Trebuchet MS, sans-serif"),
+        ("Calibri", "Calibri, sans-serif"),
+        ("Segoe UI", "Segoe UI, sans-serif"),
         // ── Web / open-source sans-serif ────────────────────────────────────
-        ("Open Sans",         "Open Sans, sans-serif"),
-        ("Lato",              "Lato, sans-serif"),
-        ("Inter",             "Inter, sans-serif"),
-        ("Roboto",            "Roboto, sans-serif"),
-        ("Fira Sans",         "Fira Sans, sans-serif"),
-        ("Source Sans 3",     "Source Sans 3, Source Sans Pro, sans-serif"),
+        ("Open Sans", "Open Sans, sans-serif"),
+        ("Lato", "Lato, sans-serif"),
+        ("Inter", "Inter, sans-serif"),
+        ("Roboto", "Roboto, sans-serif"),
+        ("Fira Sans", "Fira Sans, sans-serif"),
+        (
+            "Source Sans 3",
+            "Source Sans 3, Source Sans Pro, sans-serif",
+        ),
         // ── Serif ────────────────────────────────────────────────────────────
-        ("Georgia",           "Georgia, serif"),
-        ("Palatino Linotype", "Palatino Linotype, Palatino, Book Antiqua, serif"),
-        ("Times New Roman",   "Times New Roman, Times, serif"),
+        ("Georgia", "Georgia, serif"),
+        (
+            "Palatino Linotype",
+            "Palatino Linotype, Palatino, Book Antiqua, serif",
+        ),
+        ("Times New Roman", "Times New Roman, Times, serif"),
         // ── Monospace ────────────────────────────────────────────────────────
-        ("Courier New",       "Courier New, monospace"),
-        ("DejaVu Sans Mono",  "DejaVu Sans Mono, monospace"),
-        ("Fira Code",         "Fira Code, monospace"),
-        ("Consolas",          "Consolas, monospace"),
-        ("Menlo",             "Menlo, monospace"),
+        ("Courier New", "Courier New, monospace"),
+        ("DejaVu Sans Mono", "DejaVu Sans Mono, monospace"),
+        ("Fira Code", "Fira Code, monospace"),
+        ("Consolas", "Consolas, monospace"),
+        ("Menlo", "Menlo, monospace"),
     ];
 
     // Text shown at each size — representative of kuva plot text
@@ -54,21 +60,21 @@ fn main() {
 
     // Layout constants
     let label_col_w: f64 = 160.0;
-    let size_col_w:  f64 = 330.0;
+    let size_col_w: f64 = 330.0;
     let sizes: &[(u32, &str)] = &[
         (12, "12px — tick labels"),
         (14, "14px — axis labels"),
         (18, "18px — title"),
     ];
-    let row_h:    f64 = 36.0;
+    let row_h: f64 = 36.0;
     let header_h: f64 = 60.0;
-    let pad:      f64 = 12.0;
+    let pad: f64 = 12.0;
 
     // Group separators: (first font index in group, group label)
     let groups: &[(usize, &str)] = &[
-        (0,  "Generic"),
-        (3,  "Common Linux"),
-        (9,  "Cross-platform"),
+        (0, "Generic"),
+        (3, "Common Linux"),
+        (9, "Cross-platform"),
         (16, "Web / Open-source"),
         (22, "Serif"),
         (25, "Monospace"),
@@ -81,7 +87,8 @@ fn main() {
     let mut out = String::with_capacity(256 * 1024);
 
     // ── SVG root ─────────────────────────────────────────────────────────────
-    out += &format!(r##"<svg xmlns="http://www.w3.org/2000/svg" width="{svg_w}" height="{svg_h}">"##);
+    out +=
+        &format!(r##"<svg xmlns="http://www.w3.org/2000/svg" width="{svg_w}" height="{svg_h}">"##);
     out += "\n";
     out += r##"  <rect width="100%" height="100%" fill="white" />"##;
     out += "\n";
@@ -113,7 +120,9 @@ fn main() {
     // Separator under headers
     out += &format!(
         r##"  <line x1="{x}" y1="{y}" x2="{x2}" y2="{y}" stroke="#999" stroke-width="1" />"##,
-        x = pad, x2 = svg_w - pad, y = header_h
+        x = pad,
+        x2 = svg_w - pad,
+        y = header_h
     );
     out += "\n";
 
@@ -123,7 +132,7 @@ fn main() {
     for (fi, (name, family)) in fonts.iter().enumerate() {
         // Group header row
         if let Some(&(_, group_name)) = groups.iter().find(|&&(start, _)| start == fi) {
-            let bg_y  = header_h + pad + row as f64 * row_h;
+            let bg_y = header_h + pad + row as f64 * row_h;
             let text_y = bg_y + row_h * 0.65;
             let w = svg_w - pad * 2.0;
             out += &format!(
@@ -138,9 +147,9 @@ fn main() {
             row += 1;
         }
 
-        let row_y  = header_h + pad + row as f64 * row_h;
+        let row_y = header_h + pad + row as f64 * row_h;
         let text_y = row_y + row_h * 0.65;
-        let row_w  = svg_w - pad * 2.0;
+        let row_w = svg_w - pad * 2.0;
 
         // Alternating row tint
         if fi % 2 == 0 {
@@ -191,7 +200,8 @@ fn main() {
     let bot_y = header_h + pad + row as f64 * row_h;
     out += &format!(
         r##"  <line x1="{x}" y1="{bot_y}" x2="{x2}" y2="{bot_y}" stroke="#999" stroke-width="1" />"##,
-        x = pad, x2 = svg_w - pad
+        x = pad,
+        x2 = svg_w - pad
     );
     out += "\n";
     out += "</svg>\n";

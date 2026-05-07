@@ -33,11 +33,25 @@
 //! | `pdf`   | Enables [`PdfBackend`] for vector PDF output via `svg2pdf`. |
 //! | `cli`   | Enables the `kuva` CLI binary (pulls in `clap`). |
 //! | `full`  | Enables `png` + `pdf`. |
+//!
+//! # Fonts
+//!
+//! DejaVu Sans is bundled inside the crate. The PNG and PDF backends always load
+//! it before scanning system fonts, so text renders correctly even in minimal
+//! environments (containers, CI pipelines) with no installed fonts.
+//!
+//! SVG output references fonts by name and relies on the viewer to resolve them.
+//! For self-contained SVGs that work anywhere, use
+//! [`backend::svg::SvgBackend::with_embedded_font`] or the `--embed-font` CLI flag.
+//! This bakes DejaVu Sans as a base64 `@font-face` block into the SVG at the cost
+//! of roughly 1 MB of added file size.
 
-pub mod plot;
 pub mod backend;
-pub mod render;
+pub mod plot;
 pub mod prelude;
+pub mod render;
+
+pub(crate) mod fonts;
 
 pub use backend::terminal::TerminalBackend;
 
@@ -50,14 +64,37 @@ pub use backend::raster::RasterBackend;
 #[cfg(feature = "pdf")]
 pub use backend::pdf::PdfBackend;
 
-pub use render::theme::Theme;
-pub use render::palette::Palette;
+pub use render::datetime::{ymd, ymd_hms, DateTimeAxis, DateUnit};
+/// KDE bandwidth via Silverman's rule of thumb: `h = 1.06 σ n^{-1/5}`.
+///
+/// Use this together with [`simple_kde`] or [`simple_kde_reflect`] to
+/// pre-compute a density curve before passing it to
+/// [`plot::DensityPlot::from_curve`].  Pre-computing lets you inspect the y
+/// range and set custom axis bounds before rendering.
+pub use render::render_utils::silverman_bandwidth;
+
+/// Gaussian kernel density estimate evaluated at `samples` equally-spaced
+/// points spanning `[data_min − 3h, data_max + 3h]`.
+///
+/// Returns `(x, unnormalised_kernel_sum)` pairs; divide y by `n · h · √(2π)`
+/// to get probability density.  For data bounded at a known limit use
+/// [`simple_kde_reflect`] instead.
+pub use render::render_utils::simple_kde;
+
 pub use render::layout::TickFormat;
-pub use render::render::render_twin_y;
-pub use render::render::render_sankey;
+pub use render::palette::Palette;
+pub use render::render::render_calendar;
 pub use render::render::render_phylo_tree;
+pub use render::render::render_sankey;
 pub use render::render::render_synteny;
-pub use render::datetime::{DateTimeAxis, DateUnit, ymd, ymd_hms};
+pub use render::render::render_twin_y;
+/// Like [`simple_kde`] but applies boundary reflection at `x_lo` and/or
+/// `x_hi` so the curve does not bleed into physically impossible values.
+///
+/// Set `reflect_lo = true` when data cannot go below `x_lo` (e.g. identity
+/// scores ≥ 0); set `reflect_hi = true` when data cannot exceed `x_hi`.
+pub use render::render_utils::simple_kde_reflect;
+pub use render::theme::Theme;
 
 /// Render a collection of plots to an SVG string in one call.
 ///
@@ -77,8 +114,8 @@ pub use render::datetime::{DateTimeAxis, DateUnit, ymd, ymd_hms};
 /// assert!(svg.contains("<svg"));
 /// ```
 ///
-/// For fine-grained control (custom layout, twin axes, special-case plot types)
-/// use [`render::render::render_multiple`] and [`backend::svg::SvgBackend`] directly.
+/// For fine-grained control — custom layout, twin axes, or embedded-font SVG —
+/// use [`render::render::render_multiple`] and [`struct@backend::svg::SvgBackend`] directly.
 pub fn render_to_svg(plots: Vec<render::plots::Plot>, layout: render::layout::Layout) -> String {
     let scene = render::render::render_multiple(plots, layout);
     backend::svg::SvgBackend.render_scene(&scene)
@@ -100,7 +137,9 @@ pub fn render_to_png(
     scale: f32,
 ) -> Result<Vec<u8>, String> {
     let scene = render::render::render_multiple(plots, layout);
-    backend::png::PngBackend::new().with_scale(scale).render_scene(&scene)
+    backend::png::PngBackend::new()
+        .with_scale(scale)
+        .render_scene(&scene)
 }
 
 /// Render a collection of plots directly to a PNG byte vector via `tiny_skia`,
@@ -119,7 +158,9 @@ pub fn render_to_raster(
     scale: f32,
 ) -> Result<Vec<u8>, String> {
     let scene = render::render::render_multiple(plots, layout);
-    backend::raster::RasterBackend::new().with_scale(scale).render_scene(&scene)
+    backend::raster::RasterBackend::new()
+        .with_scale(scale)
+        .render_scene(&scene)
 }
 
 /// Render a collection of plots to a PDF byte vector in one call (requires feature `pdf`).

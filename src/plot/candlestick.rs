@@ -101,7 +101,9 @@ pub struct CandlestickPlot {
 }
 
 impl Default for CandlestickPlot {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl CandlestickPlot {
@@ -218,7 +220,7 @@ impl CandlestickPlot {
         T: Into<f64>,
         I: IntoIterator<Item = T>,
     {
-        for (candle, vol) in self.candles.iter_mut().zip(volumes.into_iter()) {
+        for (candle, vol) in self.candles.iter_mut().zip(volumes) {
             candle.volume = Some(vol.into());
         }
         self
@@ -252,8 +254,19 @@ impl CandlestickPlot {
     /// gives a body that fills 70 % of the available space. In numeric mode
     /// (`with_candle_at`) this value is in data units — set it to be smaller
     /// than the spacing between candles.
+    ///
+    /// Complement of [`with_gap`](Self::with_gap): `width = 1.0 - gap`.
     pub fn with_candle_width(mut self, width: f64) -> Self {
         self.candle_width = width;
+        self
+    }
+
+    /// Set the gap between candles as a fraction of the slot (default `0.3`).
+    ///
+    /// Only meaningful in categorical mode. Complement of
+    /// [`with_candle_width`](Self::with_candle_width): `gap = 1.0 - width`.
+    pub fn with_gap(mut self, gap: f64) -> Self {
+        self.candle_width = (1.0 - gap).clamp(0.0, 1.0);
         self
     }
 
@@ -308,7 +321,10 @@ impl CandlestickPlot {
         self
     }
 
-    pub fn with_tooltip_labels(mut self, labels: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn with_tooltip_labels(
+        mut self,
+        labels: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         self.tooltip_labels = Some(labels.into_iter().map(|s| s.into()).collect());
         self
     }

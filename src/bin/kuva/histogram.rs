@@ -6,7 +6,9 @@ use kuva::render::plots::Plot;
 use kuva::render::render::render_multiple;
 
 use crate::data::{ColSpec, DataTable, InputArgs};
-use crate::layout_args::{BaseArgs, AxisArgs, LogArgs, apply_base_args, apply_axis_args, apply_log_args};
+use crate::layout_args::{
+    apply_axis_args, apply_base_args, apply_log_args, AxisArgs, BaseArgs, LogArgs,
+};
 use crate::output::write_output;
 
 /// Histogram from a numeric column.

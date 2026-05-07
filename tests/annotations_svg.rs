@@ -1,9 +1,9 @@
-use kuva::plot::scatter::ScatterPlot;
 use kuva::backend::svg::SvgBackend;
-use kuva::render::render::render_multiple;
+use kuva::plot::scatter::ScatterPlot;
+use kuva::render::annotations::{ReferenceLine, ShadedRegion, TextAnnotation};
 use kuva::render::layout::Layout;
 use kuva::render::plots::Plot;
-use kuva::render::annotations::{TextAnnotation, ReferenceLine, ShadedRegion};
+use kuva::render::render::render_multiple;
 
 #[test]
 fn test_text_annotation_with_arrow() {
@@ -30,7 +30,7 @@ fn test_text_annotation_with_arrow() {
         .with_annotation(
             TextAnnotation::new("Outlier!", 5.0, 7.5)
                 .with_arrow(6.0, 9.0)
-                .with_color("red")
+                .with_color("red"),
         );
 
     let scene = render_multiple(plots, layout);
@@ -44,13 +44,7 @@ fn test_text_annotation_with_arrow() {
 
 #[test]
 fn test_reference_lines() {
-    let data = vec![
-        (1.0, 2.0),
-        (2.0, 5.0),
-        (3.0, 3.0),
-        (4.0, 8.0),
-        (5.0, 6.0),
-    ];
+    let data = vec![(1.0, 2.0), (2.0, 5.0), (3.0, 3.0), (4.0, 8.0), (5.0, 6.0)];
 
     let scatter = ScatterPlot::new()
         .with_data(data)
@@ -66,12 +60,12 @@ fn test_reference_lines() {
         .with_reference_line(
             ReferenceLine::horizontal(5.0)
                 .with_color("red")
-                .with_label("y = 5")
+                .with_label("y = 5"),
         )
         .with_reference_line(
             ReferenceLine::vertical(3.0)
                 .with_color("green")
-                .with_label("x = 3")
+                .with_label("x = 3"),
         );
 
     let scene = render_multiple(plots, layout);
@@ -109,12 +103,12 @@ fn test_shaded_regions() {
         .with_shaded_region(
             ShadedRegion::horizontal(3.0, 5.0)
                 .with_color("orange")
-                .with_opacity(0.2)
+                .with_opacity(0.2),
         )
         .with_shaded_region(
             ShadedRegion::vertical(2.0, 4.0)
                 .with_color("blue")
-                .with_opacity(0.1)
+                .with_opacity(0.1),
         );
 
     let scene = render_multiple(plots, layout);
@@ -150,23 +144,23 @@ fn test_all_annotations_combined() {
         .with_shaded_region(
             ShadedRegion::horizontal(4.0, 7.0)
                 .with_color("yellow")
-                .with_opacity(0.15)
+                .with_opacity(0.15),
         )
         .with_reference_line(
             ReferenceLine::horizontal(5.0)
                 .with_color("red")
-                .with_label("threshold")
+                .with_label("threshold"),
         )
         .with_reference_line(
             ReferenceLine::vertical(3.5)
                 .with_color("blue")
-                .with_label("midpoint")
+                .with_label("midpoint"),
         )
         .with_annotation(
             TextAnnotation::new("Peak", 5.0, 8.5)
                 .with_arrow(6.0, 10.0)
                 .with_color("darkred")
-                .with_font_size(14)
+                .with_font_size(14),
         );
 
     let scene = render_multiple(plots, layout);
@@ -174,9 +168,9 @@ fn test_all_annotations_combined() {
     std::fs::write("test_outputs/annotations_combined.svg", svg.clone()).unwrap();
 
     assert!(svg.contains("<svg"));
-    assert!(svg.contains("fill-opacity"));      // shaded region
-    assert!(svg.contains("stroke-dasharray"));  // reference line
-    assert!(svg.contains("Peak"));              // text annotation
-    assert!(svg.contains("threshold"));         // reference line label
-    assert!(svg.contains("midpoint"));          // reference line label
+    assert!(svg.contains("fill-opacity")); // shaded region
+    assert!(svg.contains("stroke-dasharray")); // reference line
+    assert!(svg.contains("Peak")); // text annotation
+    assert!(svg.contains("threshold")); // reference line label
+    assert!(svg.contains("midpoint")); // reference line label
 }
