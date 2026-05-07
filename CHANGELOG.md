@@ -9,7 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.1.7] — 2026-04-29
+## [0.2.0] — 2026-05-07
+
+### Added
+
+- **`DensityPlot::with_fit()`** — opts the density plot out of zero-anchoring so the y-axis fits the data range instead of starting at 0. Useful for precomputed curves (`DensityPlot::from_curve`) whose y values never reach zero. Standard KDE curves always taper to zero at the tails, so this flag has its primary effect on precomputed data. `fit_y` is also respected by `bounds()` for precomputed curves: the reported y_min now tracks the actual curve minimum rather than hardcoding 0. CLI: `kuva density --fit`.
+- **`kuva::silverman_bandwidth` / `kuva::simple_kde` / `kuva::simple_kde_reflect`** — KDE computation functions are now part of the public API. Use these to pre-compute density curves before passing them to `DensityPlot::from_curve`, enabling inspection of the y range prior to setting axis bounds.
+- **`Figure::with_row_height(row, px)`** — overrides the height of a single grid row (0-based). Rows without an explicit override use the default `cell_height`. Useful for thin legend strips, compact annotation rows, or asymmetric layouts where one row should be much taller or shorter than the others.
+- **`Figure::with_col_width(col, px)`** — overrides the width of a single grid column (0-based). Columns without an explicit override use the default `cell_width`.
+- **`with_figure_size` + explicit rows/cols** — when `with_figure_size` is combined with per-row or per-col overrides, the explicit sizes are subtracted first and the remaining space is divided equally among unconstrained rows/cols, so the total SVG size is still exactly honoured.
+- **`LegendPlot` auto-column reflow** — when a `LegendPlot` is placed in a short cell (e.g. a thin legend row), the renderer now automatically increases the column count until all entries fit within the available cell height. Previously, entries overflowed the bottom of the cell.
 
 ### Added
 
@@ -65,6 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **CSV quoted fields** — commas inside double-quoted fields (RFC 4180 §2.6) are no longer misinterpreted as delimiters. The CLI CSV parser now uses the `csv` crate for fully spec-compliant parsing. Previously, a header like `"data,test"` would shift all subsequent column indices, causing the wrong column to be plotted silently. Closes [#74](https://github.com/Psy-Fer/kuva/issues/74).
+- **Line plot y-axis zero anchor** — `Layout::auto_from_plots` no longer anchors the y-axis at 0 for plot types where zero has no semantic meaning (line, scatter, series, band, box, violin, strip, raincloud, bump, candlestick, contour, hexbin, scatter3d, forest, parallel, slope, QQ). The axis now fits the data range with a small breathing margin. Plots where zero *is* meaningful (bar, histogram, stacked area, waterfall, lollipop, density, ridgeline, ECDF, survival, ROC, PR, funnel, streamgraph) are unaffected. When non-negative data genuinely starts at or near zero, the margin is clamped so the axis does not cross into negative territory. Closes [#75](https://github.com/Psy-Fer/kuva/issues/75).
+- **`Layout::anchor_y_zero`** — new `bool` field (default `true`) that controls whether `auto_from_plots` clamps the y-axis minimum to zero for non-negative data. Set automatically based on the plot types present; can also be overridden manually for custom layouts.
 - **`Figure` column x-positions** — cell x-coordinates and multi-column span widths now use per-column prefix sums instead of uniform `cell_width × col`, so explicit `with_col_width` overrides are correctly reflected in cell placement.
 - **Fonts in minimal environments** — DejaVu Sans is now bundled inside the crate and loaded into the font database before system fonts in the PNG and PDF backends. Plots rendered in containers or CI pipelines with no installed fonts (e.g. bioconda recipes) will now have correct text rendering instead of blank labels.
 - **`SvgBackend::with_embedded_font(true)`** — new builder method that injects a base64-encoded `@font-face` block into the SVG `<style>` element, making the SVG self-contained for environments where system fonts are unavailable (headless servers, `rsvg-convert` in containers, etc.). Off by default to keep SVG file sizes small. CLI: `--embed-font`. Closes [#71](https://github.com/Psy-Fer/kuva/issues/71).

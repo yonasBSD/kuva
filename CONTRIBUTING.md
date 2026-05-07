@@ -2,6 +2,10 @@
 
 Thank you for considering a contribution. This document describes how the codebase is laid out and what needs to be updated for each type of change.
 
+## Branching
+
+**Open all pull requests against the `dev` branch**, not `main`. The `main` branch tracks released versions only; `dev` is where work-in-progress is integrated before a release.
+
 ## Quick orientation
 
 ```
