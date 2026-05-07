@@ -65,7 +65,28 @@ pub use backend::raster::RasterBackend;
 pub use backend::pdf::PdfBackend;
 
 pub use render::datetime::{ymd, ymd_hms, DateTimeAxis, DateUnit};
-pub use render::render_utils::{silverman_bandwidth, simple_kde, simple_kde_reflect};
+/// KDE bandwidth via Silverman's rule of thumb: `h = 1.06 σ n^{-1/5}`.
+///
+/// Use this together with [`simple_kde`] or [`simple_kde_reflect`] to
+/// pre-compute a density curve before passing it to
+/// [`plot::DensityPlot::from_curve`].  Pre-computing lets you inspect the y
+/// range and set custom axis bounds before rendering.
+pub use render::render_utils::silverman_bandwidth;
+
+/// Gaussian kernel density estimate evaluated at `samples` equally-spaced
+/// points spanning `[data_min − 3h, data_max + 3h]`.
+///
+/// Returns `(x, unnormalised_kernel_sum)` pairs; divide y by `n · h · √(2π)`
+/// to get probability density.  For data bounded at a known limit use
+/// [`simple_kde_reflect`] instead.
+pub use render::render_utils::simple_kde;
+
+/// Like [`simple_kde`] but applies boundary reflection at `x_lo` and/or
+/// `x_hi` so the curve does not bleed into physically impossible values.
+///
+/// Set `reflect_lo = true` when data cannot go below `x_lo` (e.g. identity
+/// scores ≥ 0); set `reflect_hi = true` when data cannot exceed `x_hi`.
+pub use render::render_utils::simple_kde_reflect;
 pub use render::layout::TickFormat;
 pub use render::palette::Palette;
 pub use render::render::render_calendar;

@@ -389,6 +389,16 @@ impl Layout {
         Layout::new((x_range.start, x_range.end), (y_min, y_max * 1.05))
     }
 
+    /// Build a `Layout` whose axis ranges are derived automatically from the
+    /// bounding boxes of all plots.
+    ///
+    /// **y-axis zero anchor** — for plots where zero is a meaningful baseline
+    /// (bar, histogram, stacked area, waterfall, lollipop, density, ridgeline,
+    /// ECDF, survival, ROC, PR, funnel, streamgraph) the y-axis is anchored at
+    /// 0 when all data is non-negative.  For all other plot types (line, scatter,
+    /// box, violin, etc.) the axis fits the data range with a small breathing
+    /// margin.  The computed [`Layout::anchor_y_zero`] field records which
+    /// behaviour was chosen and can be overridden after the fact.
     pub fn auto_from_plots(plots: &[Plot]) -> Self {
         let mut x_min = f64::INFINITY;
         let mut x_max = f64::NEG_INFINITY;
@@ -429,7 +439,6 @@ impl Layout {
                     | Plot::StackedArea(_)
                     | Plot::Waterfall(_)
                     | Plot::Lollipop(_)
-                    | Plot::Density(_)
                     | Plot::Ridgeline(_)
                     | Plot::Ecdf(_)
                     | Plot::Survival(_)
@@ -439,6 +448,11 @@ impl Layout {
                     | Plot::Streamgraph(_)
             ) {
                 anchor_y_zero = true;
+            }
+            if let Plot::Density(dp) = plot {
+                if !dp.fit_y {
+                    anchor_y_zero = true;
+                }
             }
 
             if let Plot::Strip(sp) = plot {
@@ -1112,6 +1126,9 @@ impl Layout {
             y_max += y_span * 0.01;
             if y_min >= 0.0 && anchor_y_zero {
                 y_min = 0.0;
+            } else if y_min >= 0.0 {
+                // Fit-to-data: add breathing room but don't cross into negative territory.
+                y_min = (y_min - y_span * 0.01).max(0.0);
             } else {
                 y_min -= y_span * 0.01;
             }

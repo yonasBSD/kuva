@@ -395,3 +395,112 @@ fn test_density_bounded_bimodal_identity_scores() {
     assert!(!svg.contains("NaN"));
     assert!(svg.contains("<path"));
 }
+
+// ── with_fit() / anchor_y_zero tests ─────────────────────────────────────────
+
+/// Without with_fit(), auto_from_plots anchors the y-axis at zero.
+#[test]
+fn test_density_default_anchors_y_zero() {
+    let data: Vec<f64> = (0..50).map(|i| 5.0 + i as f64 * 0.1).collect();
+    let dp = DensityPlot::new().with_data(data);
+    let plots = vec![Plot::Density(dp)];
+    let layout = Layout::auto_from_plots(&plots);
+    assert!(
+        layout.anchor_y_zero,
+        "density without with_fit() should anchor y at zero"
+    );
+    assert_eq!(
+        layout.y_range.0, 0.0,
+        "y_min should be 0.0 when anchored (got {})",
+        layout.y_range.0
+    );
+}
+
+/// with_fit() disables the zero anchor; layout.anchor_y_zero is false and
+/// y_min is computed from the data range rather than clamped to 0.
+#[test]
+fn test_density_fit_disables_zero_anchor() {
+    let data: Vec<f64> = (0..50).map(|i| 5.0 + i as f64 * 0.1).collect();
+    let dp = DensityPlot::new().with_data(data).with_fit();
+    let plots = vec![Plot::Density(dp)];
+    let layout = Layout::auto_from_plots(&plots);
+    assert!(
+        !layout.anchor_y_zero,
+        "density with with_fit() should not anchor y at zero"
+    );
+}
+
+/// For a precomputed curve whose y values start well above zero, with_fit()
+/// produces a y_min that tracks the data rather than clamping to 0.
+#[test]
+fn test_density_fit_ymin_tracks_data() {
+    // Precomputed curve: y values range from 0.5 to 1.0 — never touches zero.
+    let x = vec![0.0, 1.0, 2.0, 3.0, 4.0];
+    let y = vec![0.5, 0.8, 1.0, 0.8, 0.5];
+    let dp_default = DensityPlot::from_curve(x.clone(), y.clone());
+    let dp_fit = DensityPlot::from_curve(x, y).with_fit();
+
+    let layout_default = Layout::auto_from_plots(&[Plot::Density(dp_default)]);
+    let layout_fit = Layout::auto_from_plots(&[Plot::Density(dp_fit)]);
+
+    assert_eq!(
+        layout_default.y_range.0, 0.0,
+        "without with_fit(), y_min should be 0.0"
+    );
+    assert!(
+        layout_fit.y_range.0 > 0.0,
+        "with with_fit(), y_min should be > 0.0 for data that never touches zero; got {}",
+        layout_fit.y_range.0
+    );
+}
+
+/// When with_fit() density plots are mixed with an anchoring plot type (bar),
+/// anchor_y_zero stays true — the bar plot wins.
+#[test]
+fn test_density_fit_overridden_by_bar() {
+    use kuva::plot::BarPlot;
+    let dp = DensityPlot::new()
+        .with_data(vec![1.0, 2.0, 3.0])
+        .with_fit();
+    let bar = BarPlot::new().with_bar("A", 5.0);
+    let plots = vec![Plot::Density(dp), Plot::Bar(bar)];
+    let layout = Layout::auto_from_plots(&plots);
+    assert!(
+        layout.anchor_y_zero,
+        "bar plot should keep anchor_y_zero true even when a density uses with_fit()"
+    );
+}
+
+/// Rendered SVG with with_fit() on a precomputed curve (y values never reach 0)
+/// should start the y-axis above zero and contain no NaN.
+#[test]
+fn test_density_fit_renders_cleanly() {
+    outdir();
+    // Precomputed curve whose baseline is at 0.3 — never touches zero.
+    let x: Vec<f64> = (0..9).map(|i| i as f64 * 0.5).collect();
+    let y = vec![0.30, 0.45, 0.70, 0.90, 1.00, 0.90, 0.70, 0.45, 0.30];
+    let dp = DensityPlot::from_curve(x, y)
+        .with_color("steelblue")
+        .with_filled(true)
+        .with_fit();
+    let plots = vec![Plot::Density(dp)];
+    let layout = Layout::auto_from_plots(&plots).with_title("Density fit-to-data");
+    let svg = render_svg(plots, layout);
+    fs::write("test_outputs/density_fit.svg", &svg).unwrap();
+    assert!(svg.contains("<svg"));
+    assert!(svg.contains("<path"));
+    assert!(!svg.contains("NaN"), "SVG should not contain NaN");
+    // The y-axis should not start at 0 — fit_y tracks the curve minimum (0.3).
+    let layout2 = Layout::auto_from_plots(&[Plot::Density(
+        DensityPlot::from_curve(
+            (0..9).map(|i| i as f64 * 0.5).collect(),
+            vec![0.30, 0.45, 0.70, 0.90, 1.00, 0.90, 0.70, 0.45, 0.30],
+        )
+        .with_fit(),
+    )]);
+    assert!(
+        layout2.y_range.0 > 0.0,
+        "y-axis should start above 0 when fit_y is set; got {}",
+        layout2.y_range.0
+    );
+}

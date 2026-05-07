@@ -961,8 +961,13 @@ impl Plot {
                     }
                     let x_min = xs.iter().cloned().fold(f64::INFINITY, f64::min);
                     let x_max = xs.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+                    let y_min = if dp.fit_y {
+                        ys.iter().cloned().fold(f64::INFINITY, f64::min)
+                    } else {
+                        0.0
+                    };
                     let y_max = ys.iter().cloned().fold(0.0_f64, f64::max);
-                    return Some(((x_min, x_max), (0.0, y_max * 1.1)));
+                    return Some(((x_min, x_max), (y_min, y_max * 1.1)));
                 }
                 if dp.data.len() < 2 {
                     return None;

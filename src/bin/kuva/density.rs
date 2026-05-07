@@ -31,6 +31,10 @@ pub struct DensityArgs {
     #[arg(long)]
     pub bandwidth: Option<f64>,
 
+    /// Fit the y-axis to the data range instead of anchoring at zero.
+    #[arg(long)]
+    pub fit: bool,
+
     #[command(flatten)]
     pub input: InputArgs,
 
@@ -75,6 +79,9 @@ pub fn run(args: DensityArgs) -> Result<(), String> {
                 if let Some(hi) = args.axis.x_max {
                     dp = dp.with_x_hi(hi);
                 }
+                if args.fit {
+                    dp = dp.with_fit();
+                }
                 Ok(Plot::Density(dp))
             })
             .collect::<Result<Vec<_>, String>>()?
@@ -89,6 +96,9 @@ pub fn run(args: DensityArgs) -> Result<(), String> {
         }
         if let (Some(lo), Some(hi)) = (args.axis.x_min, args.axis.x_max) {
             dp = dp.with_x_range(lo, hi);
+        }
+        if args.fit {
+            dp = dp.with_fit();
         }
         vec![Plot::Density(dp)]
     };
